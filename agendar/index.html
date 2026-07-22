@@ -111,6 +111,8 @@
   .field-row:last-child{margin-bottom:0;}
   .two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
   @media (max-width:560px){.two-col{grid-template-columns:1fr;}}
+  .three-col{display:grid;grid-template-columns:1fr 1.3fr 1.3fr;gap:12px;}
+  @media (max-width:560px){.three-col{grid-template-columns:1fr;}}
   .error-msg{font-size:11px;color:var(--coral);margin-top:5px;display:none;}
   .error-msg.show{display:block;}
 
@@ -329,19 +331,45 @@
     </div>
 
     <p class="step-label">Datos del traslado</p>
-    <div class="field-row two-col">
+    <div class="field-row three-col">
       <div>
-        <label for="vehiculo">Vehículo (patente + modelo)</label>
-        <input type="text" id="vehiculo" placeholder="Ej: HTXR-21 · Chevrolet Sail">
-        <div class="error-msg" id="errorVehiculo">Ingresa al menos la patente.</div>
+        <label for="patente">Patente</label>
+        <input type="text" id="patente" placeholder="Ej: HTXR-21" style="text-transform:uppercase;">
+        <div class="error-msg" id="errorPatente">Ingresa la patente.</div>
       </div>
       <div>
-        <label for="direccion">Dirección del cliente</label>
-        <input type="text" id="direccion" placeholder="Ej: Av. Los Leones 1420, Providencia">
-        <div class="error-msg" id="errorDireccion">Ingresa la dirección del cliente.</div>
-        <button type="button" class="quick-link" id="repeatAddr" style="display:none;">Usar la última dirección</button>
+        <label for="marca">Marca</label>
+        <input type="text" id="marca" placeholder="Ej: Chevrolet">
+      </div>
+      <div>
+        <label for="modelo">Modelo</label>
+        <input type="text" id="modelo" placeholder="Ej: Sail">
       </div>
     </div>
+    <div class="field-row two-col">
+      <div>
+        <label for="calle">Calle</label>
+        <input type="text" id="calle" placeholder="Ej: Av. Los Leones">
+        <div class="error-msg" id="errorCalle">Ingresa la calle.</div>
+      </div>
+      <div>
+        <label for="numero">Número</label>
+        <input type="text" id="numero" placeholder="Ej: 1420">
+        <div class="error-msg" id="errorNumero">Ingresa el número.</div>
+      </div>
+    </div>
+    <div class="field-row two-col">
+      <div>
+        <label for="comuna">Comuna</label>
+        <input type="text" id="comuna" placeholder="Ej: Providencia">
+        <div class="error-msg" id="errorComuna">Ingresa la comuna.</div>
+      </div>
+      <div>
+        <label for="deptoCasa">Depto / casa (opcional)</label>
+        <input type="text" id="deptoCasa" placeholder="Ej: Depto 302">
+      </div>
+    </div>
+    <button type="button" class="quick-link" id="repeatAddr" style="display:none;margin-bottom:14px;">Usar la última dirección</button>
     <div class="field-row">
       <label for="notas">Notas para el chofer (opcional)</label>
       <textarea id="notas" placeholder="Ej: llamar antes de llegar, portón trasero"></textarea>
@@ -473,7 +501,7 @@ const TIPO_LABEL = {retiro:"Retiro", entrega:"Entrega", ambos:"Retiro + Entrega"
 let selectedTipo = "retiro";
 let selectedWhen = "ahora";
 let entregaPendienteFlag = true;
-let lastAddress = "";
+let lastAddress = {};
 let queue = [];
 let editingIndex = null;
 
@@ -482,13 +510,21 @@ function fmtDateTime(iso){
   return new Date(iso).toLocaleString('es-CL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
 }
 
+function fullAddress(t){
+  return `${t.calle} ${t.numero}${t.deptoCasa ? ', ' + t.deptoCasa : ''}, ${t.comuna}`;
+}
+
+function wazeLink(t){
+  return `https://waze.com/ul?q=${encodeURIComponent(fullAddress(t))}&navigate=yes`;
+}
+
 function displayWhen(t){
   if(t.tipo === 'ambos'){
-    const retiro = t.whenMode==='ahora' ? 'Retiro ahora' : 'Retiro ' + (fmtDateTime(t.fechaPrincipal) || 'sin fecha');
+    const retiro = t.whenMode==='ahora' ? ('Ahora' + (fmtDateTime(t.fechaPrincipal) ? ' · ' + fmtDateTime(t.fechaPrincipal) : '')) : 'Retiro ' + (fmtDateTime(t.fechaPrincipal) || 'sin fecha');
     const entrega = t.entregaPendiente ? 'entrega por coordinar' : 'entrega ' + (fmtDateTime(t.fechaEntrega) || 'sin fecha');
     return retiro + ' · ' + entrega;
   }
-  return t.whenMode==='ahora' ? 'Ahora (urgente)' : (fmtDateTime(t.fechaPrincipal) || 'Sin fecha definida');
+  return t.whenMode==='ahora' ? ('Ahora' + (fmtDateTime(t.fechaPrincipal) ? ' · solicitado ' + fmtDateTime(t.fechaPrincipal) : '')) : (fmtDateTime(t.fechaPrincipal) || 'Sin fecha definida');
 }
 
 function renderTray(){
@@ -502,8 +538,8 @@ function renderTray(){
   list.innerHTML = queue.map((t,i)=>`
     <div class="tray-item ${i===editingIndex ? 'editing' : ''}">
       <div class="tray-item-info">
-        <b>${TIPO_LABEL[t.tipo]}</b> · ${t.vehiculo}
-        <div class="tray-item-meta">${t.direccion} · ${displayWhen(t)}</div>
+        <b>${TIPO_LABEL[t.tipo]}</b> · ${t.patente}${(t.marca || t.modelo) ? ' · ' + [t.marca, t.modelo].filter(Boolean).join(' ') : ''}
+        <div class="tray-item-meta">${fullAddress(t)} · <a href="${wazeLink(t)}" target="_blank" rel="noopener" style="color:var(--teal-deep);">Ver en Waze ↗</a> · ${displayWhen(t)}</div>
         ${t.notas ? `<div class="tray-item-notes">"${t.notas}"</div>` : ''}
       </div>
       <div class="tray-item-actions">
@@ -552,7 +588,7 @@ const tipoCtrl = setupRadioGroup(document.getElementById('tipoGrid'), (item)=>{
   selectedTipo = item.dataset.tipo;
   document.getElementById('entregaBlock').style.display = selectedTipo==='ambos' ? 'block' : 'none';
   document.getElementById('whenLabel').textContent = selectedTipo==='entrega' ? '2 · Entrega: ¿cuándo?' : '2 · Retiro: ¿cuándo?';
-  clearError('errorVehiculo'); clearError('errorDireccion');
+  clearError('errorPatente'); clearError('errorCalle'); clearError('errorNumero'); clearError('errorComuna');
 });
 
 const whenCtrl = setupRadioGroup(document.getElementById('whenToggle'), (item)=>{
@@ -568,8 +604,11 @@ document.getElementById('entregaPendiente').addEventListener('change', (e)=>{
 });
 
 document.getElementById('repeatAddr').addEventListener('click', ()=>{
-  document.getElementById('direccion').value = lastAddress;
-  clearError('errorDireccion');
+  document.getElementById('calle').value = lastAddress.calle || '';
+  document.getElementById('numero').value = lastAddress.numero || '';
+  document.getElementById('comuna').value = lastAddress.comuna || '';
+  document.getElementById('deptoCasa').value = lastAddress.deptoCasa || '';
+  clearError('errorCalle'); clearError('errorNumero'); clearError('errorComuna');
 });
 
 function showError(id){ document.getElementById(id).classList.add('show'); }
@@ -588,8 +627,13 @@ function startEdit(i){
     document.getElementById('entregaDatetimeBlock').classList.toggle('hidden', t.entregaPendiente);
     document.getElementById('fechaEntrega').value = t.fechaEntrega || '';
   }
-  document.getElementById('vehiculo').value = t.vehiculo;
-  document.getElementById('direccion').value = t.direccion;
+  document.getElementById('patente').value = t.patente;
+  document.getElementById('marca').value = t.marca || '';
+  document.getElementById('modelo').value = t.modelo || '';
+  document.getElementById('calle').value = t.calle;
+  document.getElementById('numero').value = t.numero;
+  document.getElementById('comuna').value = t.comuna;
+  document.getElementById('deptoCasa').value = t.deptoCasa || '';
   document.getElementById('notas').value = t.notas || '';
 
   document.getElementById('addBtn').textContent = 'Guardar cambios';
@@ -597,7 +641,7 @@ function startEdit(i){
   document.getElementById('editingBanner').classList.add('show');
   document.getElementById('successBanner').style.display = 'none';
   renderTray();
-  document.getElementById('vehiculo').scrollIntoView({behavior:'smooth', block:'center'});
+  document.getElementById('patente').scrollIntoView({behavior:'smooth', block:'center'});
 }
 
 function cancelEdit(){
@@ -605,8 +649,13 @@ function cancelEdit(){
   document.getElementById('addBtn').textContent = '+ Agregar a la lista';
   document.getElementById('cancelEditBtn').classList.remove('show');
   document.getElementById('editingBanner').classList.remove('show');
-  document.getElementById('vehiculo').value = '';
-  document.getElementById('direccion').value = '';
+  document.getElementById('patente').value = '';
+  document.getElementById('marca').value = '';
+  document.getElementById('modelo').value = '';
+  document.getElementById('calle').value = '';
+  document.getElementById('numero').value = '';
+  document.getElementById('comuna').value = '';
+  document.getElementById('deptoCasa').value = '';
   document.getElementById('notas').value = '';
   document.getElementById('fechaPrincipal').value = '';
   document.getElementById('fechaEntrega').value = '';
@@ -616,29 +665,41 @@ function cancelEdit(){
 document.getElementById('cancelEditBtn').addEventListener('click', cancelEdit);
 
 document.getElementById('addBtn').addEventListener('click', ()=>{
-  const vehiculo = document.getElementById('vehiculo').value.trim();
-  const direccion = document.getElementById('direccion').value.trim();
+  const patente = document.getElementById('patente').value.trim().toUpperCase();
+  const marca = document.getElementById('marca').value.trim();
+  const modelo = document.getElementById('modelo').value.trim();
+  const calle = document.getElementById('calle').value.trim();
+  const numero = document.getElementById('numero').value.trim();
+  const comuna = document.getElementById('comuna').value.trim();
+  const deptoCasa = document.getElementById('deptoCasa').value.trim();
   const notas = document.getElementById('notas').value.trim();
 
   let valid = true;
-  document.getElementById('vehiculo').classList.remove('field-error');
-  document.getElementById('direccion').classList.remove('field-error');
-  clearError('errorVehiculo'); clearError('errorDireccion'); clearError('errorFechaPrincipal'); clearError('errorFechaEntrega');
+  ['patente','calle','numero','comuna'].forEach(id => document.getElementById(id).classList.remove('field-error'));
+  clearError('errorPatente'); clearError('errorCalle'); clearError('errorNumero'); clearError('errorComuna'); clearError('errorFechaPrincipal'); clearError('errorFechaEntrega');
 
-  if(!vehiculo){ showError('errorVehiculo'); document.getElementById('vehiculo').classList.add('field-error'); valid = false; }
-  if(!direccion){ showError('errorDireccion'); document.getElementById('direccion').classList.add('field-error'); valid = false; }
+  if(!patente){ showError('errorPatente'); document.getElementById('patente').classList.add('field-error'); valid = false; }
+  if(!calle){ showError('errorCalle'); document.getElementById('calle').classList.add('field-error'); valid = false; }
+  if(!numero){ showError('errorNumero'); document.getElementById('numero').classList.add('field-error'); valid = false; }
+  if(!comuna){ showError('errorComuna'); document.getElementById('comuna').classList.add('field-error'); valid = false; }
   if(selectedWhen === 'programar' && !document.getElementById('fechaPrincipal').value){ showError('errorFechaPrincipal'); valid = false; }
   if(selectedTipo === 'ambos' && !entregaPendienteFlag && !document.getElementById('fechaEntrega').value){ showError('errorFechaEntrega'); valid = false; }
 
   if(!valid) return;
 
+  // Si es "Ahora", se guarda la hora real de este momento — es lo que
+  // ve el chofer como referencia de "lo antes posible", no queda vacío.
+  const fechaPrincipalValue = selectedWhen === 'ahora'
+    ? new Date().toISOString()
+    : (document.getElementById('fechaPrincipal').value || '');
+
   const item = {
     tipo: selectedTipo,
     whenMode: selectedWhen,
-    fechaPrincipal: document.getElementById('fechaPrincipal').value || '',
+    fechaPrincipal: fechaPrincipalValue,
     entregaPendiente: entregaPendienteFlag,
     fechaEntrega: document.getElementById('fechaEntrega').value || '',
-    vehiculo, direccion, notas
+    patente, marca, modelo, calle, numero, comuna, deptoCasa, notas
   };
 
   if(editingIndex !== null){
@@ -647,7 +708,7 @@ document.getElementById('addBtn').addEventListener('click', ()=>{
     queue.push(item);
   }
 
-  lastAddress = direccion;
+  lastAddress = { calle, numero, comuna, deptoCasa };
   document.getElementById('repeatAddr').style.display = 'inline';
 
   const wasEditing = editingIndex !== null;
@@ -658,13 +719,18 @@ document.getElementById('addBtn').addEventListener('click', ()=>{
 
   renderTray();
 
-  document.getElementById('vehiculo').value = '';
-  document.getElementById('direccion').value = '';
+  document.getElementById('patente').value = '';
+  document.getElementById('marca').value = '';
+  document.getElementById('modelo').value = '';
+  document.getElementById('calle').value = '';
+  document.getElementById('numero').value = '';
+  document.getElementById('comuna').value = '';
+  document.getElementById('deptoCasa').value = '';
   document.getElementById('notas').value = '';
   document.getElementById('fechaPrincipal').value = '';
   document.getElementById('fechaEntrega').value = '';
   document.getElementById('successBanner').style.display = 'none';
-  document.getElementById('vehiculo').focus();
+  document.getElementById('patente').focus();
 });
 
 document.getElementById('confirmAllBtn').addEventListener('click', async ()=>{
@@ -682,8 +748,13 @@ document.getElementById('confirmAllBtn').addEventListener('click', async ()=>{
     fecha_principal: t.fechaPrincipal ? new Date(t.fechaPrincipal).toISOString() : null,
     entrega_pendiente: t.entregaPendiente,
     fecha_entrega: t.fechaEntrega ? new Date(t.fechaEntrega).toISOString() : null,
-    vehiculo: t.vehiculo,
-    direccion: t.direccion,
+    patente: t.patente,
+    marca: t.marca || null,
+    modelo: t.modelo || null,
+    calle: t.calle,
+    numero: t.numero,
+    comuna: t.comuna,
+    depto_casa: t.deptoCasa || null,
     notas: t.notas || null
   }));
 
