@@ -256,8 +256,8 @@
     <button class="login-btn" id="loginBtn">Enviarme un código de acceso</button>
     <div class="login-msg" id="loginMsg"></div>
     <div id="otpBlock" style="display:none;margin-top:18px;padding-top:18px;border-top:1px solid var(--line);">
-      <p style="font-size:12px;color:var(--ink-dim);margin:0 0 10px;">Ingresa aquí el código de 6 dígitos que te llegó por correo:</p>
-      <input type="text" id="loginCode" placeholder="123456" maxlength="6" style="text-align:center;letter-spacing:4px;font-family:'JetBrains Mono',monospace;">
+      <p style="font-size:12px;color:var(--ink-dim);margin:0 0 10px;">Ingresa aquí el código de 8 dígitos que te llegó por correo:</p>
+      <input type="text" id="loginCode" placeholder="12345678" maxlength="8" style="text-align:center;letter-spacing:4px;font-family:'JetBrains Mono',monospace;">
       <button class="login-btn" id="verifyCodeBtn" style="background:var(--teal);">Confirmar código</button>
     </div>
   </div>
@@ -438,8 +438,8 @@ document.getElementById('verifyCodeBtn').addEventListener('click', async ()=>{
   const msg = document.getElementById('loginMsg');
   const btn = document.getElementById('verifyCodeBtn');
   msg.className = 'login-msg';
-  if(!code || code.length !== 6){
-    msg.textContent = '⚠ Ingresa el código de 6 dígitos completo.';
+  if(!code || code.length !== 8){
+    msg.textContent = '⚠ Ingresa el código de 8 dígitos completo.';
     msg.classList.add('err');
     return;
   }
@@ -449,7 +449,7 @@ document.getElementById('verifyCodeBtn').addEventListener('click', async ()=>{
   btn.disabled = false;
   btn.textContent = 'Confirmar código';
   if(error){
-    msg.textContent = '⚠ Código incorrecto o vencido: ' + error.message;
+    msg.textContent = '⚠ Ese código ya venció o no es válido. Pide uno nuevo con el botón de arriba y usa el más reciente.';
     msg.classList.add('err');
   }
   // si funciona, onAuthStateChange se encarga de mostrar la app
