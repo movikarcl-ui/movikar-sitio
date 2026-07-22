@@ -251,12 +251,12 @@
       </svg>
     </div>
     <h2>Ingresa a tu portal MoviKar</h2>
-    <p>Escribe el correo de tu taller. Te mandamos un link de acceso — sin contraseñas que recordar.</p>
+    <p>Solo talleres habilitados por MoviKar. Escribe tu correo y te mandamos un código de acceso.</p>
     <input type="text" id="loginEmail" placeholder="correo@tutaller.cl">
-    <button class="login-btn" id="loginBtn">Enviar link de acceso</button>
+    <button class="login-btn" id="loginBtn">Enviarme un código de acceso</button>
     <div class="login-msg" id="loginMsg"></div>
     <div id="otpBlock" style="display:none;margin-top:18px;padding-top:18px;border-top:1px solid var(--line);">
-      <p style="font-size:12px;color:var(--ink-dim);margin:0 0 10px;">¿No te dejó entrar el link? Ingresa el código de 6 dígitos del correo:</p>
+      <p style="font-size:12px;color:var(--ink-dim);margin:0 0 10px;">Ingresa aquí el código de 6 dígitos que te llegó por correo:</p>
       <input type="text" id="loginCode" placeholder="123456" maxlength="6" style="text-align:center;letter-spacing:4px;font-family:'JetBrains Mono',monospace;">
       <button class="login-btn" id="verifyCodeBtn" style="background:var(--teal);">Confirmar código</button>
     </div>
@@ -414,15 +414,19 @@ document.getElementById('loginBtn').addEventListener('click', async ()=>{
   btn.textContent = 'Enviando...';
   const { error } = await sb.auth.signInWithOtp({
     email,
-    options: { emailRedirectTo: window.location.href }
+    options: { emailRedirectTo: window.location.href, shouldCreateUser: false }
   });
   btn.disabled = false;
-  btn.textContent = 'Enviar link de acceso';
+  btn.textContent = 'Enviarme un código de acceso';
   if(error){
-    msg.textContent = '⚠ No se pudo enviar el link: ' + error.message;
+    if(error.message && error.message.toLowerCase().includes('signups not allowed')){
+      msg.textContent = '⚠ Este correo aún no está habilitado como taller. Escríbenos a movikarcl@gmail.com para activarlo.';
+    } else {
+      msg.textContent = '⚠ No se pudo enviar el código: ' + error.message;
+    }
     msg.classList.add('err');
   } else {
-    msg.textContent = '✓ Listo — revisa tu correo y haz clic en el link, o usa el código de abajo.';
+    msg.textContent = '✓ Código enviado — revisa tu correo y escríbelo abajo.';
     msg.classList.add('ok');
     document.getElementById('otpBlock').style.display = 'block';
   }
