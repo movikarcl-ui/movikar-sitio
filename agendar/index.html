@@ -390,9 +390,18 @@ function showLogin(){
   document.getElementById('tallerChip').style.display = 'none';
 }
 
-sb.auth.getSession().then(({data})=>{
-  if(data.session) showApp(data.session.user);
-  else showLogin();
+sb.auth.getSession().then(async ({data})=>{
+  if(!data.session){ showLogin(); return; }
+  // No basta con que haya una sesión guardada localmente — hay que
+  // confirmar contra el servidor que ese usuario todavía existe.
+  // Si fue eliminado en Supabase, esto lo detecta y cierra la sesión.
+  const { data: userData, error } = await sb.auth.getUser();
+  if(error || !userData.user){
+    await sb.auth.signOut();
+    showLogin();
+  } else {
+    showApp(userData.user);
+  }
 });
 
 sb.auth.onAuthStateChange((event, session)=>{
