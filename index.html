@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoviKar — Traslado de autos para talleres mecánicos</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FFFFFF;
+    --surface:#F6F9F8;
+    --surface-2:#EDF3F1;
+    --ink:#16302C;
+    --ink-dim:#5E7570;
+    --line:#DCE6E3;
+    --teal:#009688;
+    --teal-dim:#E3F5F2;
+    --teal-deep:#00695E;
+    --coral:#E8542F;
+    --coral-dim:#FFEEE7;
+    --ok:#1F8F5C;
+    --ok-dim:#E6F6EC;
+    --radius:14px;
+  }
+  *{box-sizing:border-box; min-width:0;}
+  html,body{overflow-x:hidden; width:100%;}
+  @media (prefers-reduced-motion: reduce){*{animation:none !important; transition:none !important;}}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;}
+  a{color:inherit;}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 clamp(18px,4vw,32px);}
+
+  nav{border-bottom:1px solid var(--line);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 0;}
+  .brand{display:flex;align-items:center;gap:11px;}
+  .brand-mark{width:44px;height:44px;border-radius:12px;background:var(--teal-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .brand-mark svg{width:32px;height:32px;}
+  .brand-name{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:19px;}
+  .nav-links{display:flex;align-items:center;gap:10px;}
+  .nav-cta{background:var(--ink);color:#fff;border:none;border-radius:8px;padding:10px 18px;font-weight:600;font-size:13.5px;text-decoration:none;font-family:'Space Grotesk',sans-serif;transition:.15s;white-space:nowrap;}
+  .nav-cta:hover{background:var(--teal-deep);}
+  .nav-cta.ghost{background:none;color:var(--ink-dim);border:1px solid var(--line);}
+  .nav-cta.ghost:hover{border-color:var(--teal);color:var(--teal-deep);}
+
+  .hero{padding:clamp(44px,7vw,76px) 0 0;}
+  .hero-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:40px;align-items:center;}
+  @media (max-width:820px){.hero-grid{grid-template-columns:1fr;}}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--teal-deep);letter-spacing:.06em;text-transform:uppercase;margin:0 0 14px;background:var(--teal-dim);display:inline-block;padding:5px 12px;border-radius:20px;}
+  h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(30px,4.6vw,45px);line-height:1.1;letter-spacing:-0.015em;margin:0 0 18px;}
+  h1 .accent{color:var(--teal);}
+  .hero p.lead{font-size:16.5px;color:var(--ink-dim);line-height:1.55;max-width:480px;margin:0 0 28px;}
+  .cta-row{display:flex;gap:12px;flex-wrap:wrap;}
+  .btn-primary{background:var(--teal);color:#fff;border:none;border-radius:9px;padding:14px 24px;font-weight:700;font-size:14.5px;text-decoration:none;font-family:'Space Grotesk',sans-serif;transition:.15s;display:inline-block;}
+  .btn-primary:hover{background:var(--teal-deep);}
+  .btn-secondary{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:14px 24px;font-weight:600;font-size:14.5px;text-decoration:none;font-family:'Inter',sans-serif;transition:.15s;display:inline-block;}
+  .btn-secondary:hover{border-color:var(--teal);color:var(--teal-deep);}
+
+  .hero-visual{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:26px;}
+  .stat-row{display:flex;justify-content:space-between;gap:10px;margin-bottom:18px;}
+  .stat-row:last-child{margin-bottom:0;}
+  .stat b{display:block;font-family:'Space Grotesk',sans-serif;font-size:20px;color:var(--teal-deep);}
+  .stat span{font-size:11px;color:var(--ink-dim);}
+  .hero-visual hr{border:none;border-top:1px solid var(--line);margin:18px 0;}
+
+  .trust-strip{background:var(--ink);margin-top:clamp(36px,5vw,48px);}
+  .trust-inner{display:flex;flex-wrap:wrap;justify-content:center;gap:clamp(18px,4vw,40px);padding:16px 0;}
+  .trust-item{display:flex;align-items:center;gap:8px;color:#DDEAE6;font-size:12.5px;font-weight:600;white-space:nowrap;}
+  .trust-item svg{width:15px;height:15px;color:var(--teal);flex-shrink:0;}
+
+  .section{padding:clamp(46px,7vw,72px) 0;}
+  .section-head{max-width:600px;margin:0 auto 36px;text-align:center;}
+  .section-head .eyebrow{margin-bottom:12px;}
+  .section-head h2{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(22px,3vw,30px);margin:0 0 10px;letter-spacing:-0.01em;}
+  .section-head p{color:var(--ink-dim);font-size:14.5px;line-height:1.55;margin:0 auto;}
+
+  .pair-rows{display:flex;flex-direction:column;gap:22px;max-width:880px;margin:0 auto;}
+  .pair-row-label{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;}
+  .pair-row-label span{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--teal-deep);text-transform:uppercase;letter-spacing:.05em;background:var(--teal-dim);padding:4px 12px;border-radius:20px;}
+  .pair-row{display:grid;grid-template-columns:1fr 52px 1fr;align-items:stretch;gap:0;}
+  @media (max-width:700px){.pair-row{grid-template-columns:1fr;gap:0;}}
+  .pair-card{border-radius:var(--radius);padding:20px 22px 20px 20px;display:flex;gap:12px;align-items:flex-start;}
+  .pair-card.problem{background:var(--coral-dim);border:1.5px solid #F5C9B8;border-right:none;border-radius:var(--radius) 0 0 var(--radius);}
+  .pair-card.solution{background:var(--teal-dim);border:1.5px solid #A9DED6;border-left:none;border-radius:0 var(--radius) var(--radius) 0;}
+  @media (max-width:700px){
+    .pair-card.problem{border-radius:var(--radius) var(--radius) 0 0;border-right:1.5px solid #F5C9B8;border-bottom:none;}
+    .pair-card.solution{border-radius:0 0 var(--radius) var(--radius);border-left:1.5px solid #A9DED6;border-top:none;}
+  }
+  .pair-icon{width:26px;height:26px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:1px;}
+  .pair-card.problem .pair-icon{background:var(--coral);}
+  .pair-card.solution .pair-icon{background:var(--teal);}
+  .pair-icon svg{width:14px;height:14px;stroke:#fff;}
+  .pair-body{flex:1;}
+  .pair-tag{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;display:block;}
+  .pair-card.problem .pair-tag{color:var(--coral);}
+  .pair-card.solution .pair-tag{color:var(--teal-deep);}
+  .pair-card p{font-size:13.5px;line-height:1.5;margin:0;color:var(--ink);}
+  .pair-arrow{display:flex;align-items:center;justify-content:center;background:var(--ink);z-index:2;}
+  .pair-arrow-circle{width:34px;height:34px;border-radius:50%;background:var(--ink);display:flex;align-items:center;justify-content:center;}
+  .pair-arrow svg{width:18px;height:18px;color:#fff;}
+  @media (max-width:700px){
+    .pair-arrow{background:none;padding:4px 0;}
+  }
+
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
+  @media (max-width:820px){.steps{grid-template-columns:1fr;}}
+  .step-num{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:26px;color:var(--teal);margin-bottom:10px;}
+  .step h3{font-family:'Space Grotesk',sans-serif;font-size:15.5px;margin:0 0 8px;}
+  .step p{font-size:13px;color:var(--ink-dim);line-height:1.5;margin:0;}
+
+  .cta-band{background:var(--ink);border-radius:24px;padding:clamp(32px,6vw,52px);text-align:center;}
+  .cta-band h2{font-family:'Space Grotesk',sans-serif;color:#fff;font-size:clamp(22px,3.4vw,30px);margin:0 0 12px;letter-spacing:-0.01em;}
+  .cta-band p{color:#B9C9C5;font-size:14.5px;margin:0 0 10px;max-width:460px;margin-left:auto;margin-right:auto;line-height:1.55;}
+  .cta-band .risk-reversal{color:var(--teal);font-weight:700;font-size:13px;margin:0 0 26px;display:block;}
+
+  footer{border-top:1px solid var(--line);padding:26px 0;}
+  .footer-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;font-size:12.5px;color:var(--ink-dim);}
+  .footer-row a{text-decoration:none;color:var(--teal-deep);font-weight:600;}
+
+  .chat-fab{position:fixed;bottom:22px;right:22px;width:56px;height:56px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(22,48,44,.25);z-index:50;text-decoration:none;transition:.15s;}
+  .chat-fab:hover{background:var(--teal-deep);transform:translateY(-2px);}
+  .chat-fab svg{width:26px;height:26px;fill:#fff;}
+  .chat-fab-badge{position:absolute;top:-4px;right:-4px;background:var(--coral);color:#fff;font-size:9px;font-weight:700;padding:2px 5px;border-radius:8px;font-family:'JetBrains Mono',monospace;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-inner">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="20" cy="29.6" rx="15" ry="1.5" fill="#EDF3F1"/>
+          <path d="M6 26.6 L7.5 26.6 A4.5 4.5 0 0 1 16.5 26.6 L23.5 26.6 A4.5 4.5 0 0 1 32.5 26.6 L34 26.6 C36.3 24.3 35.3 19.7 31.5 17.5 C29.3 15 26.3 13 23 13 L16 13 C12.7 13 9.7 15 7.5 17.5 C4.7 19.7 3.7 24.3 6 26.6 Z" fill="#009688"/>
+          <circle cx="32.6" cy="20.6" r="1" fill="#F6F9F8" opacity="0.85"/>
+          <path d="M11.4 18.6 L11 18.2 C11 15.6 12.6 14.3 15 14.3 L24 14.3 C26.4 14.3 28 15.6 28 18.2 L27.6 18.6 Q27.6 18.9 27.2 18.9 L11.8 18.9 Q11.4 18.9 11.4 18.6 Z" fill="#F6F9F8"/>
+          <line x1="19.5" y1="14.3" x2="19.5" y2="18.9" stroke="#009688" stroke-width="0.9"/>
+          <circle cx="12" cy="26.6" r="4" fill="#16302C"/>
+          <circle cx="12" cy="26.6" r="1.5" fill="#F6F9F8"/>
+          <circle cx="28" cy="26.6" r="4" fill="#16302C"/>
+          <circle cx="28" cy="26.6" r="1.5" fill="#F6F9F8"/>
+          <circle cx="30" cy="10.5" r="3.3" fill="#00695E"/>
+          <path d="M28.3 10.5l1.1 1.1 2.1-2.4" fill="none" stroke="#FFFFFF" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="brand-name">MoviKar</div>
+    </div>
+    <div class="nav-links">
+      <a class="nav-cta ghost" href="/agendar/">Ya soy taller · Ingresar</a>
+      <a class="nav-cta" data-contact-cta href="mailto:movikarcl@gmail.com?subject=Quiero%20sumar%20mi%20taller%20a%20MoviKar">Sumar mi taller</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="eyebrow">Para talleres que no quieren quedarse atrás</p>
+      <h1>Ofrece retiro y entrega a domicilio <span class="accent">sin armar tu propia flota</span> de choferes</h1>
+      <p class="lead">Tus clientes ya buscan talleres que retiren y entreguen su auto. Nosotros coordinamos al chofer, cubrimos el traslado con seguro, y le hacemos seguimiento — tú agendas en menos de un minuto y sigues enfocado en reparar autos.</p>
+      <div class="cta-row">
+        <a class="btn-primary" data-contact-cta href="mailto:movikarcl@gmail.com?subject=Quiero%20sumar%20mi%20taller%20a%20MoviKar">Sumar mi taller</a>
+        <a class="btn-secondary" href="#como-funciona">Ver cómo funciona</a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="stat-row">
+        <div class="stat"><b>&lt; 1 min</b><span>para agendar un traslado</span></div>
+        <div class="stat"><b>Seguro</b><span>incluido en cada traslado</span></div>
+      </div>
+      <hr>
+      <div class="stat-row">
+        <div class="stat"><b>0</b><span>llamadas para coordinar al chofer</span></div>
+        <div class="stat"><b>En línea</b><span>seguimiento del traslado</span></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="trust-strip">
+  <div class="wrap trust-inner">
+    <div class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>Choferes con revisión de documentos</div>
+    <div class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>Seguro de traslado incluido</div>
+    <div class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>Seguimiento en línea del traslado</div>
+    <div class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>Sin contrato de permanencia</div>
+  </div>
+</div>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">Por qué ahora</p>
+      <h2>Cada auto que no trasladas es un cliente que puede irse a otro taller</h2>
+      <p>El retiro y entrega ya no es un lujo — es lo que el cliente espera. La pregunta es si lo armas tú solo o con respaldo.</p>
+    </div>
+    <div class="pair-rows">
+      <div>
+        <div class="pair-row-label"><span>Competitividad</span></div>
+        <div class="pair-row">
+          <div class="pair-card problem">
+            <div class="pair-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></div>
+            <div class="pair-body">
+              <span class="pair-tag">Sin MoviKar</span>
+              <p>Si tu taller no ofrece retiro y entrega, el cliente cotiza en el que sí lo hace.</p>
+            </div>
+          </div>
+          <div class="pair-arrow"><div class="pair-arrow-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div></div>
+          <div class="pair-card solution">
+            <div class="pair-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></div>
+            <div class="pair-body">
+              <span class="pair-tag">Con MoviKar</span>
+              <p>Ofreces retiro y entrega sin invertir en flota ni choferes propios.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="pair-row-label"><span>Visibilidad</span></div>
+        <div class="pair-row">
+          <div class="pair-card problem">
+            <div class="pair-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></div>
+            <div class="pair-body">
+              <span class="pair-tag">Sin MoviKar</span>
+              <p>Coordinas por teléfono y no sabes realmente en qué punto va el auto.</p>
+            </div>
+          </div>
+          <div class="pair-arrow"><div class="pair-arrow-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div></div>
+          <div class="pair-card solution">
+            <div class="pair-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></div>
+            <div class="pair-body">
+              <span class="pair-tag">Con MoviKar</span>
+              <p>Tú y tu cliente ven el estado del traslado en línea, paso a paso, sin tener que preguntar.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="pair-row-label"><span>Protección ante daños</span></div>
+        <div class="pair-row">
+          <div class="pair-card problem">
+            <div class="pair-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></div>
+            <div class="pair-body">
+              <span class="pair-tag">Sin MoviKar</span>
+              <p>Si el auto se raya en el camino, el reclamo del cliente cae sobre ti, sin respaldo.</p>
+            </div>
+          </div>
+          <div class="pair-arrow"><div class="pair-arrow-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div></div>
+          <div class="pair-card solution">
+            <div class="pair-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></div>
+            <div class="pair-body">
+              <span class="pair-tag">Con MoviKar</span>
+              <p>Cada traslado va cubierto por seguro, con registro fotográfico del auto al retiro y a la entrega.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="como-funciona">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">Cómo funciona</p>
+      <h2>Tres pasos, sin curva de aprendizaje</h2>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <h3>Agenda el traslado</h3>
+        <p>Retiro, entrega o ambos. Ahora mismo o programado — y puedes cargar varios autos antes de confirmar.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <h3>Nosotros coordinamos</h3>
+        <p>Asignamos un chofer verificado y activamos el seguro del traslado. Tú no vuelves a llamar a nadie.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <h3>Sigues cada paso</h3>
+        <p>Estado en línea desde el retiro hasta la entrega, con registro fotográfico y confirmación final.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="cta-band">
+      <h2>Empieza a ofrecer retiro y entrega hoy</h2>
+      <p>Sin instalación ni curva de aprendizaje — agenda tu primer traslado cuando quieras.</p>
+      <span class="risk-reversal">Sin mínimos de traslados. Sin contrato de permanencia.</span>
+      <a class="btn-primary" data-contact-cta href="mailto:movikarcl@gmail.com?subject=Quiero%20sumar%20mi%20taller%20a%20MoviKar">Escribir a MoviKar</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap footer-row">
+    <span>© 2026 MoviKar</span>
+    <a href="mailto:movikarcl@gmail.com">movikarcl@gmail.com</a>
+  </div>
+</footer>
+
+<script>
+  const WHATSAPP_NUMBER = ''; // <-- pegar número aquí, entre las comillas
+
+  const hasWhatsApp = !!WHATSAPP_NUMBER;
+  const waLink = hasWhatsApp
+    ? `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hola, quiero sumar mi taller a MoviKar')}`
+    : null;
+
+  if (hasWhatsApp) {
+    document.querySelectorAll('[data-contact-cta]').forEach(el => {
+      el.href = waLink;
+      el.setAttribute('target', '_blank');
+      el.setAttribute('rel', 'noopener');
+    });
+  }
+
+  const fab = document.createElement('a');
+  fab.href = hasWhatsApp ? waLink : 'mailto:movikarcl@gmail.com?subject=Quiero%20sumar%20mi%20taller%20a%20MoviKar';
+  if (hasWhatsApp) { fab.target = '_blank'; fab.rel = 'noopener'; }
+  fab.className = 'chat-fab';
+  fab.setAttribute('aria-label', hasWhatsApp ? 'Escríbenos por WhatsApp' : 'Escríbenos por correo');
+  fab.innerHTML = '<svg viewBox="0 0 24 24"><path d="M17.6 6.3A8 8 0 1 0 5.1 17l-1 3.7 3.8-1a8 8 0 0 0 9.7-13.4Zm-5.6 12a6.6 6.6 0 0 1-3.4-.9l-.24-.14-2.5.66.67-2.44-.16-.25a6.6 6.6 0 1 1 5.63 3.07Zm3.6-4.9c-.2-.1-1.17-.58-1.35-.64-.18-.07-.31-.1-.44.1-.13.2-.5.64-.62.77-.11.13-.23.14-.43.05a5.4 5.4 0 0 1-1.6-1 6 6 0 0 1-1.1-1.37c-.12-.2 0-.3.09-.4.09-.1.2-.24.3-.36.1-.12.13-.2.2-.34.07-.13.03-.25-.02-.36-.05-.1-.44-1.06-.6-1.45-.16-.38-.32-.33-.44-.33h-.38c-.13 0-.34.05-.52.24-.18.2-.68.66-.68 1.6 0 .94.7 1.85.8 1.98.1.12 1.37 2.1 3.32 2.94.46.2.83.32 1.11.4.47.15.9.13 1.24.08.38-.06 1.17-.48 1.34-.94.16-.46.16-.85.11-.94-.05-.09-.18-.14-.38-.24Z"/></svg>';
+  if (!hasWhatsApp) {
+    const badge = document.createElement('span');
+    badge.className = 'chat-fab-badge';
+    badge.textContent = '✉';
+    fab.appendChild(badge);
+  }
+  document.body.appendChild(fab);
+</script>
+
+</body>
+</html>

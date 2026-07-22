@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoviKar — Agendar traslado</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --bg:#FFFFFF;
+    --surface:#F6F9F8;
+    --surface-2:#EDF3F1;
+    --ink:#16302C;
+    --ink-dim:#5E7570;
+    --line:#DCE6E3;
+    --teal:#009688;
+    --teal-dim:#E3F5F2;
+    --teal-deep:#00695E;
+    --coral:#E8542F;
+    --coral-dim:#FFEEE7;
+    --ok:#1F8F5C;
+    --ok-dim:#E6F6EC;
+    --radius:12px;
+  }
+  *{box-sizing:border-box; min-width:0;}
+  html,body{overflow-x:hidden; width:100%;}
+  @media (prefers-reduced-motion: reduce){*{animation:none !important; transition:none !important;}}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;min-height:100vh;}
+
+  /* ---- HEADER / BRAND ---- */
+  header{
+    display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;
+    padding:18px clamp(16px,4vw,32px);border-bottom:1px solid var(--line);
+    background:var(--bg);
+  }
+  .brand{display:flex;align-items:center;gap:13px;}
+  .brand-mark{
+    width:60px;height:60px;border-radius:16px;flex-shrink:0;
+    background:var(--teal-dim);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .brand-mark svg{width:42px;height:42px;}
+  .brand-name{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:22px;letter-spacing:-0.01em;line-height:1.1;color:var(--ink);}
+  .brand-tag{font-size:12.5px;color:var(--teal-deep);font-weight:600;margin-top:2px;letter-spacing:.02em;}
+
+  .header-right{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+  .nav-link{
+    font-size:12.5px;color:var(--ink-dim);text-decoration:none;border-bottom:1px dashed var(--line);
+    padding-bottom:1px;white-space:nowrap;
+  }
+  .nav-link:focus-visible{outline:2px solid var(--teal);outline-offset:3px;}
+  .taller-chip{
+    display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--ink-dim);
+    background:var(--surface);border:1px solid var(--line);padding:7px 12px;border-radius:20px;
+    white-space:nowrap;
+  }
+  .taller-chip .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);flex-shrink:0;}
+  .taller-name{color:var(--ink);font-weight:600;}
+
+  /* ---- HERO ---- */
+  .hero{max-width:680px;margin:0 auto;padding:clamp(28px,5vw,44px) clamp(16px,4vw,32px) 6px;}
+  .hero-eyebrow{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--teal-deep);letter-spacing:.06em;text-transform:uppercase;margin:0 0 10px;}
+  .hero h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(23px,4.4vw,30px);line-height:1.15;margin:0 0 12px;letter-spacing:-0.01em;color:var(--ink);}
+  .hero-rule{width:44px;height:4px;border-radius:2px;background:var(--coral);margin:0 0 16px;}
+  .hero p{font-size:14.5px;color:var(--ink-dim);margin:0;line-height:1.5;}
+  .hero p b{color:var(--ink);font-weight:600;}
+
+  /* ---- MAIN (single focused column) ---- */
+  main{max-width:680px;margin:0 auto;padding:20px clamp(16px,4vw,32px) 90px;}
+  .card{background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);padding:clamp(18px,3vw,26px);box-shadow:0 1px 3px rgba(22,48,44,0.05), 0 8px 24px rgba(22,48,44,0.04);}
+
+  .step-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--teal-deep);letter-spacing:.04em;margin:0 0 10px;text-transform:uppercase;}
+  .step-label:not(:first-child){margin-top:22px;}
+
+  .tipo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  @media (max-width:520px){.tipo-grid{grid-template-columns:1fr;}}
+  .tipo-card{border:1px solid var(--line);border-radius:9px;padding:14px 10px;text-align:center;cursor:pointer;transition:.15s;background:var(--surface);}
+  .tipo-card:hover{border-color:var(--teal);}
+  .tipo-card:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+  .tipo-card.active{border-color:var(--teal);background:var(--teal-dim);}
+  .tipo-icon{width:28px;height:28px;margin:0 auto 8px;color:var(--ink-dim);}
+  .tipo-card.active .tipo-icon{color:var(--teal-deep);}
+  .tipo-name{font-size:13px;font-weight:600;color:var(--ink);}
+  .tipo-desc{font-size:10.5px;color:var(--ink-dim);margin-top:2px;line-height:1.3;}
+
+  .when-toggle{display:flex;gap:10px;}
+  .when-opt{flex:1;border:1px solid var(--line);border-radius:8px;padding:12px;cursor:pointer;text-align:center;transition:.15s;background:var(--surface);}
+  .when-opt:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+  .when-opt.active[data-w="ahora"]{border-color:var(--coral);background:var(--coral-dim);color:var(--coral);}
+  .when-opt.active[data-w="programar"]{border-color:var(--teal);background:var(--teal-dim);color:var(--teal-deep);}
+  .when-opt-title{font-size:13px;font-weight:700;color:var(--ink);}
+  .when-opt.active .when-opt-title{color:inherit;}
+  .when-opt-sub{font-size:10.5px;color:var(--ink-dim);margin-top:2px;}
+  .when-opt.active .when-opt-sub{color:inherit;opacity:.75;}
+
+  .datetime-block{margin-top:12px;}
+  .datetime-block.hidden{display:none;}
+
+  label{display:block;font-size:12px;color:var(--ink-dim);margin:0 0 6px;font-weight:500;}
+  input[type=text], input[type=datetime-local], textarea{
+    width:100%;background:var(--surface);border:1px solid var(--line);border-radius:7px;
+    padding:10px 12px;color:var(--ink);font-family:'Inter',sans-serif;font-size:13.5px;
+  }
+  input:focus, textarea:focus{outline:2px solid var(--teal);outline-offset:1px;border-color:var(--teal);}
+  input.field-error, textarea.field-error{border-color:var(--coral);}
+  textarea{resize:vertical;min-height:50px;}
+  .field-row{margin-bottom:14px;}
+  .field-row:last-child{margin-bottom:0;}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media (max-width:560px){.two-col{grid-template-columns:1fr;}}
+  .error-msg{font-size:11px;color:var(--coral);margin-top:5px;display:none;}
+  .error-msg.show{display:block;}
+
+  .checkbox-row{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;color:var(--ink-dim);}
+  .checkbox-row input{width:auto;}
+  .quick-link{background:none;border:none;color:var(--teal-deep);font-size:11.5px;cursor:pointer;padding:0;margin-top:6px;text-decoration:underline;}
+  .quick-link:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+
+  .btn-row{display:flex;gap:10px;margin-top:20px;align-items:center;}
+  .add-btn{
+    flex:1;background:var(--ink);color:var(--bg);
+    border:none;border-radius:7px;padding:12px;font-weight:600;font-size:13.5px;
+    cursor:pointer;transition:.15s;font-family:'Space Grotesk',sans-serif;
+  }
+  .add-btn:hover{background:var(--teal-deep);}
+  .add-btn:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+  .cancel-edit-btn{
+    display:none;background:none;border:1px solid var(--line);color:var(--ink-dim);
+    border-radius:7px;padding:12px 14px;font-weight:600;font-size:12.5px;cursor:pointer;white-space:nowrap;
+  }
+  .cancel-edit-btn:hover{border-color:var(--ink-dim);color:var(--ink);}
+  .cancel-edit-btn.show{display:block;}
+  .editing-banner{display:none;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal-deep);border-radius:8px;padding:9px 12px;font-size:12px;font-weight:600;margin-bottom:14px;}
+  .editing-banner.show{display:block;}
+
+  /* ---- TRAY ---- */
+  .tray{margin-top:26px;border:1px dashed var(--line);border-radius:9px;padding:16px;background:var(--surface);}
+  .tray-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+  .tray-title{font-family:'Space Grotesk',sans-serif;font-size:13.5px;font-weight:600;color:var(--ink);}
+  .tray-count{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--teal-deep);background:var(--teal-dim);padding:2px 8px;border-radius:12px;}
+  .tray-empty{font-size:12px;color:var(--ink-dim);padding:10px 2px;}
+  .tray-item{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px;padding:9px 6px;border-top:1px solid var(--line);animation:slideIn .25s ease;border-radius:6px;}
+  .tray-item.editing{background:var(--teal-dim);border-top-color:transparent;}
+  @keyframes slideIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
+  .tray-item:first-of-type{border-top:none;}
+  .tray-item-info{font-size:12.5px;color:var(--ink);}
+  .tray-item-info b{font-weight:600;}
+  .tray-item-meta{font-size:11px;color:var(--ink-dim);margin-top:1px;}
+  .tray-item-notes{font-size:11px;color:var(--ink-dim);margin-top:1px;font-style:italic;}
+  .tray-item-actions{display:flex;gap:2px;}
+  .tray-edit,.tray-remove{background:none;border:none;color:var(--ink-dim);cursor:pointer;line-height:1;padding:4px 7px;border-radius:5px;}
+  .tray-edit:hover{color:var(--teal-deep);background:var(--teal-dim);}
+  .tray-remove{font-size:16px;}
+  .tray-remove:hover{color:var(--coral);background:var(--coral-dim);}
+  .tray-edit:focus-visible,.tray-remove:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+  .confirm-all-btn{
+    width:100%;margin-top:14px;background:var(--teal);color:#fff;border:none;
+    border-radius:7px;padding:12px;font-weight:700;font-size:13.5px;font-family:'Space Grotesk',sans-serif;
+    cursor:pointer;transition:.15s;
+  }
+  .confirm-all-btn:hover{background:var(--teal-deep);}
+  .confirm-all-btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
+  .confirm-all-btn:disabled{opacity:.35;cursor:default;}
+  .confirm-all-btn:disabled:hover{background:var(--teal);}
+
+  /* ---- SUCCESS BANNER ---- */
+  .success-banner{
+    display:none;background:var(--ok-dim);border:1px solid var(--ok);color:var(--ok);
+    border-radius:8px;padding:12px 14px;font-size:13px;font-weight:600;margin-bottom:18px;
+    align-items:center;gap:8px;
+  }
+
+  /* ---- LOGIN GATE ---- */
+  .login-wrap{max-width:400px;margin:60px auto;padding:0 clamp(16px,4vw,32px);}
+  .login-card{background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);padding:28px;box-shadow:0 1px 3px rgba(22,48,44,0.05), 0 8px 24px rgba(22,48,44,0.04);text-align:center;}
+  .login-card h2{font-family:'Space Grotesk',sans-serif;font-size:18px;margin:14px 0 8px;color:var(--ink);}
+  .login-card p{font-size:13px;color:var(--ink-dim);margin:0 0 20px;line-height:1.5;}
+  .login-card input{margin-bottom:12px;text-align:center;}
+  .login-btn{width:100%;background:var(--ink);color:#fff;border:none;border-radius:7px;padding:12px;font-weight:600;font-size:13.5px;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:.15s;}
+  .login-btn:hover{background:var(--teal-deep);}
+  .login-btn:disabled{opacity:.5;cursor:default;}
+  .login-msg{font-size:12px;margin-top:12px;display:none;}
+  .login-msg.ok{color:var(--ok);display:block;}
+  .login-msg.err{color:var(--coral);display:block;}
+  .app-shell{display:none;}
+  .logout-link{background:none;border:none;color:var(--ink-dim);font-size:11.5px;cursor:pointer;text-decoration:underline;padding:0;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-mark">
+      <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="20" cy="29.6" rx="15" ry="1.5" fill="#EDF3F1"/>
+        <path d="M6 26.6
+        L7.5 26.6
+        A4.5 4.5 0 0 1 16.5 26.6
+        L23.5 26.6
+        A4.5 4.5 0 0 1 32.5 26.6
+        L34 26.6
+        C36.3 24.3 35.3 19.7 31.5 17.5
+        C29.3 15 26.3 13 23 13
+        L16 13
+        C12.7 13 9.7 15 7.5 17.5
+        C4.7 19.7 3.7 24.3 6 26.6
+        Z" fill="#009688"/>
+        <circle cx="32.6" cy="20.6" r="1" fill="#F6F9F8" opacity="0.85"/>
+        <path d="M11.4 18.6 L11 18.2 C11 15.6 12.6 14.3 15 14.3 L24 14.3 C26.4 14.3 28 15.6 28 18.2 L27.6 18.6 Q27.6 18.9 27.2 18.9 L11.8 18.9 Q11.4 18.9 11.4 18.6 Z" fill="#F6F9F8"/>
+        <line x1="19.5" y1="14.3" x2="19.5" y2="18.9" stroke="#009688" stroke-width="0.9"/>
+        <circle cx="12" cy="26.6" r="4" fill="#16302C"/>
+        <circle cx="12" cy="26.6" r="1.5" fill="#F6F9F8"/>
+        <circle cx="28" cy="26.6" r="4" fill="#16302C"/>
+        <circle cx="28" cy="26.6" r="1.5" fill="#F6F9F8"/>
+        <circle cx="30" cy="10.5" r="3.3" fill="#00695E"/>
+        <path d="M28.3 10.5l1.1 1.1 2.1-2.4" fill="none" stroke="#FFFFFF" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div>
+      <div class="brand-name">MoviKar</div>
+      <div class="brand-tag">PORTAL PARA TALLERES</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <a class="nav-link" href="#">Historial y programados ↗</a>
+    <div class="taller-chip" id="tallerChip" style="display:none;">
+      <span class="dot"></span>
+      <span><span class="taller-name" id="tallerEmail"></span> · <button class="logout-link" id="logoutBtn">cerrar sesión</button></span>
+    </div>
+  </div>
+</header>
+
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <div class="brand-mark" style="margin:0 auto;">
+      <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="20" cy="29.6" rx="15" ry="1.5" fill="#EDF3F1"/>
+        <path d="M6 26.6 L7.5 26.6 A4.5 4.5 0 0 1 16.5 26.6 L23.5 26.6 A4.5 4.5 0 0 1 32.5 26.6 L34 26.6 C36.3 24.3 35.3 19.7 31.5 17.5 C29.3 15 26.3 13 23 13 L16 13 C12.7 13 9.7 15 7.5 17.5 C4.7 19.7 3.7 24.3 6 26.6 Z" fill="#009688"/>
+        <circle cx="32.6" cy="20.6" r="1" fill="#F6F9F8" opacity="0.85"/>
+        <path d="M11.4 18.6 L11 18.2 C11 15.6 12.6 14.3 15 14.3 L24 14.3 C26.4 14.3 28 15.6 28 18.2 L27.6 18.6 Q27.6 18.9 27.2 18.9 L11.8 18.9 Q11.4 18.9 11.4 18.6 Z" fill="#F6F9F8"/>
+        <line x1="19.5" y1="14.3" x2="19.5" y2="18.9" stroke="#009688" stroke-width="0.9"/>
+        <circle cx="12" cy="26.6" r="4" fill="#16302C"/>
+        <circle cx="12" cy="26.6" r="1.5" fill="#F6F9F8"/>
+        <circle cx="28" cy="26.6" r="4" fill="#16302C"/>
+        <circle cx="28" cy="26.6" r="1.5" fill="#F6F9F8"/>
+        <circle cx="30" cy="10.5" r="3.3" fill="#00695E"/>
+        <path d="M28.3 10.5l1.1 1.1 2.1-2.4" fill="none" stroke="#FFFFFF" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <h2>Ingresa a tu portal MoviKar</h2>
+    <p>Escribe el correo de tu taller. Te mandamos un link de acceso — sin contraseñas que recordar.</p>
+    <input type="text" id="loginEmail" placeholder="correo@tutaller.cl">
+    <button class="login-btn" id="loginBtn">Enviar link de acceso</button>
+    <div class="login-msg" id="loginMsg"></div>
+  </div>
+</div>
+
+<div class="app-shell" id="appShell">
+
+<div class="hero">
+  <p class="hero-eyebrow">Nuevo traslado</p>
+  <h1>Agenda el retiro o la entrega de un auto en menos de un minuto</h1>
+  <div class="hero-rule"></div>
+  <p>Elige qué necesitas y para cuándo, <b>agrega todos los autos que tengas hoy</b>, y confírmalos juntos al final. Nosotros coordinamos al chofer.</p>
+</div>
+
+<main>
+  <div class="card">
+
+    <div class="success-banner" id="successBanner">✓ <span id="successText"></span></div>
+    <div class="success-banner" id="errorBanner" style="background:var(--coral-dim);border-color:var(--coral);color:var(--coral);">⚠ <span id="errorText"></span></div>
+    <div class="editing-banner" id="editingBanner">✎ Editando un traslado de la lista — los cambios se guardan al hacer clic en "Guardar cambios".</div>
+
+    <p class="step-label">1 · Tipo de traslado</p>
+    <div class="tipo-grid" id="tipoGrid" role="radiogroup" aria-label="Tipo de traslado">
+      <div class="tipo-card active" data-tipo="retiro" role="radio" aria-checked="true" tabindex="0">
+        <svg class="tipo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 11l9-7 9 7"/><path d="M5 10v9h14v-9"/><path d="M15 19v-5h-3"/></svg>
+        <div class="tipo-name">Retiro</div>
+        <div class="tipo-desc">Buscar el auto en casa del cliente y llevarlo al taller</div>
+      </div>
+      <div class="tipo-card" data-tipo="entrega" role="radio" aria-checked="false" tabindex="-1">
+        <svg class="tipo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="7" width="16" height="10" rx="1.5"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M4 12h16"/></svg>
+        <div class="tipo-name">Entrega</div>
+        <div class="tipo-desc">Llevar el auto reparado desde el taller a la casa del cliente</div>
+      </div>
+      <div class="tipo-card" data-tipo="ambos" role="radio" aria-checked="false" tabindex="-1">
+        <svg class="tipo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 7h11l-3-3M17 17H6l3 3"/></svg>
+        <div class="tipo-name">Ambos</div>
+        <div class="tipo-desc">Retiro ahora y entrega coordinada para cuando esté listo</div>
+      </div>
+    </div>
+
+    <p class="step-label" id="whenLabel">2 · Retiro: ¿cuándo?</p>
+    <div class="when-toggle" id="whenToggle" role="radiogroup" aria-label="Cuándo">
+      <div class="when-opt active" data-w="ahora" role="radio" aria-checked="true" tabindex="0">
+        <div class="when-opt-title">Ahora</div>
+        <div class="when-opt-sub">Urgente, sin agendar</div>
+      </div>
+      <div class="when-opt" data-w="programar" role="radio" aria-checked="false" tabindex="-1">
+        <div class="when-opt-title">Programar</div>
+        <div class="when-opt-sub">Elegir fecha y hora</div>
+      </div>
+    </div>
+    <div class="datetime-block hidden" id="datetimeBlock">
+      <label for="fechaPrincipal">Fecha y hora</label>
+      <input type="datetime-local" id="fechaPrincipal">
+      <div class="error-msg" id="errorFechaPrincipal">Elige fecha y hora, o cambia a "Ahora".</div>
+    </div>
+
+    <div id="entregaBlock" style="display:none;">
+      <p class="step-label">3 · Entrega: ¿cuándo?</p>
+      <div class="checkbox-row">
+        <input type="checkbox" id="entregaPendiente" checked>
+        <label for="entregaPendiente" style="margin:0;color:var(--ink);font-size:12.5px;">Aún no sé la fecha — coordinar después</label>
+      </div>
+      <div class="datetime-block hidden" id="entregaDatetimeBlock">
+        <label for="fechaEntrega">Fecha y hora de entrega</label>
+        <input type="datetime-local" id="fechaEntrega">
+        <div class="error-msg" id="errorFechaEntrega">Elige fecha y hora, o marca "coordinar después".</div>
+      </div>
+    </div>
+
+    <p class="step-label">Datos del traslado</p>
+    <div class="field-row two-col">
+      <div>
+        <label for="vehiculo">Vehículo (patente + modelo)</label>
+        <input type="text" id="vehiculo" placeholder="Ej: HTXR-21 · Chevrolet Sail">
+        <div class="error-msg" id="errorVehiculo">Ingresa al menos la patente.</div>
+      </div>
+      <div>
+        <label for="direccion">Dirección del cliente</label>
+        <input type="text" id="direccion" placeholder="Ej: Av. Los Leones 1420, Providencia">
+        <div class="error-msg" id="errorDireccion">Ingresa la dirección del cliente.</div>
+        <button type="button" class="quick-link" id="repeatAddr" style="display:none;">Usar la última dirección</button>
+      </div>
+    </div>
+    <div class="field-row">
+      <label for="notas">Notas para el chofer (opcional)</label>
+      <textarea id="notas" placeholder="Ej: llamar antes de llegar, portón trasero"></textarea>
+    </div>
+
+    <div class="btn-row">
+      <button class="add-btn" id="addBtn">+ Agregar a la lista</button>
+      <button type="button" class="cancel-edit-btn" id="cancelEditBtn">Cancelar edición</button>
+    </div>
+
+    <div class="tray">
+      <div class="tray-head">
+        <span class="tray-title">Por confirmar</span>
+        <span class="tray-count" id="trayCount">0</span>
+      </div>
+      <div id="trayList"><div class="tray-empty">Agrega traslados arriba — puedes cargar varios antes de enviarlos todos juntos.</div></div>
+      <button class="confirm-all-btn" id="confirmAllBtn" disabled>Confirmar y agendar</button>
+    </div>
+
+  </div>
+</main>
+</div>
+
+<script>
+// ============================================================
+// CONFIG MoviKar — Supabase
+// ============================================================
+const SUPABASE_URL = 'https://gcivybtcccaslyzkzgri.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_IVjRfzdWhEO3yb5LkUz7pw_5IA-CxLW';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentUser = null;
+
+function showApp(user){
+  currentUser = user;
+  document.getElementById('loginWrap').style.display = 'none';
+  document.getElementById('appShell').style.display = 'block';
+  document.getElementById('tallerChip').style.display = 'flex';
+  document.getElementById('tallerEmail').textContent = user.email;
+}
+
+function showLogin(){
+  currentUser = null;
+  document.getElementById('loginWrap').style.display = 'block';
+  document.getElementById('appShell').style.display = 'none';
+  document.getElementById('tallerChip').style.display = 'none';
+}
+
+sb.auth.getSession().then(({data})=>{
+  if(data.session) showApp(data.session.user);
+  else showLogin();
+});
+
+sb.auth.onAuthStateChange((event, session)=>{
+  if(session) showApp(session.user);
+  else showLogin();
+});
+
+document.getElementById('loginBtn').addEventListener('click', async ()=>{
+  const email = document.getElementById('loginEmail').value.trim();
+  const msg = document.getElementById('loginMsg');
+  const btn = document.getElementById('loginBtn');
+  msg.className = 'login-msg';
+  if(!email || !email.includes('@')){
+    msg.textContent = 'Ingresa un correo válido.';
+    msg.classList.add('err');
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+  const { error } = await sb.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: window.location.href }
+  });
+  btn.disabled = false;
+  btn.textContent = 'Enviar link de acceso';
+  if(error){
+    msg.textContent = 'No se pudo enviar el link: ' + error.message;
+    msg.classList.add('err');
+  } else {
+    msg.textContent = 'Listo — revisa tu correo y haz clic en el link para entrar.';
+    msg.classList.add('ok');
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', async ()=>{
+  await sb.auth.signOut();
+});
+
+const TIPO_LABEL = {retiro:"Retiro", entrega:"Entrega", ambos:"Retiro + Entrega"};
+
+let selectedTipo = "retiro";
+let selectedWhen = "ahora";
+let entregaPendienteFlag = true;
+let lastAddress = "";
+let queue = [];
+let editingIndex = null;
+
+function fmtDateTime(iso){
+  if(!iso) return null;
+  return new Date(iso).toLocaleString('es-CL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+}
+
+function displayWhen(t){
+  if(t.tipo === 'ambos'){
+    const retiro = t.whenMode==='ahora' ? 'Retiro ahora' : 'Retiro ' + (fmtDateTime(t.fechaPrincipal) || 'sin fecha');
+    const entrega = t.entregaPendiente ? 'entrega por coordinar' : 'entrega ' + (fmtDateTime(t.fechaEntrega) || 'sin fecha');
+    return retiro + ' · ' + entrega;
+  }
+  return t.whenMode==='ahora' ? 'Ahora (urgente)' : (fmtDateTime(t.fechaPrincipal) || 'Sin fecha definida');
+}
+
+function renderTray(){
+  const list = document.getElementById("trayList");
+  document.getElementById("trayCount").textContent = queue.length;
+  document.getElementById("confirmAllBtn").disabled = queue.length===0;
+  if(queue.length===0){
+    list.innerHTML = '<div class="tray-empty">Agrega traslados arriba — puedes cargar varios antes de enviarlos todos juntos.</div>';
+    return;
+  }
+  list.innerHTML = queue.map((t,i)=>`
+    <div class="tray-item ${i===editingIndex ? 'editing' : ''}">
+      <div class="tray-item-info">
+        <b>${TIPO_LABEL[t.tipo]}</b> · ${t.vehiculo}
+        <div class="tray-item-meta">${t.direccion} · ${displayWhen(t)}</div>
+        ${t.notas ? `<div class="tray-item-notes">"${t.notas}"</div>` : ''}
+      </div>
+      <div class="tray-item-actions">
+        <button class="tray-edit" data-i="${i}" aria-label="Editar traslado">✎</button>
+        <button class="tray-remove" data-i="${i}" aria-label="Quitar de la lista">×</button>
+      </div>
+    </div>
+  `).join('');
+  list.querySelectorAll('.tray-remove').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const i = +btn.dataset.i;
+      queue.splice(i,1);
+      if(editingIndex === i) cancelEdit();
+      else if(editingIndex !== null && i < editingIndex) editingIndex--;
+      renderTray();
+    });
+  });
+  list.querySelectorAll('.tray-edit').forEach(btn=>{
+    btn.addEventListener('click', ()=> startEdit(+btn.dataset.i));
+  });
+}
+
+// --- Selección accesible por teclado para tipo y when (patrón radiogroup) ---
+function setupRadioGroup(container, onSelect){
+  const items = Array.from(container.querySelectorAll('[role="radio"]'));
+  items.forEach((item, idx)=>{
+    item.addEventListener('click', ()=> selectItem(idx));
+    item.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); selectItem(idx); }
+      if(e.key === 'ArrowRight' || e.key === 'ArrowDown'){ e.preventDefault(); selectItem((idx+1)%items.length); items[(idx+1)%items.length].focus(); }
+      if(e.key === 'ArrowLeft' || e.key === 'ArrowUp'){ e.preventDefault(); selectItem((idx-1+items.length)%items.length); items[(idx-1+items.length)%items.length].focus(); }
+    });
+  });
+  function selectItem(idx){
+    items.forEach((it,i)=>{
+      it.classList.toggle('active', i===idx);
+      it.setAttribute('aria-checked', i===idx ? 'true' : 'false');
+      it.tabIndex = i===idx ? 0 : -1;
+    });
+    onSelect(items[idx]);
+  }
+  return { select: selectItem, items };
+}
+
+const tipoCtrl = setupRadioGroup(document.getElementById('tipoGrid'), (item)=>{
+  selectedTipo = item.dataset.tipo;
+  document.getElementById('entregaBlock').style.display = selectedTipo==='ambos' ? 'block' : 'none';
+  document.getElementById('whenLabel').textContent = selectedTipo==='entrega' ? '2 · Entrega: ¿cuándo?' : '2 · Retiro: ¿cuándo?';
+  clearError('errorVehiculo'); clearError('errorDireccion');
+});
+
+const whenCtrl = setupRadioGroup(document.getElementById('whenToggle'), (item)=>{
+  selectedWhen = item.dataset.w;
+  document.getElementById('datetimeBlock').classList.toggle('hidden', selectedWhen!=='programar');
+  clearError('errorFechaPrincipal');
+});
+
+document.getElementById('entregaPendiente').addEventListener('change', (e)=>{
+  entregaPendienteFlag = e.target.checked;
+  document.getElementById('entregaDatetimeBlock').classList.toggle('hidden', entregaPendienteFlag);
+  clearError('errorFechaEntrega');
+});
+
+document.getElementById('repeatAddr').addEventListener('click', ()=>{
+  document.getElementById('direccion').value = lastAddress;
+  clearError('errorDireccion');
+});
+
+function showError(id){ document.getElementById(id).classList.add('show'); }
+function clearError(id){ document.getElementById(id).classList.remove('show'); }
+
+function startEdit(i){
+  const t = queue[i];
+  editingIndex = i;
+
+  tipoCtrl.select(tipoCtrl.items.findIndex(el => el.dataset.tipo === t.tipo));
+  whenCtrl.select(whenCtrl.items.findIndex(el => el.dataset.w === t.whenMode));
+  document.getElementById('fechaPrincipal').value = t.fechaPrincipal || '';
+  if(t.tipo === 'ambos'){
+    document.getElementById('entregaPendiente').checked = t.entregaPendiente;
+    entregaPendienteFlag = t.entregaPendiente;
+    document.getElementById('entregaDatetimeBlock').classList.toggle('hidden', t.entregaPendiente);
+    document.getElementById('fechaEntrega').value = t.fechaEntrega || '';
+  }
+  document.getElementById('vehiculo').value = t.vehiculo;
+  document.getElementById('direccion').value = t.direccion;
+  document.getElementById('notas').value = t.notas || '';
+
+  document.getElementById('addBtn').textContent = 'Guardar cambios';
+  document.getElementById('cancelEditBtn').classList.add('show');
+  document.getElementById('editingBanner').classList.add('show');
+  document.getElementById('successBanner').style.display = 'none';
+  renderTray();
+  document.getElementById('vehiculo').scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+function cancelEdit(){
+  editingIndex = null;
+  document.getElementById('addBtn').textContent = '+ Agregar a la lista';
+  document.getElementById('cancelEditBtn').classList.remove('show');
+  document.getElementById('editingBanner').classList.remove('show');
+  document.getElementById('vehiculo').value = '';
+  document.getElementById('direccion').value = '';
+  document.getElementById('notas').value = '';
+  document.getElementById('fechaPrincipal').value = '';
+  document.getElementById('fechaEntrega').value = '';
+  renderTray();
+}
+
+document.getElementById('cancelEditBtn').addEventListener('click', cancelEdit);
+
+document.getElementById('addBtn').addEventListener('click', ()=>{
+  const vehiculo = document.getElementById('vehiculo').value.trim();
+  const direccion = document.getElementById('direccion').value.trim();
+  const notas = document.getElementById('notas').value.trim();
+
+  let valid = true;
+  document.getElementById('vehiculo').classList.remove('field-error');
+  document.getElementById('direccion').classList.remove('field-error');
+  clearError('errorVehiculo'); clearError('errorDireccion'); clearError('errorFechaPrincipal'); clearError('errorFechaEntrega');
+
+  if(!vehiculo){ showError('errorVehiculo'); document.getElementById('vehiculo').classList.add('field-error'); valid = false; }
+  if(!direccion){ showError('errorDireccion'); document.getElementById('direccion').classList.add('field-error'); valid = false; }
+  if(selectedWhen === 'programar' && !document.getElementById('fechaPrincipal').value){ showError('errorFechaPrincipal'); valid = false; }
+  if(selectedTipo === 'ambos' && !entregaPendienteFlag && !document.getElementById('fechaEntrega').value){ showError('errorFechaEntrega'); valid = false; }
+
+  if(!valid) return;
+
+  const item = {
+    tipo: selectedTipo,
+    whenMode: selectedWhen,
+    fechaPrincipal: document.getElementById('fechaPrincipal').value || '',
+    entregaPendiente: entregaPendienteFlag,
+    fechaEntrega: document.getElementById('fechaEntrega').value || '',
+    vehiculo, direccion, notas
+  };
+
+  if(editingIndex !== null){
+    queue[editingIndex] = item;
+  } else {
+    queue.push(item);
+  }
+
+  lastAddress = direccion;
+  document.getElementById('repeatAddr').style.display = 'inline';
+
+  const wasEditing = editingIndex !== null;
+  editingIndex = null;
+  document.getElementById('addBtn').textContent = '+ Agregar a la lista';
+  document.getElementById('cancelEditBtn').classList.remove('show');
+  document.getElementById('editingBanner').classList.remove('show');
+
+  renderTray();
+
+  document.getElementById('vehiculo').value = '';
+  document.getElementById('direccion').value = '';
+  document.getElementById('notas').value = '';
+  document.getElementById('fechaPrincipal').value = '';
+  document.getElementById('fechaEntrega').value = '';
+  document.getElementById('successBanner').style.display = 'none';
+  document.getElementById('vehiculo').focus();
+});
+
+document.getElementById('confirmAllBtn').addEventListener('click', async ()=>{
+  if(!currentUser) return;
+  const btn = document.getElementById('confirmAllBtn');
+  const errorBanner = document.getElementById('errorBanner');
+  errorBanner.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+
+  const rows = queue.map(t => ({
+    taller_id: currentUser.id,
+    tipo: t.tipo,
+    when_mode: t.whenMode,
+    fecha_principal: t.fechaPrincipal ? new Date(t.fechaPrincipal).toISOString() : null,
+    entrega_pendiente: t.entregaPendiente,
+    fecha_entrega: t.fechaEntrega ? new Date(t.fechaEntrega).toISOString() : null,
+    vehiculo: t.vehiculo,
+    direccion: t.direccion,
+    notas: t.notas || null
+  }));
+
+  const { error } = await sb.from('traslados').insert(rows);
+
+  btn.disabled = false;
+  btn.textContent = 'Confirmar y agendar';
+
+  if(error){
+    document.getElementById('errorText').textContent = 'No se pudo guardar: ' + error.message;
+    errorBanner.style.display = 'flex';
+    return;
+  }
+
+  const n = queue.length;
+  queue = [];
+  renderTray();
+  const banner = document.getElementById('successBanner');
+  document.getElementById('successText').textContent = n === 1 ? '1 traslado agendado. Te avisamos cuando el chofer esté asignado.' : n + ' traslados agendados. Te avisamos cuando cada chofer esté asignado.';
+  banner.style.display = 'flex';
+});
+
+renderTray();
+</script>
+
+</body>
+</html>
