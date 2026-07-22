@@ -44,12 +44,13 @@
   .nav-cta.ghost:hover{border-color:var(--teal);color:var(--teal-deep);}
 
   @media (max-width:560px){
-    .nav-inner{flex-wrap:wrap;row-gap:12px;}
+    .nav-inner{flex-wrap:wrap;row-gap:14px;}
     .brand-name{font-size:24px;}
     .brand-mark{width:56px;height:56px;}
     .brand-mark svg{width:40px;height:40px;}
-    .nav-links{width:100%;flex-direction:column;gap:8px;}
-    .nav-cta{width:100%;text-align:center;box-sizing:border-box;padding:11px 14px;font-size:13px;}
+    .nav-links{width:100%;flex-direction:column-reverse;align-items:center;gap:12px;}
+    .nav-cta{width:100%;text-align:center;box-sizing:border-box;padding:15px 16px;font-size:15.5px;}
+    .nav-cta.ghost{width:auto;border:none;background:none;text-decoration:underline;padding:2px;font-size:13.5px;color:var(--ink-dim);}
   }
 
   .hero{padding:clamp(44px,7vw,76px) 0 0;}
