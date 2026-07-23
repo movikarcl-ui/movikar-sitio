@@ -748,6 +748,10 @@ document.getElementById('confirmAllBtn').addEventListener('click', async ()=>{
     fecha_principal: t.fechaPrincipal ? new Date(t.fechaPrincipal).toISOString() : null,
     entrega_pendiente: t.entregaPendiente,
     fecha_entrega: t.fechaEntrega ? new Date(t.fechaEntrega).toISOString() : null,
+    // Cada etapa arranca en 'agendado' solo si el traslado la incluye.
+    // Ej: tipo 'entrega' no tiene etapa de retiro, así que queda en null.
+    estado_retiro: (t.tipo === 'retiro' || t.tipo === 'ambos') ? 'agendado' : null,
+    estado_entrega: (t.tipo === 'entrega' || t.tipo === 'ambos') ? 'agendado' : null,
     patente: t.patente,
     marca: t.marca || null,
     modelo: t.modelo || null,
