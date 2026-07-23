@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>MoviKar — Panel de administración</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --bg: #FFFFFF;
+    --surface: #F6F9F8;
+    --surface-2: #EDF3F1;
+    --ink: #16302C;
+    --dim: #5E7570;
+    --line: #DCE6E3;
+    --turquesa: #009688;
+    --turquesa-claro: #E3F5F2;
+    --turquesa-profundo: #00695E;
+    --coral: #E8542F;
+    --coral-claro: #FFEEE7;
+    --ok: #1F8F5C;
+    --ok-claro: #E6F6EC;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--surface);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; margin: 0; }
+  .mono { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; letter-spacing: 0.02em; }
+  header {
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  header h1 { font-size: 1.1rem; color: var(--turquesa-profundo); }
+  header button { background: none; border: 1px solid var(--line); color: var(--dim); border-radius: 8px; padding: 6px 12px; font-family: 'Inter'; cursor: pointer; font-size: 0.85rem; }
+  main { max-width: 920px; margin: 0 auto; padding: 32px 24px 80px; }
+
+  /* Login */
+  #vista-login { max-width: 380px; margin: 80px auto; }
+  #vista-login .card { background: var(--bg); border: 1px solid var(--line); border-radius: 16px; padding: 32px; }
+  #vista-login h1 { font-size: 1.4rem; margin-bottom: 6px; }
+  #vista-login p { color: var(--dim); font-size: 0.9rem; margin: 0 0 20px; }
+
+  label { display: block; font-size: 0.8rem; color: var(--dim); margin-bottom: 4px; font-weight: 500; }
+  input, select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter';
+    font-size: 0.9rem;
+    margin-bottom: 14px;
+  }
+  input:focus, select:focus { outline: 2px solid var(--turquesa); outline-offset: 1px; border-color: var(--turquesa); }
+  button.primario {
+    width: 100%;
+    background: var(--turquesa);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 11px;
+    font-family: 'Inter';
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  button.primario:hover { background: var(--turquesa-profundo); }
+  button.primario:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.secundario {
+    background: none;
+    border: 1px solid var(--line);
+    color: var(--dim);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+  .error { color: var(--coral); background: var(--coral-claro); border-radius: 8px; padding: 8px 12px; font-size: 0.82rem; margin-bottom: 14px; }
+  .ok-msg { color: var(--ok); background: var(--ok-claro); border-radius: 8px; padding: 8px 12px; font-size: 0.82rem; margin-bottom: 14px; }
+
+  /* Secciones */
+  .tabs { display: flex; gap: 8px; margin-bottom: 24px; }
+  .tabs button {
+    background: var(--bg); border: 1px solid var(--line); color: var(--dim);
+    padding: 8px 16px; border-radius: 999px; font-family: 'Inter'; font-weight: 500;
+    font-size: 0.85rem; cursor: pointer;
+  }
+  .tabs button.activo { background: var(--turquesa-claro); border-color: var(--turquesa); color: var(--turquesa-profundo); }
+
+  section.panel { display: none; }
+  section.panel.activo { display: block; }
+
+  .card-form {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 14px;
+    padding: 22px; margin-bottom: 28px;
+  }
+  .card-form h2 { font-size: 1rem; margin-bottom: 16px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+
+  table { width: 100%; border-collapse: collapse; background: var(--bg); border-radius: 14px; overflow: hidden; border: 1px solid var(--line); }
+  th, td { text-align: left; padding: 10px 14px; font-size: 0.85rem; border-bottom: 1px solid var(--line); }
+  th { background: var(--surface-2); color: var(--dim); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em; }
+  tr:last-child td { border-bottom: none; }
+  .badge { font-family: 'JetBrains Mono'; font-size: 0.7rem; padding: 3px 8px; border-radius: 6px; display: inline-block; }
+  .badge.pendiente { background: var(--surface-2); color: var(--dim); }
+  .badge.aprobado { background: var(--ok-claro); color: var(--ok); }
+  .badge.rechazado { background: var(--coral-claro); color: var(--coral); }
+  select.estado-select { margin: 0; padding: 4px 8px; font-size: 0.78rem; width: auto; }
+  button.eliminar { background: none; border: none; color: var(--coral); cursor: pointer; font-size: 0.8rem; font-family: 'Inter'; }
+  .vacio { color: var(--dim); font-size: 0.85rem; padding: 20px; text-align: center; }
+</style>
+</head>
+<body>
+
+<div id="vista-login">
+  <div class="card">
+    <h1>Panel MoviKar</h1>
+    <p>Acceso restringido a administradores.</p>
+    <div id="login-error" class="error" style="display:none;"></div>
+    <div id="login-ok" class="ok-msg" style="display:none;"></div>
+
+    <div id="paso-correo">
+      <label for="correo-input">Correo</label>
+      <input id="correo-input" type="email" placeholder="tu@correo.com" autocomplete="email" />
+      <button class="primario" id="btn-enviar-codigo">Enviar código</button>
+    </div>
+
+    <div id="paso-codigo" style="display:none;">
+      <label for="codigo-input">Código de 8 dígitos</label>
+      <input id="codigo-input" type="text" inputmode="numeric" maxlength="8" placeholder="00000000" />
+      <button class="primario" id="btn-verificar-codigo">Ingresar</button>
+      <button class="secundario" style="margin-top:10px; width:100%;" id="btn-cambiar-correo">Usar otro correo</button>
+    </div>
+  </div>
+</div>
+
+<div id="vista-panel" style="display:none;">
+  <header>
+    <h1>MoviKar · Panel de administración</h1>
+    <button id="btn-salir">Cerrar sesión</button>
+  </header>
+  <main>
+    <div class="tabs">
+      <button class="tab-btn activo" data-tab="talleres">Talleres</button>
+      <button class="tab-btn" data-tab="choferes">Choferes</button>
+    </div>
+
+    <section class="panel activo" id="panel-talleres">
+      <div class="card-form">
+        <h2>Dar de alta un taller</h2>
+        <div id="taller-error" class="error" style="display:none;"></div>
+        <div id="taller-ok" class="ok-msg" style="display:none;"></div>
+        <label for="t-correo">Correo del taller</label>
+        <input id="t-correo" type="email" />
+        <label for="t-nombre">Nombre del taller</label>
+        <input id="t-nombre" type="text" />
+        <div class="grid-2">
+          <div>
+            <label for="t-calle">Calle</label>
+            <input id="t-calle" type="text" />
+          </div>
+          <div>
+            <label for="t-numero">Número</label>
+            <input id="t-numero" type="text" />
+          </div>
+        </div>
+        <div class="grid-2">
+          <div>
+            <label for="t-comuna">Comuna</label>
+            <input id="t-comuna" type="text" />
+          </div>
+          <div>
+            <label for="t-depto">Depto / casa (opcional)</label>
+            <input id="t-depto" type="text" />
+          </div>
+        </div>
+        <label for="t-ciclo">Ciclo de facturación</label>
+        <select id="t-ciclo">
+          <option value="semanal">Semanal</option>
+          <option value="quincenal">Quincenal</option>
+          <option value="30_dias" selected>30 días</option>
+          <option value="45_dias">45 días</option>
+        </select>
+        <button class="primario" id="btn-crear-taller">Crear taller</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>Taller</th><th>Dirección</th><th>Ciclo</th><th></th></tr>
+        </thead>
+        <tbody id="tabla-talleres"></tbody>
+      </table>
+    </section>
+
+    <section class="panel" id="panel-choferes">
+      <p style="color:var(--dim); font-size:0.85rem; margin-bottom:16px;">
+        Todavía no existe el registro de chofer con cuenta propia — estas filas se crean manualmente mientras tanto.
+      </p>
+      <table>
+        <thead>
+          <tr><th>Nombre</th><th>Teléfono</th><th>Correo</th><th>Estado</th></tr>
+        </thead>
+        <tbody id="tabla-choferes"></tbody>
+      </table>
+    </section>
+  </main>
+</div>
+
+<script>
+  const SUPABASE_URL = "https://gcivybtcccaslyzkzgri.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_IVjRfzdWhEO3yb5LkUz7pw_5IA-CxLW";
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  let correoEnCurso = "";
+
+  const $ = (id) => document.getElementById(id);
+
+  function mostrarError(elId, msg) {
+    const el = $(elId);
+    el.textContent = msg;
+    el.style.display = "block";
+  }
+  function ocultar(elId) { $(elId).style.display = "none"; }
+
+  // ---------- Login OTP ----------
+  $("btn-enviar-codigo").addEventListener("click", async () => {
+    ocultar("login-error"); ocultar("login-ok");
+    const correo = $("correo-input").value.trim();
+    if (!correo) return mostrarError("login-error", "Ingresa un correo.");
+    const btn = $("btn-enviar-codigo");
+    btn.disabled = true; btn.textContent = "Enviando...";
+    const { error } = await sb.auth.signInWithOtp({ email: correo, options: { shouldCreateUser: false } });
+    btn.disabled = false; btn.textContent = "Enviar código";
+    if (error) return mostrarError("login-error", "No se pudo enviar el código: " + error.message);
+    correoEnCurso = correo;
+    $("paso-correo").style.display = "none";
+    $("paso-codigo").style.display = "block";
+    $("login-ok").textContent = "Código enviado a " + correo;
+    $("login-ok").style.display = "block";
+  });
+
+  $("btn-cambiar-correo").addEventListener("click", () => {
+    $("paso-codigo").style.display = "none";
+    $("paso-correo").style.display = "block";
+    ocultar("login-error"); ocultar("login-ok");
+  });
+
+  $("btn-verificar-codigo").addEventListener("click", async () => {
+    ocultar("login-error");
+    const codigo = $("codigo-input").value.trim();
+    if (!codigo) return mostrarError("login-error", "Ingresa el código.");
+    const btn = $("btn-verificar-codigo");
+    btn.disabled = true; btn.textContent = "Verificando...";
+    const { error } = await sb.auth.verifyOtp({ email: correoEnCurso, token: codigo, type: "email" });
+    btn.disabled = false; btn.textContent = "Ingresar";
+    if (error) return mostrarError("login-error", "Código inválido o vencido.");
+    await entrarAlPanel();
+  });
+
+  $("btn-salir").addEventListener("click", async () => {
+    await sb.auth.signOut();
+    location.reload();
+  });
+
+  // ---------- Tabs ----------
+  document.querySelectorAll(".tab-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("activo"));
+      document.querySelectorAll(".panel").forEach((p) => p.classList.remove("activo"));
+      btn.classList.add("activo");
+      $("panel-" + btn.dataset.tab).classList.add("activo");
+    });
+  });
+
+  // ---------- Entrar al panel ----------
+  async function entrarAlPanel() {
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) return;
+    $("vista-login").style.display = "none";
+    $("vista-panel").style.display = "block";
+    await Promise.all([cargarTalleres(), cargarChoferes()]);
+  }
+
+  // ---------- Talleres ----------
+  async function cargarTalleres() {
+    const tbody = $("tabla-talleres");
+    const { data, error } = await sb.from("talleres").select("*").order("nombre_taller");
+    if (error) {
+      tbody.innerHTML = `<tr><td colspan="4" class="vacio">No se pudo cargar: ${error.message}</td></tr>`;
+      return;
+    }
+    if (!data.length) {
+      tbody.innerHTML = `<tr><td colspan="4" class="vacio">Todavía no hay talleres dados de alta.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.map((t) => `
+      <tr>
+        <td><strong>${t.nombre_taller}</strong></td>
+        <td>${t.calle} ${t.numero}${t.depto_casa ? ", " + t.depto_casa : ""}, ${t.comuna}</td>
+        <td class="mono">${t.ciclo_facturacion}</td>
+        <td><button class="eliminar" data-id="${t.taller_id}">Eliminar</button></td>
+      </tr>
+    `).join("");
+
+    tbody.querySelectorAll(".eliminar").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        if (!confirm("¿Eliminar este taller? Pierde el acceso de inmediato.")) return;
+        const { error } = await sb.from("talleres").delete().eq("taller_id", btn.dataset.id);
+        if (error) { alert("No se pudo eliminar: " + error.message); return; }
+        cargarTalleres();
+      });
+    });
+  }
+
+  $("btn-crear-taller").addEventListener("click", async () => {
+    ocultar("taller-error"); ocultar("taller-ok");
+    const payload = {
+      correo_taller: $("t-correo").value.trim(),
+      nombre_taller: $("t-nombre").value.trim(),
+      calle: $("t-calle").value.trim(),
+      numero: $("t-numero").value.trim(),
+      comuna: $("t-comuna").value.trim(),
+      depto_casa: $("t-depto").value.trim() || null,
+      ciclo_facturacion: $("t-ciclo").value,
+    };
+    if (!payload.correo_taller || !payload.nombre_taller || !payload.calle || !payload.numero || !payload.comuna) {
+      return mostrarError("taller-error", "Completa correo, nombre, calle, número y comuna.");
+    }
+    const btn = $("btn-crear-taller");
+    btn.disabled = true; btn.textContent = "Creando...";
+    const { data, error } = await sb.functions.invoke("admin-crear-taller", { body: payload });
+    btn.disabled = false; btn.textContent = "Crear taller";
+
+    if (error || (data && data.error)) {
+      return mostrarError("taller-error", (data && data.error) || error.message);
+    }
+    $("taller-ok").textContent = "Taller creado correctamente.";
+    $("taller-ok").style.display = "block";
+    ["t-correo","t-nombre","t-calle","t-numero","t-comuna","t-depto"].forEach((id) => $(id).value = "");
+    cargarTalleres();
+  });
+
+  // ---------- Choferes ----------
+  async function cargarChoferes() {
+    const tbody = $("tabla-choferes");
+    const { data, error } = await sb.from("choferes").select("*").order("created_at", { ascending: false });
+    if (error) {
+      tbody.innerHTML = `<tr><td colspan="4" class="vacio">No se pudo cargar: ${error.message}</td></tr>`;
+      return;
+    }
+    if (!data.length) {
+      tbody.innerHTML = `<tr><td colspan="4" class="vacio">No hay choferes registrados todavía.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.map((c) => `
+      <tr>
+        <td><strong>${c.nombre}</strong></td>
+        <td>${c.telefono || "—"}</td>
+        <td>${c.correo || "—"}</td>
+        <td>
+          <select class="estado-select" data-id="${c.id}">
+            <option value="pendiente" ${c.estado === "pendiente" ? "selected" : ""}>Pendiente</option>
+            <option value="aprobado" ${c.estado === "aprobado" ? "selected" : ""}>Aprobado</option>
+            <option value="rechazado" ${c.estado === "rechazado" ? "selected" : ""}>Rechazado</option>
+          </select>
+        </td>
+      </tr>
+    `).join("");
+
+    tbody.querySelectorAll(".estado-select").forEach((sel) => {
+      sel.addEventListener("change", async () => {
+        const { error } = await sb.from("choferes").update({ estado: sel.value }).eq("id", sel.dataset.id);
+        if (error) alert("No se pudo actualizar: " + error.message);
+      });
+    });
+  }
+
+  // ---------- Al cargar la página ----------
+  (async () => {
+    const { data: { user } } = await sb.auth.getUser();
+    if (user) await entrarAlPanel();
+  })();
+</script>
+</body>
+</html>
