@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoviKar — Historial y programados</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --bg:#FFFFFF;
+    --surface:#F6F9F8;
+    --surface-2:#EDF3F1;
+    --ink:#16302C;
+    --ink-dim:#5E7570;
+    --line:#DCE6E3;
+    --teal:#009688;
+    --teal-dim:#E3F5F2;
+    --teal-deep:#00695E;
+    --coral:#E8542F;
+    --coral-dim:#FFEEE7;
+    --ok:#1F8F5C;
+    --ok-dim:#E6F6EC;
+    --amber:#B8860B;
+    --amber-dim:#FBF3DC;
+    --radius:12px;
+  }
+  *{box-sizing:border-box; min-width:0;}
+  html,body{overflow-x:hidden; width:100%;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;min-height:100vh;}
+
+  header{
+    display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;
+    padding:18px clamp(16px,4vw,32px);border-bottom:1px solid var(--line);
+    background:var(--bg);
+  }
+  .brand{display:flex;align-items:center;gap:13px;}
+  .brand-mark{width:52px;height:52px;border-radius:14px;flex-shrink:0;background:var(--teal-dim);display:flex;align-items:center;justify-content:center;}
+  .brand-mark svg{width:36px;height:36px;}
+  .brand-name{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:20px;letter-spacing:-0.01em;line-height:1.1;color:var(--ink);}
+  .brand-tag{font-size:12px;color:var(--teal-deep);font-weight:600;margin-top:2px;letter-spacing:.02em;}
+  .header-right{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+  .nav-link{font-size:12.5px;color:var(--ink-dim);text-decoration:none;border-bottom:1px dashed var(--line);padding-bottom:1px;white-space:nowrap;}
+  .taller-chip{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--ink-dim);background:var(--surface);border:1px solid var(--line);padding:7px 12px;border-radius:20px;white-space:nowrap;}
+  .taller-chip .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);flex-shrink:0;}
+  .taller-name{color:var(--ink);font-weight:600;}
+  .logout-link{background:none;border:none;color:var(--ink-dim);font-size:11.5px;cursor:pointer;text-decoration:underline;padding:0;}
+
+  main{max-width:880px;margin:0 auto;padding:32px clamp(16px,4vw,32px) 90px;}
+  .page-head{margin-bottom:22px;}
+  .page-head h1{font-family:'Space Grotesk',sans-serif;font-size:24px;margin:0 0 6px;letter-spacing:-0.01em;}
+  .page-head p{font-size:13.5px;color:var(--ink-dim);margin:0;}
+
+  .filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
+  .filter-chip{border:1px solid var(--line);background:var(--bg);border-radius:20px;padding:7px 14px;font-size:12.5px;font-weight:600;color:var(--ink-dim);cursor:pointer;transition:.15s;}
+  .filter-chip:hover{border-color:var(--teal);}
+  .filter-chip.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+
+  .empty-state{text-align:center;padding:60px 20px;color:var(--ink-dim);}
+  .empty-state svg{width:40px;height:40px;color:var(--line);margin-bottom:14px;}
+  .empty-state p{font-size:13.5px;margin:0;}
+
+  .loading-state{text-align:center;padding:60px 20px;color:var(--ink-dim);font-size:13.5px;}
+
+  .card{background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:12px;box-shadow:0 1px 3px rgba(22,48,44,0.04);}
+  .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+  .card-vehiculo{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15.5px;color:var(--ink);}
+  .card-vehiculo .patente{font-family:'JetBrains Mono',monospace;background:var(--surface-2);padding:2px 8px;border-radius:5px;font-size:13px;margin-right:8px;}
+  .card-fecha{font-size:11.5px;color:var(--ink-dim);font-family:'JetBrains Mono',monospace;white-space:nowrap;}
+  .card-direccion{font-size:13px;color:var(--ink-dim);margin-bottom:12px;}
+  .card-direccion a{color:var(--teal-deep);text-decoration:none;}
+
+  .stage-row{display:flex;gap:10px;flex-wrap:wrap;}
+  .stage{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:9px;padding:8px 12px;flex:1;min-width:180px;background:var(--surface);}
+  .stage-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.04em;}
+  .badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;margin-top:2px;}
+  .badge.agendado{background:var(--surface-2);color:var(--ink-dim);}
+  .badge.asignado{background:var(--teal-dim);color:var(--teal-deep);}
+  .badge.en_camino{background:var(--teal-dim);color:var(--teal-deep);}
+  .badge.llegado{background:var(--teal-dim);color:var(--teal-deep);}
+  .badge.control_fotografico{background:var(--amber-dim);color:var(--amber);}
+  .badge.completado{background:var(--ok-dim);color:var(--ok);}
+  .badge.cancelado{background:var(--coral-dim);color:var(--coral);}
+
+  .card-notas{font-size:12px;color:var(--ink-dim);font-style:italic;margin-top:10px;padding-top:10px;border-top:1px solid var(--line);}
+
+  .login-wrap{max-width:400px;margin:60px auto;padding:0 clamp(16px,4vw,32px);}
+  .login-card{background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);padding:28px;box-shadow:0 1px 3px rgba(22,48,44,0.05), 0 8px 24px rgba(22,48,44,0.04);text-align:center;}
+  .login-card h2{font-family:'Space Grotesk',sans-serif;font-size:18px;margin:14px 0 8px;color:var(--ink);}
+  .login-card p{font-size:13px;color:var(--ink-dim);margin:0 0 20px;line-height:1.5;}
+  label{display:block;font-size:12px;color:var(--ink-dim);margin:0 0 6px;font-weight:500;}
+  input[type=text]{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:10px 12px;color:var(--ink);font-family:'Inter',sans-serif;font-size:13.5px;margin-bottom:12px;text-align:center;}
+  input:focus{outline:2px solid var(--teal);outline-offset:1px;border-color:var(--teal);}
+  .login-btn{width:100%;background:var(--ink);color:#fff;border:none;border-radius:7px;padding:12px;font-weight:600;font-size:13.5px;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:.15s;}
+  .login-btn:hover{background:var(--teal-deep);}
+  .login-btn:disabled{opacity:.5;cursor:default;}
+  .login-msg{font-size:13.5px;font-weight:600;margin-top:14px;padding:12px 14px;border-radius:8px;display:none;align-items:center;gap:8px;text-align:left;line-height:1.4;}
+  .login-msg.ok{color:var(--ok);background:var(--ok-dim);border:1px solid var(--ok);display:flex;}
+  .login-msg.err{color:var(--coral);background:var(--coral-dim);border:1px solid var(--coral);display:flex;}
+  .app-shell{display:none;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-mark">
+      <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="20" cy="29.6" rx="15" ry="1.5" fill="#EDF3F1"/>
+        <path d="M6 26.6 L7.5 26.6 A4.5 4.5 0 0 1 16.5 26.6 L23.5 26.6 A4.5 4.5 0 0 1 32.5 26.6 L34 26.6 C36.3 24.3 35.3 19.7 31.5 17.5 C29.3 15 26.3 13 23 13 L16 13 C12.7 13 9.7 15 7.5 17.5 C4.7 19.7 3.7 24.3 6 26.6 Z" fill="#009688"/>
+        <circle cx="32.6" cy="20.6" r="1" fill="#F6F9F8" opacity="0.85"/>
+        <path d="M11.4 18.6 L11 18.2 C11 15.6 12.6 14.3 15 14.3 L24 14.3 C26.4 14.3 28 15.6 28 18.2 L27.6 18.6 Q27.6 18.9 27.2 18.9 L11.8 18.9 Q11.4 18.9 11.4 18.6 Z" fill="#F6F9F8"/>
+        <line x1="19.5" y1="14.3" x2="19.5" y2="18.9" stroke="#009688" stroke-width="0.9"/>
+        <circle cx="12" cy="26.6" r="4" fill="#16302C"/>
+        <circle cx="12" cy="26.6" r="1.5" fill="#F6F9F8"/>
+        <circle cx="28" cy="26.6" r="4" fill="#16302C"/>
+        <circle cx="28" cy="26.6" r="1.5" fill="#F6F9F8"/>
+        <circle cx="30" cy="10.5" r="3.3" fill="#00695E"/>
+        <path d="M28.3 10.5l1.1 1.1 2.1-2.4" fill="none" stroke="#FFFFFF" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div>
+      <div class="brand-name">MoviKar</div>
+      <div class="brand-tag">HISTORIAL Y PROGRAMADOS</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <a class="nav-link" href="/agendar/">← Volver a agendar</a>
+    <div class="taller-chip" id="tallerChip" style="display:none;">
+      <span class="dot"></span>
+      <span><span class="taller-name" id="tallerEmail"></span> · <button class="logout-link" id="logoutBtn">cerrar sesión</button></span>
+    </div>
+  </div>
+</header>
+
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <h2>Ingresa a tu portal MoviKar</h2>
+    <p>Solo talleres habilitados por MoviKar. Escribe tu correo y te mandamos un código de acceso.</p>
+    <input type="text" id="loginEmail" placeholder="correo@tutaller.cl">
+    <button class="login-btn" id="loginBtn">Enviarme un código de acceso</button>
+    <div class="login-msg" id="loginMsg"></div>
+    <div id="otpBlock" style="display:none;margin-top:18px;padding-top:18px;border-top:1px solid var(--line);">
+      <p style="font-size:12px;color:var(--ink-dim);margin:0 0 10px;">Ingresa aquí el código de 8 dígitos que te llegó por correo:</p>
+      <input type="text" id="loginCode" placeholder="12345678" maxlength="8" style="text-align:center;letter-spacing:4px;font-family:'JetBrains Mono',monospace;">
+      <button class="login-btn" id="verifyCodeBtn" style="background:var(--teal);">Confirmar código</button>
+    </div>
+  </div>
+</div>
+
+<div class="app-shell" id="appShell">
+<main>
+  <div class="page-head">
+    <h1>Historial y programados</h1>
+    <p>Todos los traslados que has agendado, con su estado actual.</p>
+  </div>
+
+  <div class="filter-row" id="filterRow">
+    <button class="filter-chip active" data-filter="todos">Todos</button>
+    <button class="filter-chip" data-filter="activos">Activos</button>
+    <button class="filter-chip" data-filter="completado">Completados</button>
+    <button class="filter-chip" data-filter="cancelado">Cancelados</button>
+  </div>
+
+  <div id="listContainer">
+    <div class="loading-state">Cargando traslados...</div>
+  </div>
+</main>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://gcivybtcccaslyzkzgri.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_IVjRfzdWhEO3yb5LkUz7pw_5IA-CxLW';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentUser = null;
+let allTraslados = [];
+let activeFilter = 'todos';
+
+const ESTADO_LABEL = {
+  agendado: 'Agendado', asignado: 'Chofer asignado', en_camino: 'En camino',
+  llegado: 'Chofer llegó', control_fotografico: 'Registrando fotos',
+  completado: 'Completado', cancelado: 'Cancelado'
+};
+const TIPO_LABEL = {retiro:'Retiro', entrega:'Entrega', ambos:'Retiro + Entrega'};
+
+function showApp(user){
+  currentUser = user;
+  document.getElementById('loginWrap').style.display = 'none';
+  document.getElementById('appShell').style.display = 'block';
+  document.getElementById('tallerChip').style.display = 'flex';
+  document.getElementById('tallerEmail').textContent = user.email;
+  loadTraslados();
+}
+
+function showLogin(){
+  currentUser = null;
+  document.getElementById('loginWrap').style.display = 'block';
+  document.getElementById('appShell').style.display = 'none';
+  document.getElementById('tallerChip').style.display = 'none';
+}
+
+sb.auth.getSession().then(async ({data})=>{
+  if(!data.session){ showLogin(); return; }
+  const { data: userData, error } = await sb.auth.getUser();
+  if(error || !userData.user){ await sb.auth.signOut(); showLogin(); }
+  else showApp(userData.user);
+});
+
+sb.auth.onAuthStateChange((event, session)=>{
+  if(session) showApp(session.user);
+  else showLogin();
+});
+
+document.getElementById('loginBtn').addEventListener('click', async ()=>{
+  const email = document.getElementById('loginEmail').value.trim();
+  const msg = document.getElementById('loginMsg');
+  const btn = document.getElementById('loginBtn');
+  msg.className = 'login-msg';
+  if(!email || !email.includes('@')){
+    msg.textContent = '⚠ Ingresa un correo válido.';
+    msg.classList.add('err');
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+  const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+  btn.disabled = false;
+  btn.textContent = 'Enviarme un código de acceso';
+  if(error){
+    if(error.message && error.message.toLowerCase().includes('signups not allowed')){
+      msg.textContent = '⚠ Este correo aún no está habilitado como taller. Escríbenos a movikarcl@gmail.com para activarlo.';
+    } else {
+      msg.textContent = '⚠ No se pudo enviar el código: ' + error.message;
+    }
+    msg.classList.add('err');
+  } else {
+    msg.textContent = '✓ Código enviado — revisa tu correo y escríbelo abajo.';
+    msg.classList.add('ok');
+    document.getElementById('otpBlock').style.display = 'block';
+  }
+});
+
+document.getElementById('verifyCodeBtn').addEventListener('click', async ()=>{
+  const email = document.getElementById('loginEmail').value.trim();
+  const code = document.getElementById('loginCode').value.trim();
+  const msg = document.getElementById('loginMsg');
+  const btn = document.getElementById('verifyCodeBtn');
+  msg.className = 'login-msg';
+  if(!code || code.length !== 8){
+    msg.textContent = '⚠ Ingresa el código de 8 dígitos completo.';
+    msg.classList.add('err');
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+  const { error } = await sb.auth.verifyOtp({ email, token: code, type: 'email' });
+  btn.disabled = false;
+  btn.textContent = 'Confirmar código';
+  if(error){
+    msg.textContent = '⚠ Ese código ya venció o no es válido. Pide uno nuevo con el botón de arriba y usa el más reciente.';
+    msg.classList.add('err');
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', async ()=>{
+  await sb.auth.signOut();
+});
+
+function fmtDateTime(iso){
+  if(!iso) return '—';
+  return new Date(iso).toLocaleString('es-CL',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'});
+}
+
+function fullAddress(t){
+  return `${t.calle} ${t.numero}${t.depto_casa ? ', ' + t.depto_casa : ''}, ${t.comuna}`;
+}
+
+function wazeLink(t){
+  return `https://waze.com/ul?q=${encodeURIComponent(fullAddress(t))}&navigate=yes`;
+}
+
+async function loadTraslados(){
+  const container = document.getElementById('listContainer');
+  container.innerHTML = '<div class="loading-state">Cargando traslados...</div>';
+  const { data, error } = await sb.from('traslados').select('*').order('created_at', { ascending: false });
+  if(error){
+    container.innerHTML = `<div class="empty-state"><p>No se pudo cargar el historial: ${error.message}</p></div>`;
+    return;
+  }
+  allTraslados = data;
+  renderList();
+}
+
+function isActivo(t){
+  const estados = [t.estado_retiro, t.estado_entrega].filter(Boolean);
+  return estados.some(e => e !== 'completado' && e !== 'cancelado');
+}
+function isCompletado(t){
+  const estados = [t.estado_retiro, t.estado_entrega].filter(Boolean);
+  return estados.length > 0 && estados.every(e => e === 'completado');
+}
+function isCancelado(t){
+  const estados = [t.estado_retiro, t.estado_entrega].filter(Boolean);
+  return estados.some(e => e === 'cancelado');
+}
+
+function renderList(){
+  const container = document.getElementById('listContainer');
+  let filtered = allTraslados;
+  if(activeFilter === 'activos') filtered = allTraslados.filter(isActivo);
+  else if(activeFilter === 'completado') filtered = allTraslados.filter(isCompletado);
+  else if(activeFilter === 'cancelado') filtered = allTraslados.filter(isCancelado);
+
+  if(filtered.length === 0){
+    container.innerHTML = `<div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+      <p>No hay traslados en esta vista todavía.</p>
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(t => {
+    let stages = '';
+    if(t.estado_retiro){
+      stages += `<div class="stage"><div><div class="stage-label">Retiro</div><span class="badge ${t.estado_retiro}">${ESTADO_LABEL[t.estado_retiro]}</span></div></div>`;
+    }
+    if(t.estado_entrega){
+      stages += `<div class="stage"><div><div class="stage-label">Entrega</div><span class="badge ${t.estado_entrega}">${ESTADO_LABEL[t.estado_entrega]}</span></div></div>`;
+    }
+    return `
+      <div class="card">
+        <div class="card-top">
+          <div class="card-vehiculo"><span class="patente">${t.patente}</span>${[t.marca, t.modelo].filter(Boolean).join(' ')}</div>
+          <div class="card-fecha">${TIPO_LABEL[t.tipo]} · ${fmtDateTime(t.created_at)}</div>
+        </div>
+        <div class="card-direccion">${fullAddress(t)} · <a href="${wazeLink(t)}" target="_blank" rel="noopener">Ver en Waze ↗</a></div>
+        <div class="stage-row">${stages}</div>
+        ${t.notas ? `<div class="card-notas">"${t.notas}"</div>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+document.getElementById('filterRow').addEventListener('click', (e)=>{
+  const btn = e.target.closest('.filter-chip');
+  if(!btn) return;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  activeFilter = btn.dataset.filter;
+  renderList();
+});
+</script>
+
+</body>
+</html>
