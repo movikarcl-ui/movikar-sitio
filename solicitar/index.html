@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Solicitar acceso — MoviKar</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --bg: #FFFFFF; --surface: #F6F9F8; --surface-2: #EDF3F1;
+    --ink: #16302C; --dim: #5E7570; --line: #DCE6E3;
+    --turquesa: #009688; --turquesa-claro: #E3F5F2; --turquesa-profundo: #00695E;
+    --coral: #E8542F; --coral-claro: #FFEEE7; --ok: #1F8F5C; --ok-claro: #E6F6EC;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--surface); color: var(--ink); font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+  h1, h2 { font-family: 'Space Grotesk', sans-serif; margin: 0; }
+  main { max-width: 560px; margin: 0 auto; padding: 40px 20px 80px; }
+  .intro { margin-bottom: 28px; }
+  .intro h1 { font-size: 1.6rem; color: var(--turquesa-profundo); margin-bottom: 8px; }
+  .intro p { color: var(--dim); font-size: 0.95rem; line-height: 1.5; margin: 0; }
+
+  fieldset { border: none; border-top: 1px solid var(--line); padding: 20px 0 0; margin: 0 0 20px; }
+  legend { padding: 0 0 4px; font-family: 'Space Grotesk', sans-serif; font-size: 1.02rem; }
+  .legend-ayuda { color: var(--dim); font-size: 0.82rem; margin: 0 0 14px; }
+
+  label { display: block; font-size: 0.82rem; color: var(--dim); margin-bottom: 4px; font-weight: 500; }
+  input, select, textarea {
+    width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 8px;
+    background: var(--bg); color: var(--ink); font-family: 'Inter'; font-size: 0.92rem; margin-bottom: 14px;
+  }
+  input:focus, select:focus { outline: 2px solid var(--turquesa); outline-offset: 1px; border-color: var(--turquesa); }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0 14px; }
+  @media (max-width: 560px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+  .opcional { color: var(--dim); font-weight: 400; }
+
+  .terminos-box { display: flex; align-items: flex-start; gap: 10px; background: var(--surface-2); border-radius: 10px; padding: 14px; margin-bottom: 18px; }
+  .terminos-box input { width: auto; margin: 3px 0 0; flex-shrink: 0; }
+  .terminos-box label { color: var(--ink); font-size: 0.85rem; font-weight: 400; margin: 0; }
+  .terminos-box a { color: var(--turquesa-profundo); }
+
+  button.primario { width: 100%; background: var(--turquesa); color: white; border: none; border-radius: 8px; padding: 13px; font-family: 'Inter'; font-weight: 600; font-size: 0.95rem; cursor: pointer; }
+  button.primario:hover { background: var(--turquesa-profundo); }
+  button.primario:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .error { color: var(--coral); background: var(--coral-claro); border-radius: 8px; padding: 10px 12px; font-size: 0.85rem; margin-bottom: 16px; }
+
+  #vista-exito { display: none; text-align: center; padding: 60px 20px; }
+  #vista-exito .icono { width: 56px; height: 56px; border-radius: 50%; background: var(--ok-claro); color: var(--ok); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; margin: 0 auto 20px; }
+  #vista-exito h1 { font-size: 1.4rem; margin-bottom: 10px; }
+  #vista-exito p { color: var(--dim); font-size: 0.95rem; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<main>
+  <div id="vista-form">
+    <div class="intro">
+      <h1>Solicita acceso a MoviKar</h1>
+      <p>Cuéntanos sobre tu taller. Revisamos cada solicitud y te contactamos para activar el acceso — no hay mínimos ni contrato de permanencia.</p>
+    </div>
+
+    <div id="form-error" class="error" style="display:none;"></div>
+
+    <form id="form-solicitud">
+      <fieldset style="border-top:none; padding-top:0;">
+        <legend>Tu taller</legend>
+        <label for="nombre_taller">Nombre del taller</label>
+        <input id="nombre_taller" required />
+        <div class="grid-2">
+          <div><label for="calle">Calle</label><input id="calle" required /></div>
+          <div><label for="numero">Número</label><input id="numero" required /></div>
+        </div>
+        <div class="grid-2">
+          <div><label for="comuna">Comuna</label><input id="comuna" required /></div>
+          <div><label for="depto_casa">Depto / casa <span class="opcional">(opcional)</span></label><input id="depto_casa" /></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Tu acceso</legend>
+        <p class="legend-ayuda">Con este correo vas a iniciar sesión para agendar traslados. Quedas como contacto principal del taller.</p>
+        <label for="usuario_nombre">Tu nombre</label>
+        <input id="usuario_nombre" required />
+        <label for="usuario_cargo">Tu cargo <span class="opcional">(opcional)</span></label>
+        <input id="usuario_cargo" placeholder="Ej: Jefe de taller, Recepción" />
+        <label for="usuario_correo">Tu correo</label>
+        <input id="usuario_correo" type="email" required />
+      </fieldset>
+
+      <fieldset>
+        <legend>Contactos del taller</legend>
+        <p class="legend-ayuda">Nombre, correo y teléfono de cada uno.</p>
+
+        <label>Propietario</label>
+        <div class="grid-3">
+          <input id="prop_nombre" placeholder="Nombre" />
+          <input id="prop_correo" type="email" placeholder="Correo" />
+          <input id="prop_telefono" placeholder="Teléfono" />
+        </div>
+
+        <label>Encargado del taller</label>
+        <div class="grid-3">
+          <input id="enc_nombre" placeholder="Nombre" />
+          <input id="enc_correo" type="email" placeholder="Correo" />
+          <input id="enc_telefono" placeholder="Teléfono" />
+        </div>
+
+        <label>Encargado de pago</label>
+        <div class="grid-3">
+          <input id="pago_nombre" placeholder="Nombre" />
+          <input id="pago_correo" type="email" placeholder="Correo" />
+          <input id="pago_telefono" placeholder="Teléfono" />
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Facturación</legend>
+        <p class="legend-ayuda">Puedes completar el detalle de pago después si prefieres.</p>
+        <label for="ciclo_facturacion">Ciclo de facturación que necesitas</label>
+        <select id="ciclo_facturacion">
+          <option value="semanal">Semanal</option>
+          <option value="quincenal">Quincenal</option>
+          <option value="30_dias" selected>30 días</option>
+          <option value="45_dias">45 días</option>
+          <option value="personalizado">Otro (especificar)</option>
+        </select>
+        <div id="ciclo_dias_wrap" style="display:none;">
+          <label for="ciclo_dias">¿Cada cuántos días?</label>
+          <input id="ciclo_dias" type="number" min="1" />
+        </div>
+        <label for="metodo_pago">Método de pago <span class="opcional">(opcional)</span></label>
+        <select id="metodo_pago">
+          <option value="">Sin definir</option>
+          <option value="transferencia">Transferencia bancaria</option>
+          <option value="otro">Otro</option>
+        </select>
+        <label for="datos_pago">Datos de pago <span class="opcional">(opcional)</span></label>
+        <input id="datos_pago" placeholder="Banco, tipo y número de cuenta" />
+      </fieldset>
+
+      <div class="terminos-box">
+        <input type="checkbox" id="acepta_terminos" required />
+        <label for="acepta_terminos">
+          Acepto los <a href="/terminos" target="_blank">Términos y Condiciones</a> de MoviKar. <!-- TODO: reemplazar /terminos cuando exista el documento final -->
+        </label>
+      </div>
+
+      <button type="submit" class="primario" id="btn-enviar">Enviar solicitud</button>
+    </form>
+  </div>
+
+  <div id="vista-exito">
+    <div class="icono">✓</div>
+    <h1>Solicitud enviada</h1>
+    <p>Vamos a revisarla y te contactamos al correo que dejaste para activar tu acceso.</p>
+  </div>
+</main>
+
+<script>
+  const SUPABASE_URL = "https://gcivybtcccaslyzkzgri.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_IVjRfzdWhEO3yb5LkUz7pw_5IA-CxLW";
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const $ = (id) => document.getElementById(id);
+
+  $("ciclo_facturacion").addEventListener("change", (e) => {
+    $("ciclo_dias_wrap").style.display = e.target.value === "personalizado" ? "block" : "none";
+  });
+
+  $("form-solicitud").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    $("form-error").style.display = "none";
+
+    if (!$("acepta_terminos").checked) {
+      $("form-error").textContent = "Debes aceptar los Términos y Condiciones para continuar.";
+      $("form-error").style.display = "block";
+      return;
+    }
+
+    const payload = {
+      nombre_taller: $("nombre_taller").value.trim(),
+      calle: $("calle").value.trim(),
+      numero: $("numero").value.trim(),
+      comuna: $("comuna").value.trim(),
+      depto_casa: $("depto_casa").value.trim() || null,
+      usuario_nombre: $("usuario_nombre").value.trim(),
+      usuario_cargo: $("usuario_cargo").value.trim() || null,
+      usuario_correo: $("usuario_correo").value.trim(),
+      propietario_nombre: $("prop_nombre").value.trim() || null,
+      propietario_correo: $("prop_correo").value.trim() || null,
+      propietario_telefono: $("prop_telefono").value.trim() || null,
+      encargado_nombre: $("enc_nombre").value.trim() || null,
+      encargado_correo: $("enc_correo").value.trim() || null,
+      encargado_telefono: $("enc_telefono").value.trim() || null,
+      encargado_pago_nombre: $("pago_nombre").value.trim() || null,
+      encargado_pago_correo: $("pago_correo").value.trim() || null,
+      encargado_pago_telefono: $("pago_telefono").value.trim() || null,
+      ciclo_facturacion: $("ciclo_facturacion").value,
+      ciclo_facturacion_dias: $("ciclo_facturacion").value === "personalizado"
+        ? (parseInt($("ciclo_dias").value, 10) || null) : null,
+      metodo_pago: $("metodo_pago").value || null,
+      datos_pago: $("datos_pago").value.trim() || null,
+      acepta_terminos: true,
+    };
+
+    const btn = $("btn-enviar");
+    btn.disabled = true; btn.textContent = "Enviando...";
+    const { error } = await sb.from("solicitudes_talleres").insert(payload);
+    btn.disabled = false; btn.textContent = "Enviar solicitud";
+
+    if (error) {
+      $("form-error").textContent = "No se pudo enviar: " + error.message;
+      $("form-error").style.display = "block";
+      return;
+    }
+
+    $("vista-form").style.display = "none";
+    $("vista-exito").style.display = "block";
+  });
+</script>
+</body>
+</html>
