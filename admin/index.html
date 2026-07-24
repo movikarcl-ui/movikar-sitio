@@ -5,122 +5,83 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="robots" content="noindex, nofollow" />
 <title>MoviKar — Panel de administración</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
-    --bg: #FFFFFF;
-    --surface: #F6F9F8;
-    --surface-2: #EDF3F1;
-    --ink: #16302C;
-    --dim: #5E7570;
-    --line: #DCE6E3;
-    --turquesa: #009688;
-    --turquesa-claro: #E3F5F2;
-    --turquesa-profundo: #00695E;
-    --coral: #E8542F;
-    --coral-claro: #FFEEE7;
-    --ok: #1F8F5C;
-    --ok-claro: #E6F6EC;
+    --bg: #FFFFFF; --surface: #F6F9F8; --surface-2: #EDF3F1;
+    --ink: #16302C; --dim: #5E7570; --line: #DCE6E3;
+    --turquesa: #009688; --turquesa-claro: #E3F5F2; --turquesa-profundo: #00695E;
+    --coral: #E8542F; --coral-claro: #FFEEE7; --ok: #1F8F5C; --ok-claro: #E6F6EC;
   }
   * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    background: var(--surface);
-    color: var(--ink);
-    font-family: 'Inter', sans-serif;
-    -webkit-font-smoothing: antialiased;
-  }
+  body { margin: 0; background: var(--surface); color: var(--ink); font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
   h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; margin: 0; }
   .mono { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; letter-spacing: 0.02em; }
-  header {
-    background: var(--bg);
-    border-bottom: 1px solid var(--line);
-    padding: 18px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
+  header { background: var(--bg); border-bottom: 1px solid var(--line); padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; }
   header h1 { font-size: 1.1rem; color: var(--turquesa-profundo); }
   header button { background: none; border: 1px solid var(--line); color: var(--dim); border-radius: 8px; padding: 6px 12px; font-family: 'Inter'; cursor: pointer; font-size: 0.85rem; }
-  main { max-width: 920px; margin: 0 auto; padding: 32px 24px 80px; }
+  main { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
 
-  /* Login */
   #vista-login { max-width: 380px; margin: 80px auto; }
   #vista-login .card { background: var(--bg); border: 1px solid var(--line); border-radius: 16px; padding: 32px; }
   #vista-login h1 { font-size: 1.4rem; margin-bottom: 6px; }
   #vista-login p { color: var(--dim); font-size: 0.9rem; margin: 0 0 20px; }
 
   label { display: block; font-size: 0.8rem; color: var(--dim); margin-bottom: 4px; font-weight: 500; }
-  input, select {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    background: var(--bg);
-    color: var(--ink);
-    font-family: 'Inter';
-    font-size: 0.9rem;
-    margin-bottom: 14px;
-  }
+  .opcional { font-weight: 400; }
+  input, select { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); font-family: 'Inter'; font-size: 0.9rem; margin-bottom: 14px; }
   input:focus, select:focus { outline: 2px solid var(--turquesa); outline-offset: 1px; border-color: var(--turquesa); }
-  button.primario {
-    width: 100%;
-    background: var(--turquesa);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 11px;
-    font-family: 'Inter';
-    font-weight: 600;
-    font-size: 0.9rem;
-    cursor: pointer;
-  }
+  button.primario { background: var(--turquesa); color: white; border: none; border-radius: 8px; padding: 11px 18px; font-family: 'Inter'; font-weight: 600; font-size: 0.9rem; cursor: pointer; }
   button.primario:hover { background: var(--turquesa-profundo); }
   button.primario:disabled { opacity: 0.5; cursor: not-allowed; }
-  button.secundario {
-    background: none;
-    border: 1px solid var(--line);
-    color: var(--dim);
-    border-radius: 8px;
-    padding: 6px 12px;
-    font-size: 0.8rem;
-    cursor: pointer;
-  }
+  button.primario.full { width: 100%; }
+  button.secundario { background: none; border: 1px solid var(--line); color: var(--dim); border-radius: 8px; padding: 6px 12px; font-size: 0.8rem; cursor: pointer; }
   .error { color: var(--coral); background: var(--coral-claro); border-radius: 8px; padding: 8px 12px; font-size: 0.82rem; margin-bottom: 14px; }
   .ok-msg { color: var(--ok); background: var(--ok-claro); border-radius: 8px; padding: 8px 12px; font-size: 0.82rem; margin-bottom: 14px; }
 
-  /* Secciones */
-  .tabs { display: flex; gap: 8px; margin-bottom: 24px; }
-  .tabs button {
-    background: var(--bg); border: 1px solid var(--line); color: var(--dim);
-    padding: 8px 16px; border-radius: 999px; font-family: 'Inter'; font-weight: 500;
-    font-size: 0.85rem; cursor: pointer;
-  }
+  .tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+  .tabs button { background: var(--bg); border: 1px solid var(--line); color: var(--dim); padding: 8px 16px; border-radius: 999px; font-family: 'Inter'; font-weight: 500; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px; }
   .tabs button.activo { background: var(--turquesa-claro); border-color: var(--turquesa); color: var(--turquesa-profundo); }
+  .contador { background: var(--coral); color: white; font-size: 0.68rem; border-radius: 999px; padding: 1px 7px; font-family: 'JetBrains Mono'; }
 
   section.panel { display: none; }
   section.panel.activo { display: block; }
 
-  .card-form {
-    background: var(--bg); border: 1px solid var(--line); border-radius: 14px;
-    padding: 22px; margin-bottom: 28px;
-  }
-  .card-form h2 { font-size: 1rem; margin-bottom: 16px; }
+  details.card-form { background: var(--bg); border: 1px solid var(--line); border-radius: 14px; margin-bottom: 28px; }
+  details.card-form > summary { padding: 18px 22px; cursor: pointer; font-family: 'Space Grotesk'; font-size: 1rem; list-style: none; display:flex; align-items:center; justify-content:space-between; }
+  details.card-form > summary::-webkit-details-marker { display: none; }
+  details.card-form > summary::after { content: "+"; font-size: 1.3rem; color: var(--turquesa); }
+  details.card-form[open] > summary::after { content: "–"; }
+  .card-form-body { padding: 0 22px 22px; }
+  .subtitulo { font-size: 0.82rem; color: var(--dim); margin: -8px 0 16px; }
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0 14px; }
+  @media (max-width: 640px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+  fieldset { border: none; border-top: 1px solid var(--line); padding: 16px 0 0; margin: 0 0 16px; }
+  legend { padding: 0 0 10px; font-size: 0.78rem; font-weight: 600; color: var(--turquesa-profundo); text-transform: uppercase; letter-spacing: 0.04em; }
+  .contacto-label { font-size: 0.78rem; color: var(--ink); font-weight: 600; margin-bottom: 4px; }
 
   table { width: 100%; border-collapse: collapse; background: var(--bg); border-radius: 14px; overflow: hidden; border: 1px solid var(--line); }
-  th, td { text-align: left; padding: 10px 14px; font-size: 0.85rem; border-bottom: 1px solid var(--line); }
+  th, td { text-align: left; padding: 10px 14px; font-size: 0.85rem; border-bottom: 1px solid var(--line); vertical-align: top; }
   th { background: var(--surface-2); color: var(--dim); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em; }
   tr:last-child td { border-bottom: none; }
   .badge { font-family: 'JetBrains Mono'; font-size: 0.7rem; padding: 3px 8px; border-radius: 6px; display: inline-block; }
   .badge.pendiente { background: var(--surface-2); color: var(--dim); }
-  .badge.aprobado { background: var(--ok-claro); color: var(--ok); }
-  .badge.rechazado { background: var(--coral-claro); color: var(--coral); }
+  .badge.aprobado, .badge.activo { background: var(--ok-claro); color: var(--ok); }
+  .badge.rechazado, .badge.inactivo { background: var(--coral-claro); color: var(--coral); }
+  .badge.principal { background: var(--turquesa-claro); color: var(--turquesa-profundo); }
   select.estado-select { margin: 0; padding: 4px 8px; font-size: 0.78rem; width: auto; }
-  button.eliminar { background: none; border: none; color: var(--coral); cursor: pointer; font-size: 0.8rem; font-family: 'Inter'; }
+  button.link-accion { background: none; border: none; color: var(--turquesa-profundo); cursor: pointer; font-size: 0.8rem; font-family: 'Inter'; font-weight: 500; padding: 0; margin-right: 10px; }
+  button.link-accion.rojo { color: var(--coral); }
   .vacio { color: var(--dim); font-size: 0.85rem; padding: 20px; text-align: center; }
+  .usuarios-lista { font-size: 0.8rem; }
+  .usuarios-lista div { margin-bottom: 2px; }
+  .usuarios-lista .cargo { color: var(--dim); }
+  .contactos-mini { font-size: 0.78rem; color: var(--dim); line-height: 1.5; }
+  .contactos-mini strong { color: var(--ink); }
 </style>
 </head>
 <body>
@@ -131,17 +92,15 @@
     <p>Acceso restringido a administradores.</p>
     <div id="login-error" class="error" style="display:none;"></div>
     <div id="login-ok" class="ok-msg" style="display:none;"></div>
-
     <div id="paso-correo">
       <label for="correo-input">Correo</label>
       <input id="correo-input" type="email" placeholder="tu@correo.com" autocomplete="email" />
-      <button class="primario" id="btn-enviar-codigo">Enviar código</button>
+      <button class="primario full" id="btn-enviar-codigo">Enviar código</button>
     </div>
-
     <div id="paso-codigo" style="display:none;">
       <label for="codigo-input">Código de 8 dígitos</label>
       <input id="codigo-input" type="text" inputmode="numeric" maxlength="8" placeholder="00000000" />
-      <button class="primario" id="btn-verificar-codigo">Ingresar</button>
+      <button class="primario full" id="btn-verificar-codigo">Ingresar</button>
       <button class="secundario" style="margin-top:10px; width:100%;" id="btn-cambiar-correo">Usar otro correo</button>
     </div>
   </div>
@@ -155,64 +114,115 @@
   <main>
     <div class="tabs">
       <button class="tab-btn activo" data-tab="talleres">Talleres</button>
+      <button class="tab-btn" data-tab="solicitudes">Solicitudes <span class="contador" id="contador-solicitudes" style="display:none;">0</span></button>
       <button class="tab-btn" data-tab="choferes">Choferes</button>
     </div>
 
+    <!-- ============ TALLERES ============ -->
     <section class="panel activo" id="panel-talleres">
-      <div class="card-form">
-        <h2>Dar de alta un taller</h2>
-        <div id="taller-error" class="error" style="display:none;"></div>
-        <div id="taller-ok" class="ok-msg" style="display:none;"></div>
-        <label for="t-correo">Correo del taller</label>
-        <input id="t-correo" type="email" />
-        <label for="t-nombre">Nombre del taller</label>
-        <input id="t-nombre" type="text" />
-        <div class="grid-2">
-          <div>
-            <label for="t-calle">Calle</label>
-            <input id="t-calle" type="text" />
-          </div>
-          <div>
-            <label for="t-numero">Número</label>
-            <input id="t-numero" type="text" />
-          </div>
+      <details class="card-form">
+        <summary>Dar de alta un taller manualmente</summary>
+        <div class="card-form-body">
+          <p class="subtitulo">Para talleres que prefieres cargar tú directamente, sin pasar por el formulario de solicitud.</p>
+          <div id="taller-error" class="error" style="display:none;"></div>
+          <div id="taller-ok" class="ok-msg" style="display:none;"></div>
+
+          <fieldset style="border-top:none; padding-top:0;">
+            <legend>Taller</legend>
+            <label for="t-nombre">Nombre del taller</label>
+            <input id="t-nombre" type="text" />
+            <div class="grid-2">
+              <div><label for="t-calle">Calle</label><input id="t-calle" type="text" /></div>
+              <div><label for="t-numero">Número</label><input id="t-numero" type="text" /></div>
+            </div>
+            <div class="grid-2">
+              <div><label for="t-comuna">Comuna</label><input id="t-comuna" type="text" /></div>
+              <div><label for="t-depto">Depto / casa <span class="opcional">(opcional)</span></label><input id="t-depto" type="text" /></div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Primer usuario (login — queda como contacto principal)</legend>
+            <label for="t-u-nombre">Nombre</label>
+            <input id="t-u-nombre" type="text" />
+            <div class="grid-2">
+              <div><label for="t-u-cargo">Cargo <span class="opcional">(opcional)</span></label><input id="t-u-cargo" type="text" /></div>
+              <div><label for="t-u-correo">Correo</label><input id="t-u-correo" type="email" /></div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Contactos del taller <span class="opcional">(todos opcionales)</span></legend>
+            <div class="contacto-label">Propietario</div>
+            <div class="grid-3">
+              <input id="t-prop-nombre" placeholder="Nombre" />
+              <input id="t-prop-correo" type="email" placeholder="Correo" />
+              <input id="t-prop-telefono" placeholder="Teléfono" />
+            </div>
+            <div class="contacto-label">Encargado del taller</div>
+            <div class="grid-3">
+              <input id="t-enc-nombre" placeholder="Nombre" />
+              <input id="t-enc-correo" type="email" placeholder="Correo" />
+              <input id="t-enc-telefono" placeholder="Teléfono" />
+            </div>
+            <div class="contacto-label">Encargado de pago</div>
+            <div class="grid-3">
+              <input id="t-pago-nombre" placeholder="Nombre" />
+              <input id="t-pago-correo" type="email" placeholder="Correo" />
+              <input id="t-pago-telefono" placeholder="Teléfono" />
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Facturación</legend>
+            <label for="t-ciclo">Ciclo de facturación</label>
+            <select id="t-ciclo">
+              <option value="semanal">Semanal</option>
+              <option value="quincenal">Quincenal</option>
+              <option value="30_dias" selected>30 días</option>
+              <option value="45_dias">45 días</option>
+              <option value="personalizado">Personalizado</option>
+            </select>
+            <div id="t-ciclo-dias-wrap" style="display:none;">
+              <label for="t-ciclo-dias">¿Cada cuántos días?</label>
+              <input id="t-ciclo-dias" type="number" min="1" />
+            </div>
+            <label for="t-metodo-pago">Método de pago <span class="opcional">(opcional)</span></label>
+            <select id="t-metodo-pago">
+              <option value="">Sin definir</option>
+              <option value="transferencia">Transferencia bancaria</option>
+              <option value="otro">Otro</option>
+            </select>
+            <label for="t-datos-pago">Datos de pago <span class="opcional">(opcional — banco, tipo y número de cuenta)</span></label>
+            <input id="t-datos-pago" type="text" />
+          </fieldset>
+
+          <button class="primario" id="btn-crear-taller">Crear taller</button>
         </div>
-        <div class="grid-2">
-          <div>
-            <label for="t-comuna">Comuna</label>
-            <input id="t-comuna" type="text" />
-          </div>
-          <div>
-            <label for="t-depto">Depto / casa (opcional)</label>
-            <input id="t-depto" type="text" />
-          </div>
-        </div>
-        <label for="t-ciclo">Ciclo de facturación</label>
-        <select id="t-ciclo">
-          <option value="semanal">Semanal</option>
-          <option value="quincenal">Quincenal</option>
-          <option value="30_dias" selected>30 días</option>
-          <option value="45_dias">45 días</option>
-        </select>
-        <button class="primario" id="btn-crear-taller">Crear taller</button>
-      </div>
+      </details>
 
       <table>
-        <thead>
-          <tr><th>Taller</th><th>Dirección</th><th>Ciclo</th><th></th></tr>
-        </thead>
+        <thead><tr><th>Taller</th><th>Dirección</th><th>Ciclo</th><th>Usuarios (máx. 3)</th><th></th></tr></thead>
         <tbody id="tabla-talleres"></tbody>
       </table>
     </section>
 
+    <!-- ============ SOLICITUDES ============ -->
+    <section class="panel" id="panel-solicitudes">
+      <p class="subtitulo" style="margin-bottom:16px;">Talleres que completaron el formulario de autoservicio y esperan aprobación.</p>
+      <table>
+        <thead><tr><th>Taller</th><th>Contacto de acceso</th><th>Contactos</th><th>Ciclo pedido</th><th></th></tr></thead>
+        <tbody id="tabla-solicitudes"></tbody>
+      </table>
+    </section>
+
+    <!-- ============ CHOFERES ============ -->
     <section class="panel" id="panel-choferes">
-      <p style="color:var(--dim); font-size:0.85rem; margin-bottom:16px;">
+      <p class="subtitulo" style="margin-bottom:16px;">
         Todavía no existe el registro de chofer con cuenta propia — estas filas se crean manualmente mientras tanto.
       </p>
       <table>
-        <thead>
-          <tr><th>Nombre</th><th>Teléfono</th><th>Correo</th><th>Estado</th></tr>
-        </thead>
+        <thead><tr><th>Nombre</th><th>Teléfono</th><th>Correo</th><th>Estado</th></tr></thead>
         <tbody id="tabla-choferes"></tbody>
       </table>
     </section>
@@ -224,17 +234,18 @@
   const SUPABASE_KEY = "sb_publishable_IVjRfzdWhEO3yb5LkUz7pw_5IA-CxLW";
   const { createClient } = supabase;
   const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
-
+  const $ = (id) => document.getElementById(id);
   let correoEnCurso = "";
 
-  const $ = (id) => document.getElementById(id);
-
-  function mostrarError(elId, msg) {
-    const el = $(elId);
-    el.textContent = msg;
-    el.style.display = "block";
-  }
+  function mostrarError(elId, msg) { const el = $(elId); el.textContent = msg; el.style.display = "block"; }
   function ocultar(elId) { $(elId).style.display = "none"; }
+
+  async function invocarAdmin(payload) {
+    const { data, error } = await sb.functions.invoke("admin-crear-taller", { body: payload });
+    if (error) return { error: error.message };
+    if (data && data.error) return { error: data.error };
+    return { data };
+  }
 
   // ---------- Login OTP ----------
   $("btn-enviar-codigo").addEventListener("click", async () => {
@@ -271,12 +282,8 @@
     await entrarAlPanel();
   });
 
-  $("btn-salir").addEventListener("click", async () => {
-    await sb.auth.signOut();
-    location.reload();
-  });
+  $("btn-salir").addEventListener("click", async () => { await sb.auth.signOut(); location.reload(); });
 
-  // ---------- Tabs ----------
   document.querySelectorAll(".tab-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("activo"));
@@ -286,41 +293,71 @@
     });
   });
 
-  // ---------- Entrar al panel ----------
+  $("t-ciclo").addEventListener("change", (e) => {
+    $("t-ciclo-dias-wrap").style.display = e.target.value === "personalizado" ? "block" : "none";
+  });
+
   async function entrarAlPanel() {
     const { data: { user } } = await sb.auth.getUser();
     if (!user) return;
     $("vista-login").style.display = "none";
     $("vista-panel").style.display = "block";
-    await Promise.all([cargarTalleres(), cargarChoferes()]);
+    await Promise.all([cargarTalleres(), cargarSolicitudes(), cargarChoferes()]);
   }
 
   // ---------- Talleres ----------
   async function cargarTalleres() {
     const tbody = $("tabla-talleres");
-    const { data, error } = await sb.from("talleres").select("*").order("nombre_taller");
-    if (error) {
-      tbody.innerHTML = `<tr><td colspan="4" class="vacio">No se pudo cargar: ${error.message}</td></tr>`;
-      return;
-    }
-    if (!data.length) {
-      tbody.innerHTML = `<tr><td colspan="4" class="vacio">Todavía no hay talleres dados de alta.</td></tr>`;
-      return;
-    }
-    tbody.innerHTML = data.map((t) => `
-      <tr>
-        <td><strong>${t.nombre_taller}</strong></td>
-        <td>${t.calle} ${t.numero}${t.depto_casa ? ", " + t.depto_casa : ""}, ${t.comuna}</td>
-        <td class="mono">${t.ciclo_facturacion}</td>
-        <td><button class="eliminar" data-id="${t.taller_id}">Eliminar</button></td>
-      </tr>
-    `).join("");
+    const { data: talleres, error } = await sb.from("talleres").select("*").order("nombre_taller");
+    if (error) { tbody.innerHTML = `<tr><td colspan="5" class="vacio">No se pudo cargar: ${error.message}</td></tr>`; return; }
+    if (!talleres.length) { tbody.innerHTML = `<tr><td colspan="5" class="vacio">Todavía no hay talleres dados de alta.</td></tr>`; return; }
 
-    tbody.querySelectorAll(".eliminar").forEach((btn) => {
+    const { data: usuarios } = await sb.from("taller_usuarios").select("*").order("nombre");
+    const usuariosPorTaller = {};
+    (usuarios || []).forEach((u) => {
+      (usuariosPorTaller[u.taller_id] = usuariosPorTaller[u.taller_id] || []).push(u);
+    });
+
+    tbody.innerHTML = talleres.map((t) => {
+      const us = usuariosPorTaller[t.id] || [];
+      const cicloTexto = t.ciclo_facturacion === "personalizado"
+        ? `cada ${t.ciclo_facturacion_dias || "?"} días` : t.ciclo_facturacion;
+      const listaUsuarios = us.length
+        ? `<div class="usuarios-lista">${us.map((u) => `<div>${u.nombre}${u.cargo ? ` <span class="cargo">· ${u.cargo}</span>` : ""} <span class="badge ${u.estado}">${u.estado}</span>${u.es_principal ? ` <span class="badge principal">principal</span>` : ""}<br><span class="mono">${u.correo}</span></div>`).join("")}</div>`
+        : `<span class="vacio" style="padding:0;">Sin usuarios</span>`;
+      const limite = t.limite_usuarios ?? 3;
+      const alLimite = us.length >= limite;
+      return `
+        <tr>
+          <td><strong>${t.nombre_taller}</strong></td>
+          <td>${t.calle} ${t.numero}${t.depto_casa ? ", " + t.depto_casa : ""}, ${t.comuna}</td>
+          <td class="mono">${cicloTexto}</td>
+          <td>${listaUsuarios}<div class="mono" style="color:var(--dim); margin-top:4px;">${us.length}/${limite}</div></td>
+          <td>
+            <button class="link-accion" data-agregar="${t.id}" ${alLimite ? "disabled title='Límite alcanzado'" : ""}>+ Usuario</button>
+            <button class="link-accion rojo" data-eliminar="${t.id}">Eliminar</button>
+          </td>
+        </tr>`;
+    }).join("");
+
+    tbody.querySelectorAll("[data-eliminar]").forEach((btn) => {
       btn.addEventListener("click", async () => {
-        if (!confirm("¿Eliminar este taller? Pierde el acceso de inmediato.")) return;
-        const { error } = await sb.from("talleres").delete().eq("taller_id", btn.dataset.id);
+        if (!confirm("¿Eliminar este taller? Todos sus usuarios pierden el acceso de inmediato.")) return;
+        const { error } = await sb.from("talleres").delete().eq("id", btn.dataset.eliminar);
         if (error) { alert("No se pudo eliminar: " + error.message); return; }
+        cargarTalleres();
+      });
+    });
+
+    tbody.querySelectorAll("[data-agregar]:not([disabled])").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const nombre = prompt("Nombre de la persona:");
+        if (!nombre) return;
+        const correo = prompt("Correo con el que va a iniciar sesión:");
+        if (!correo) return;
+        const cargo = prompt("Cargo (opcional):") || null;
+        const res = await invocarAdmin({ modo: "agregar_usuario", taller_id: btn.dataset.agregar, usuario: { nombre, correo, cargo } });
+        if (res.error) { alert("No se pudo agregar: " + res.error); return; }
         cargarTalleres();
       });
     });
@@ -328,44 +365,116 @@
 
   $("btn-crear-taller").addEventListener("click", async () => {
     ocultar("taller-error"); ocultar("taller-ok");
+    const ciclo = $("t-ciclo").value;
     const payload = {
-      correo_taller: $("t-correo").value.trim(),
-      nombre_taller: $("t-nombre").value.trim(),
-      calle: $("t-calle").value.trim(),
-      numero: $("t-numero").value.trim(),
-      comuna: $("t-comuna").value.trim(),
-      depto_casa: $("t-depto").value.trim() || null,
-      ciclo_facturacion: $("t-ciclo").value,
+      modo: "crear_taller",
+      taller: {
+        nombre_taller: $("t-nombre").value.trim(),
+        calle: $("t-calle").value.trim(),
+        numero: $("t-numero").value.trim(),
+        comuna: $("t-comuna").value.trim(),
+        depto_casa: $("t-depto").value.trim() || null,
+        ciclo_facturacion: ciclo,
+        ciclo_facturacion_dias: ciclo === "personalizado" ? (parseInt($("t-ciclo-dias").value, 10) || null) : null,
+        propietario: {
+          nombre: $("t-prop-nombre").value.trim() || null,
+          correo: $("t-prop-correo").value.trim() || null,
+          telefono: $("t-prop-telefono").value.trim() || null,
+        },
+        encargado: {
+          nombre: $("t-enc-nombre").value.trim() || null,
+          correo: $("t-enc-correo").value.trim() || null,
+          telefono: $("t-enc-telefono").value.trim() || null,
+        },
+        encargado_pago: {
+          nombre: $("t-pago-nombre").value.trim() || null,
+          correo: $("t-pago-correo").value.trim() || null,
+          telefono: $("t-pago-telefono").value.trim() || null,
+        },
+        metodo_pago: $("t-metodo-pago").value || null,
+        datos_pago: $("t-datos-pago").value.trim() || null,
+      },
+      usuario: {
+        nombre: $("t-u-nombre").value.trim(),
+        cargo: $("t-u-cargo").value.trim() || null,
+        correo: $("t-u-correo").value.trim(),
+      },
     };
-    if (!payload.correo_taller || !payload.nombre_taller || !payload.calle || !payload.numero || !payload.comuna) {
-      return mostrarError("taller-error", "Completa correo, nombre, calle, número y comuna.");
+    if (!payload.taller.nombre_taller || !payload.taller.calle || !payload.taller.numero || !payload.taller.comuna
+        || !payload.usuario.nombre || !payload.usuario.correo) {
+      return mostrarError("taller-error", "Completa nombre/dirección del taller y nombre/correo del primer usuario.");
     }
     const btn = $("btn-crear-taller");
     btn.disabled = true; btn.textContent = "Creando...";
-    const { data, error } = await sb.functions.invoke("admin-crear-taller", { body: payload });
+    const res = await invocarAdmin(payload);
     btn.disabled = false; btn.textContent = "Crear taller";
-
-    if (error || (data && data.error)) {
-      return mostrarError("taller-error", (data && data.error) || error.message);
-    }
+    if (res.error) return mostrarError("taller-error", res.error);
     $("taller-ok").textContent = "Taller creado correctamente.";
     $("taller-ok").style.display = "block";
-    ["t-correo","t-nombre","t-calle","t-numero","t-comuna","t-depto"].forEach((id) => $(id).value = "");
+    ["t-nombre","t-calle","t-numero","t-comuna","t-depto","t-u-nombre","t-u-cargo","t-u-correo",
+     "t-prop-nombre","t-prop-correo","t-prop-telefono","t-enc-nombre","t-enc-correo","t-enc-telefono",
+     "t-pago-nombre","t-pago-correo","t-pago-telefono","t-datos-pago"].forEach((id) => $(id).value = "");
     cargarTalleres();
   });
+
+  // ---------- Solicitudes ----------
+  async function cargarSolicitudes() {
+    const tbody = $("tabla-solicitudes");
+    const { data, error } = await sb.from("solicitudes_talleres").select("*").eq("estado", "pendiente").order("created_at");
+    if (error) { tbody.innerHTML = `<tr><td colspan="5" class="vacio">No se pudo cargar: ${error.message}</td></tr>`; return; }
+
+    const contador = $("contador-solicitudes");
+    if (data.length) { contador.textContent = data.length; contador.style.display = "inline-block"; }
+    else { contador.style.display = "none"; }
+
+    if (!data.length) { tbody.innerHTML = `<tr><td colspan="5" class="vacio">No hay solicitudes pendientes.</td></tr>`; return; }
+
+    tbody.innerHTML = data.map((s) => {
+      const cicloTexto = s.ciclo_facturacion === "personalizado" ? `cada ${s.ciclo_facturacion_dias || "?"} días` : s.ciclo_facturacion;
+      const contactos = `
+        <div class="contactos-mini">
+          ${s.propietario_nombre ? `<div><strong>Propietario:</strong> ${s.propietario_nombre} · ${s.propietario_correo || "—"} · ${s.propietario_telefono || "—"}</div>` : ""}
+          ${s.encargado_nombre ? `<div><strong>Encargado:</strong> ${s.encargado_nombre} · ${s.encargado_correo || "—"} · ${s.encargado_telefono || "—"}</div>` : ""}
+          ${s.encargado_pago_nombre ? `<div><strong>Pago:</strong> ${s.encargado_pago_nombre} · ${s.encargado_pago_correo || "—"} · ${s.encargado_pago_telefono || "—"}</div>` : ""}
+        </div>`;
+      return `
+        <tr>
+          <td><strong>${s.nombre_taller}</strong><br><span class="mono" style="color:var(--dim);">${s.calle} ${s.numero}, ${s.comuna}</span></td>
+          <td>${s.usuario_nombre}${s.usuario_cargo ? ` · ${s.usuario_cargo}` : ""}<br><span class="mono">${s.usuario_correo}</span></td>
+          <td>${contactos || "—"}</td>
+          <td class="mono">${cicloTexto}</td>
+          <td>
+            <button class="link-accion" data-aprobar="${s.id}">Aprobar</button>
+            <button class="link-accion rojo" data-rechazar="${s.id}">Rechazar</button>
+          </td>
+        </tr>`;
+    }).join("");
+
+    tbody.querySelectorAll("[data-aprobar]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        btn.disabled = true; btn.textContent = "Aprobando...";
+        const res = await invocarAdmin({ modo: "aprobar_solicitud", solicitud_id: btn.dataset.aprobar });
+        if (res.error) { alert("No se pudo aprobar: " + res.error); btn.disabled = false; btn.textContent = "Aprobar"; return; }
+        cargarSolicitudes(); cargarTalleres();
+      });
+    });
+
+    tbody.querySelectorAll("[data-rechazar]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        if (!confirm("¿Rechazar esta solicitud?")) return;
+        const { error } = await sb.from("solicitudes_talleres").update({ estado: "rechazado" }).eq("id", btn.dataset.rechazar);
+        if (error) { alert("No se pudo rechazar: " + error.message); return; }
+        cargarSolicitudes();
+      });
+    });
+  }
 
   // ---------- Choferes ----------
   async function cargarChoferes() {
     const tbody = $("tabla-choferes");
     const { data, error } = await sb.from("choferes").select("*").order("created_at", { ascending: false });
-    if (error) {
-      tbody.innerHTML = `<tr><td colspan="4" class="vacio">No se pudo cargar: ${error.message}</td></tr>`;
-      return;
-    }
-    if (!data.length) {
-      tbody.innerHTML = `<tr><td colspan="4" class="vacio">No hay choferes registrados todavía.</td></tr>`;
-      return;
-    }
+    if (error) { tbody.innerHTML = `<tr><td colspan="4" class="vacio">No se pudo cargar: ${error.message}</td></tr>`; return; }
+    if (!data.length) { tbody.innerHTML = `<tr><td colspan="4" class="vacio">No hay choferes registrados todavía.</td></tr>`; return; }
     tbody.innerHTML = data.map((c) => `
       <tr>
         <td><strong>${c.nombre}</strong></td>
@@ -378,9 +487,7 @@
             <option value="rechazado" ${c.estado === "rechazado" ? "selected" : ""}>Rechazado</option>
           </select>
         </td>
-      </tr>
-    `).join("");
-
+      </tr>`).join("");
     tbody.querySelectorAll(".estado-select").forEach((sel) => {
       sel.addEventListener("change", async () => {
         const { error } = await sb.from("choferes").update({ estado: sel.value }).eq("id", sel.dataset.id);
@@ -389,7 +496,6 @@
     });
   }
 
-  // ---------- Al cargar la página ----------
   (async () => {
     const { data: { user } } = await sb.auth.getUser();
     if (user) await entrarAlPanel();
