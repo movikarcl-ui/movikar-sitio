@@ -149,6 +149,8 @@
               <div><label for="t-u-cargo">Cargo <span class="opcional">(opcional)</span></label><input id="t-u-cargo" type="text" /></div>
               <div><label for="t-u-correo">Correo</label><input id="t-u-correo" type="email" /></div>
             </div>
+            <label for="t-u-telefono">Teléfono</label>
+            <input id="t-u-telefono" type="text" />
           </fieldset>
 
           <fieldset>
@@ -242,7 +244,15 @@
 
   async function invocarAdmin(payload) {
     const { data, error } = await sb.functions.invoke("admin-crear-taller", { body: payload });
-    if (error) return { error: error.message };
+    if (error) {
+      try {
+        if (error.context && typeof error.context.json === "function") {
+          const cuerpo = await error.context.json();
+          if (cuerpo && cuerpo.error) return { error: cuerpo.error };
+        }
+      } catch (_) { /* seguimos con el mensaje genérico si esto falla */ }
+      return { error: error.message };
+    }
     if (data && data.error) return { error: data.error };
     return { data };
   }
@@ -323,7 +333,7 @@
       const cicloTexto = t.ciclo_facturacion === "personalizado"
         ? `cada ${t.ciclo_facturacion_dias || "?"} días` : t.ciclo_facturacion;
       const listaUsuarios = us.length
-        ? `<div class="usuarios-lista">${us.map((u) => `<div>${u.nombre}${u.cargo ? ` <span class="cargo">· ${u.cargo}</span>` : ""} <span class="badge ${u.estado}">${u.estado}</span>${u.es_principal ? ` <span class="badge principal">principal</span>` : ""}<br><span class="mono">${u.correo}</span></div>`).join("")}</div>`
+        ? `<div class="usuarios-lista">${us.map((u) => `<div>${u.nombre}${u.cargo ? ` <span class="cargo">· ${u.cargo}</span>` : ""} <span class="badge ${u.estado}">${u.estado}</span>${u.es_principal ? ` <span class="badge principal">principal</span>` : ""}<br><span class="mono">${u.correo}${u.telefono ? " · " + u.telefono : ""}</span></div>`).join("")}</div>`
         : `<span class="vacio" style="padding:0;">Sin usuarios</span>`;
       const limite = t.limite_usuarios ?? 3;
       const alLimite = us.length >= limite;
@@ -356,7 +366,8 @@
         const correo = prompt("Correo con el que va a iniciar sesión:");
         if (!correo) return;
         const cargo = prompt("Cargo (opcional):") || null;
-        const res = await invocarAdmin({ modo: "agregar_usuario", taller_id: btn.dataset.agregar, usuario: { nombre, correo, cargo } });
+        const telefono = prompt("Teléfono (opcional):") || null;
+        const res = await invocarAdmin({ modo: "agregar_usuario", taller_id: btn.dataset.agregar, usuario: { nombre, correo, cargo, telefono } });
         if (res.error) { alert("No se pudo agregar: " + res.error); return; }
         cargarTalleres();
       });
@@ -398,6 +409,7 @@
         nombre: $("t-u-nombre").value.trim(),
         cargo: $("t-u-cargo").value.trim() || null,
         correo: $("t-u-correo").value.trim(),
+        telefono: $("t-u-telefono").value.trim() || null,
       },
     };
     if (!payload.taller.nombre_taller || !payload.taller.calle || !payload.taller.numero || !payload.taller.comuna
@@ -411,7 +423,7 @@
     if (res.error) return mostrarError("taller-error", res.error);
     $("taller-ok").textContent = "Taller creado correctamente.";
     $("taller-ok").style.display = "block";
-    ["t-nombre","t-calle","t-numero","t-comuna","t-depto","t-u-nombre","t-u-cargo","t-u-correo",
+    ["t-nombre","t-calle","t-numero","t-comuna","t-depto","t-u-nombre","t-u-cargo","t-u-correo","t-u-telefono",
      "t-prop-nombre","t-prop-correo","t-prop-telefono","t-enc-nombre","t-enc-correo","t-enc-telefono",
      "t-pago-nombre","t-pago-correo","t-pago-telefono","t-datos-pago"].forEach((id) => $(id).value = "");
     cargarTalleres();
