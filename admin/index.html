@@ -421,7 +421,16 @@
     const res = await invocarAdmin(payload);
     btn.disabled = false; btn.textContent = "Crear taller";
     if (res.error) return mostrarError("taller-error", res.error);
-    $("taller-ok").textContent = "Taller creado correctamente.";
+    const correoInfo = res.data && res.data.correo;
+    if (correoInfo && correoInfo.enviado === false) {
+      $("taller-ok").textContent = "Taller creado, pero el correo de bienvenida NO se envió: " + correoInfo.motivo;
+      $("taller-ok").style.background = "var(--coral-claro)";
+      $("taller-ok").style.color = "var(--coral)";
+    } else {
+      $("taller-ok").textContent = "Taller creado correctamente. Correo de bienvenida enviado.";
+      $("taller-ok").style.background = "";
+      $("taller-ok").style.color = "";
+    }
     $("taller-ok").style.display = "block";
     ["t-nombre","t-calle","t-numero","t-comuna","t-depto","t-u-nombre","t-u-cargo","t-u-correo","t-u-telefono",
      "t-prop-nombre","t-prop-correo","t-prop-telefono","t-enc-nombre","t-enc-correo","t-enc-telefono",
@@ -467,6 +476,10 @@
         btn.disabled = true; btn.textContent = "Aprobando...";
         const res = await invocarAdmin({ modo: "aprobar_solicitud", solicitud_id: btn.dataset.aprobar });
         if (res.error) { alert("No se pudo aprobar: " + res.error); btn.disabled = false; btn.textContent = "Aprobar"; return; }
+        const correoInfo = res.data && res.data.correo;
+        if (correoInfo && correoInfo.enviado === false) {
+          alert("Taller aprobado, pero el correo de bienvenida NO se envió: " + correoInfo.motivo);
+        }
         cargarSolicitudes(); cargarTalleres();
       });
     });
