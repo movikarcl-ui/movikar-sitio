@@ -90,6 +90,8 @@
         <input id="usuario_cargo" placeholder="Ej: Jefe de taller, Recepción" />
         <label for="usuario_correo">Tu correo</label>
         <input id="usuario_correo" type="email" required />
+        <label for="usuario_telefono">Tu teléfono</label>
+        <input id="usuario_telefono" required />
       </fieldset>
 
       <fieldset>
@@ -191,6 +193,7 @@
       usuario_nombre: $("usuario_nombre").value.trim(),
       usuario_cargo: $("usuario_cargo").value.trim() || null,
       usuario_correo: $("usuario_correo").value.trim(),
+      usuario_telefono: $("usuario_telefono").value.trim(),
       propietario_nombre: $("prop_nombre").value.trim() || null,
       propietario_correo: $("prop_correo").value.trim() || null,
       propietario_telefono: $("prop_telefono").value.trim() || null,
