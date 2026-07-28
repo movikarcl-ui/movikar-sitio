@@ -142,7 +142,24 @@
           </fieldset>
 
           <fieldset>
-            <legend>Primer usuario (login — queda como contacto principal)</legend>
+            <legend>Contacto principal</legend>
+            <p class="subtitulo" style="margin-top:-4px;">Responsable del taller, con acceso de solo lectura al historial.</p>
+            <div style="display:flex; align-items:flex-start; gap:8px; margin-bottom:12px;">
+              <input type="checkbox" id="t-mismo-usuario1" checked style="width:auto; margin-top:3px;" />
+              <label for="t-mismo-usuario1" style="margin:0; color:var(--ink); font-weight:400;">El contacto principal es la misma persona que el primer usuario (login) de abajo.</label>
+            </div>
+            <div id="t-principal-campos" style="display:none;">
+              <label for="t-p-nombre">Nombre</label>
+              <input id="t-p-nombre" type="text" />
+              <div class="grid-2">
+                <div><label for="t-p-correo">Correo</label><input id="t-p-correo" type="email" /></div>
+                <div><label for="t-p-telefono">Teléfono</label><input id="t-p-telefono" type="text" /></div>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset id="t-usuario1-fieldset">
+            <legend>Primer usuario (login — puede agendar traslados)</legend>
             <label for="t-u-nombre">Nombre</label>
             <input id="t-u-nombre" type="text" />
             <div class="grid-2">
@@ -307,6 +324,10 @@
     $("t-ciclo-dias-wrap").style.display = e.target.value === "personalizado" ? "block" : "none";
   });
 
+  $("t-mismo-usuario1").addEventListener("change", (e) => {
+    $("t-principal-campos").style.display = e.target.checked ? "none" : "block";
+  });
+
   async function entrarAlPanel() {
     const { data: { user } } = await sb.auth.getUser();
     if (!user) return;
@@ -333,7 +354,7 @@
       const cicloTexto = t.ciclo_facturacion === "personalizado"
         ? `cada ${t.ciclo_facturacion_dias || "?"} días` : t.ciclo_facturacion;
       const listaUsuarios = us.length
-        ? `<div class="usuarios-lista">${us.map((u) => `<div>${u.nombre}${u.cargo ? ` <span class="cargo">· ${u.cargo}</span>` : ""} <span class="badge ${u.estado}">${u.estado}</span>${u.es_principal ? ` <span class="badge principal">principal</span>` : ""}<br><span class="mono">${u.correo}${u.telefono ? " · " + u.telefono : ""}</span></div>`).join("")}</div>`
+        ? `<div class="usuarios-lista">${us.map((u) => `<div>${u.nombre}${u.cargo ? ` <span class="cargo">· ${u.cargo}</span>` : ""} <span class="badge ${u.estado}">${u.estado}</span>${u.es_principal ? ` <span class="badge principal">principal</span>` : ""}${u.puede_agendar === false ? ` <span class="badge pendiente">solo lectura</span>` : ""}<br><span class="mono">${u.correo}${u.telefono ? " · " + u.telefono : ""}</span></div>`).join("")}</div>`
         : `<span class="vacio" style="padding:0;">Sin usuarios</span>`;
       const limite = t.limite_usuarios ?? 3;
       const alLimite = us.length >= limite;
@@ -344,11 +365,19 @@
           <td class="mono">${cicloTexto}</td>
           <td>${listaUsuarios}<div class="mono" style="color:var(--dim); margin-top:4px;">${us.length}/${limite}</div></td>
           <td>
+            <button class="link-accion" data-editar="${t.id}">Editar</button>
             <button class="link-accion" data-agregar="${t.id}" ${alLimite ? "disabled title='Límite alcanzado'" : ""}>+ Usuario</button>
             <button class="link-accion rojo" data-eliminar="${t.id}">Eliminar</button>
           </td>
         </tr>`;
     }).join("");
+
+    tbody.querySelectorAll("[data-editar]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const t = talleres.find((x) => x.id === btn.dataset.editar);
+        if (t) cargarTallerParaEditar(t);
+      });
+    });
 
     tbody.querySelectorAll("[data-eliminar]").forEach((btn) => {
       btn.addEventListener("click", async () => {
@@ -374,36 +403,103 @@
     });
   }
 
+  let editingTallerId = null;
+
+  function resetFormTaller() {
+    editingTallerId = null;
+    $("t-usuario1-fieldset").style.display = "block";
+    document.querySelector('#panel-talleres details.card-form summary').textContent = "Dar de alta un taller manualmente";
+    $("btn-crear-taller").textContent = "Crear taller";
+    $("t-mismo-usuario1").checked = true;
+    $("t-principal-campos").style.display = "none";
+    ["t-nombre","t-calle","t-numero","t-comuna","t-depto","t-u-nombre","t-u-cargo","t-u-correo","t-u-telefono",
+     "t-prop-nombre","t-prop-correo","t-prop-telefono","t-enc-nombre","t-enc-correo","t-enc-telefono",
+     "t-pago-nombre","t-pago-correo","t-pago-telefono","t-datos-pago","t-p-nombre","t-p-correo","t-p-telefono"]
+      .forEach((id) => $(id).value = "");
+  }
+
+  function cargarTallerParaEditar(t) {
+    editingTallerId = t.id;
+    $("t-usuario1-fieldset").style.display = "none"; // no se editan usuarios acá, solo datos del taller
+    document.querySelector('#panel-talleres details.card-form').open = true;
+    document.querySelector('#panel-talleres details.card-form summary').textContent = "Editando: " + t.nombre_taller;
+    $("btn-crear-taller").textContent = "Guardar cambios";
+    $("t-nombre").value = t.nombre_taller || "";
+    $("t-calle").value = t.calle || "";
+    $("t-numero").value = t.numero || "";
+    $("t-comuna").value = t.comuna || "";
+    $("t-depto").value = t.depto_casa || "";
+    $("t-ciclo").value = t.ciclo_facturacion || "30_dias";
+    $("t-ciclo-dias-wrap").style.display = t.ciclo_facturacion === "personalizado" ? "block" : "none";
+    $("t-ciclo-dias").value = t.ciclo_facturacion_dias || "";
+    $("t-prop-nombre").value = t.propietario_nombre || "";
+    $("t-prop-correo").value = t.propietario_correo || "";
+    $("t-prop-telefono").value = t.propietario_telefono || "";
+    $("t-enc-nombre").value = t.encargado_nombre || "";
+    $("t-enc-correo").value = t.encargado_correo || "";
+    $("t-enc-telefono").value = t.encargado_telefono || "";
+    $("t-pago-nombre").value = t.encargado_pago_nombre || "";
+    $("t-pago-correo").value = t.encargado_pago_correo || "";
+    $("t-pago-telefono").value = t.encargado_pago_telefono || "";
+    $("t-metodo-pago").value = t.metodo_pago || "";
+    $("t-datos-pago").value = t.datos_pago || "";
+    $("t-nombre").scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
   $("btn-crear-taller").addEventListener("click", async () => {
     ocultar("taller-error"); ocultar("taller-ok");
     const ciclo = $("t-ciclo").value;
+
+    const datosTaller = {
+      nombre_taller: $("t-nombre").value.trim(),
+      calle: $("t-calle").value.trim(),
+      numero: $("t-numero").value.trim(),
+      comuna: $("t-comuna").value.trim(),
+      depto_casa: $("t-depto").value.trim() || null,
+      ciclo_facturacion: ciclo,
+      ciclo_facturacion_dias: ciclo === "personalizado" ? (parseInt($("t-ciclo-dias").value, 10) || null) : null,
+      propietario_nombre: $("t-prop-nombre").value.trim() || null,
+      propietario_correo: $("t-prop-correo").value.trim() || null,
+      propietario_telefono: $("t-prop-telefono").value.trim() || null,
+      encargado_nombre: $("t-enc-nombre").value.trim() || null,
+      encargado_correo: $("t-enc-correo").value.trim() || null,
+      encargado_telefono: $("t-enc-telefono").value.trim() || null,
+      encargado_pago_nombre: $("t-pago-nombre").value.trim() || null,
+      encargado_pago_correo: $("t-pago-correo").value.trim() || null,
+      encargado_pago_telefono: $("t-pago-telefono").value.trim() || null,
+      metodo_pago: $("t-metodo-pago").value || null,
+      datos_pago: $("t-datos-pago").value.trim() || null,
+    };
+
+    if (!datosTaller.nombre_taller || !datosTaller.calle || !datosTaller.numero || !datosTaller.comuna) {
+      return mostrarError("taller-error", "Completa nombre y dirección del taller.");
+    }
+
+    const btn = $("btn-crear-taller");
+
+    // ---- Modo edición: update directo a la tabla, sin Edge Function ----
+    if (editingTallerId) {
+      btn.disabled = true; btn.textContent = "Guardando...";
+      const { error } = await sb.from("talleres").update(datosTaller).eq("id", editingTallerId);
+      btn.disabled = false; btn.textContent = "Guardar cambios";
+      if (error) return mostrarError("taller-error", error.message);
+      $("taller-ok").textContent = "Cambios guardados.";
+      $("taller-ok").style.background = ""; $("taller-ok").style.color = "";
+      $("taller-ok").style.display = "block";
+      resetFormTaller();
+      cargarTalleres();
+      return;
+    }
+
+    // ---- Modo creación ----
+    const mismo = $("t-mismo-usuario1").checked;
     const payload = {
       modo: "crear_taller",
       taller: {
-        nombre_taller: $("t-nombre").value.trim(),
-        calle: $("t-calle").value.trim(),
-        numero: $("t-numero").value.trim(),
-        comuna: $("t-comuna").value.trim(),
-        depto_casa: $("t-depto").value.trim() || null,
-        ciclo_facturacion: ciclo,
-        ciclo_facturacion_dias: ciclo === "personalizado" ? (parseInt($("t-ciclo-dias").value, 10) || null) : null,
-        propietario: {
-          nombre: $("t-prop-nombre").value.trim() || null,
-          correo: $("t-prop-correo").value.trim() || null,
-          telefono: $("t-prop-telefono").value.trim() || null,
-        },
-        encargado: {
-          nombre: $("t-enc-nombre").value.trim() || null,
-          correo: $("t-enc-correo").value.trim() || null,
-          telefono: $("t-enc-telefono").value.trim() || null,
-        },
-        encargado_pago: {
-          nombre: $("t-pago-nombre").value.trim() || null,
-          correo: $("t-pago-correo").value.trim() || null,
-          telefono: $("t-pago-telefono").value.trim() || null,
-        },
-        metodo_pago: $("t-metodo-pago").value || null,
-        datos_pago: $("t-datos-pago").value.trim() || null,
+        ...datosTaller,
+        propietario: { nombre: datosTaller.propietario_nombre, correo: datosTaller.propietario_correo, telefono: datosTaller.propietario_telefono },
+        encargado: { nombre: datosTaller.encargado_nombre, correo: datosTaller.encargado_correo, telefono: datosTaller.encargado_telefono },
+        encargado_pago: { nombre: datosTaller.encargado_pago_nombre, correo: datosTaller.encargado_pago_correo, telefono: datosTaller.encargado_pago_telefono },
       },
       usuario: {
         nombre: $("t-u-nombre").value.trim(),
@@ -411,30 +507,38 @@
         correo: $("t-u-correo").value.trim(),
         telefono: $("t-u-telefono").value.trim() || null,
       },
+      mismo_que_usuario1: mismo,
+      principal: mismo ? null : {
+        nombre: $("t-p-nombre").value.trim(),
+        correo: $("t-p-correo").value.trim(),
+        telefono: $("t-p-telefono").value.trim() || null,
+      },
     };
-    if (!payload.taller.nombre_taller || !payload.taller.calle || !payload.taller.numero || !payload.taller.comuna
-        || !payload.usuario.nombre || !payload.usuario.correo) {
-      return mostrarError("taller-error", "Completa nombre/dirección del taller y nombre/correo del primer usuario.");
+    if (!payload.usuario.nombre || !payload.usuario.correo) {
+      return mostrarError("taller-error", "Completa nombre y correo del primer usuario.");
     }
-    const btn = $("btn-crear-taller");
+    if (!mismo && (!payload.principal.nombre || !payload.principal.correo)) {
+      return mostrarError("taller-error", "Completa nombre y correo del contacto principal, o marca que es la misma persona que el Usuario 1.");
+    }
+
     btn.disabled = true; btn.textContent = "Creando...";
     const res = await invocarAdmin(payload);
     btn.disabled = false; btn.textContent = "Crear taller";
     if (res.error) return mostrarError("taller-error", res.error);
-    const correoInfo = res.data && res.data.correo;
-    if (correoInfo && correoInfo.enviado === false) {
-      $("taller-ok").textContent = "Taller creado, pero el correo de bienvenida NO se envió: " + correoInfo.motivo;
+
+    const correos = (res.data && res.data.correos) || {};
+    const fallidos = Object.entries(correos).filter(([, v]) => v && v.enviado === false);
+    if (fallidos.length) {
+      $("taller-ok").textContent = "Taller creado. Algunos correos no se enviaron: " + fallidos.map(([k, v]) => `${k} (${v.motivo})`).join("; ");
       $("taller-ok").style.background = "var(--coral-claro)";
       $("taller-ok").style.color = "var(--coral)";
     } else {
-      $("taller-ok").textContent = "Taller creado correctamente. Correo de bienvenida enviado.";
+      $("taller-ok").textContent = "Taller creado correctamente. Correos de bienvenida enviados.";
       $("taller-ok").style.background = "";
       $("taller-ok").style.color = "";
     }
     $("taller-ok").style.display = "block";
-    ["t-nombre","t-calle","t-numero","t-comuna","t-depto","t-u-nombre","t-u-cargo","t-u-correo","t-u-telefono",
-     "t-prop-nombre","t-prop-correo","t-prop-telefono","t-enc-nombre","t-enc-correo","t-enc-telefono",
-     "t-pago-nombre","t-pago-correo","t-pago-telefono","t-datos-pago"].forEach((id) => $(id).value = "");
+    resetFormTaller();
     cargarTalleres();
   });
 
@@ -476,9 +580,10 @@
         btn.disabled = true; btn.textContent = "Aprobando...";
         const res = await invocarAdmin({ modo: "aprobar_solicitud", solicitud_id: btn.dataset.aprobar });
         if (res.error) { alert("No se pudo aprobar: " + res.error); btn.disabled = false; btn.textContent = "Aprobar"; return; }
-        const correoInfo = res.data && res.data.correo;
-        if (correoInfo && correoInfo.enviado === false) {
-          alert("Taller aprobado, pero el correo de bienvenida NO se envió: " + correoInfo.motivo);
+        const correos = (res.data && res.data.correos) || {};
+        const fallidos = Object.entries(correos).filter(([, v]) => v && v.enviado === false);
+        if (fallidos.length) {
+          alert("Taller aprobado. Algunos correos no se enviaron: " + fallidos.map(([k, v]) => `${k} (${v.motivo})`).join("; "));
         }
         cargarSolicitudes(); cargarTalleres();
       });
