@@ -71,6 +71,8 @@
         <legend>Tu taller</legend>
         <label for="nombre_taller">Nombre del taller</label>
         <input id="nombre_taller" required />
+        <label for="rut_taller">RUT del taller</label>
+        <input id="rut_taller" placeholder="Ej: 76.123.456-7" required />
         <div class="grid-2">
           <div><label for="calle">Calle</label><input id="calle" required /></div>
           <div><label for="numero">Número</label><input id="numero" required /></div>
@@ -84,31 +86,55 @@
       <fieldset>
         <legend>Contacto principal</legend>
         <p class="legend-ayuda">Es quien queda como responsable y puede ver el historial de traslados (no necesariamente quien agenda día a día).</p>
-        <div class="terminos-box" style="margin-bottom:14px;">
-          <input type="checkbox" id="mismo_que_usuario1" checked />
-          <label for="mismo_que_usuario1">El contacto principal es la misma persona que la de "Tu acceso" abajo.</label>
+        <label for="principal_nombre">Nombre del contacto principal</label>
+        <input id="principal_nombre" required />
+        <div class="grid-2">
+          <div><label for="principal_correo">Correo</label><input id="principal_correo" type="email" required /></div>
+          <div><label for="principal_telefono">Teléfono</label><input id="principal_telefono" required /></div>
         </div>
-        <div id="principal-campos" style="display:none;">
-          <label for="principal_nombre">Nombre del contacto principal</label>
-          <input id="principal_nombre" />
-          <div class="grid-2">
-            <div><label for="principal_correo">Correo</label><input id="principal_correo" type="email" /></div>
-            <div><label for="principal_telefono">Teléfono</label><input id="principal_telefono" /></div>
-          </div>
+        <div class="terminos-box" style="margin-bottom:0;">
+          <input type="checkbox" id="mismo_que_usuario1" />
+          <label for="mismo_que_usuario1">Esta persona también será quien tenga acceso para agendar (Usuario 1).</label>
         </div>
       </fieldset>
 
       <fieldset>
-        <legend>Tu acceso</legend>
-        <p class="legend-ayuda">Con este correo vas a iniciar sesión para agendar traslados.</p>
-        <label for="usuario_nombre">Tu nombre</label>
+        <legend>Usuario 1</legend>
+        <p class="legend-ayuda">Con este correo se inicia sesión para agendar traslados.</p>
+        <label for="usuario_nombre">Nombre</label>
         <input id="usuario_nombre" required />
-        <label for="usuario_cargo">Tu cargo <span class="opcional">(opcional)</span></label>
+        <label for="usuario_cargo">Cargo <span class="opcional">(opcional)</span></label>
         <input id="usuario_cargo" placeholder="Ej: Jefe de taller, Recepción" />
-        <label for="usuario_correo">Tu correo</label>
+        <label for="usuario_correo">Correo</label>
         <input id="usuario_correo" type="email" required />
-        <label for="usuario_telefono">Tu teléfono</label>
+        <label for="usuario_telefono">Teléfono</label>
         <input id="usuario_telefono" required />
+      </fieldset>
+
+      <fieldset>
+        <legend>Usuario 2 <span class="opcional">(opcional)</span></legend>
+        <p class="legend-ayuda">Puedes dejarlo en blanco y agregarlo más adelante.</p>
+        <label for="usuario2_nombre">Nombre</label>
+        <input id="usuario2_nombre" />
+        <label for="usuario2_cargo">Cargo <span class="opcional">(opcional)</span></label>
+        <input id="usuario2_cargo" placeholder="Ej: Jefe de taller, Recepción" />
+        <label for="usuario2_correo">Correo</label>
+        <input id="usuario2_correo" type="email" />
+        <label for="usuario2_telefono">Teléfono</label>
+        <input id="usuario2_telefono" />
+      </fieldset>
+
+      <fieldset>
+        <legend>Usuario 3 <span class="opcional">(opcional)</span></legend>
+        <p class="legend-ayuda">Puedes dejarlo en blanco y agregarlo más adelante.</p>
+        <label for="usuario3_nombre">Nombre</label>
+        <input id="usuario3_nombre" />
+        <label for="usuario3_cargo">Cargo <span class="opcional">(opcional)</span></label>
+        <input id="usuario3_cargo" placeholder="Ej: Jefe de taller, Recepción" />
+        <label for="usuario3_correo">Correo</label>
+        <input id="usuario3_correo" type="email" />
+        <label for="usuario3_telefono">Teléfono</label>
+        <input id="usuario3_telefono" />
       </fieldset>
 
       <fieldset>
@@ -137,31 +163,6 @@
         </div>
       </fieldset>
 
-      <fieldset>
-        <legend>Facturación</legend>
-        <p class="legend-ayuda">Puedes completar el detalle de pago después si prefieres.</p>
-        <label for="ciclo_facturacion">Ciclo de facturación que necesitas</label>
-        <select id="ciclo_facturacion">
-          <option value="semanal">Semanal</option>
-          <option value="quincenal">Quincenal</option>
-          <option value="30_dias" selected>30 días</option>
-          <option value="45_dias">45 días</option>
-          <option value="personalizado">Otro (especificar)</option>
-        </select>
-        <div id="ciclo_dias_wrap" style="display:none;">
-          <label for="ciclo_dias">¿Cada cuántos días?</label>
-          <input id="ciclo_dias" type="number" min="1" />
-        </div>
-        <label for="metodo_pago">Método de pago <span class="opcional">(opcional)</span></label>
-        <select id="metodo_pago">
-          <option value="">Sin definir</option>
-          <option value="transferencia">Transferencia bancaria</option>
-          <option value="otro">Otro</option>
-        </select>
-        <label for="datos_pago">Datos de pago <span class="opcional">(opcional)</span></label>
-        <input id="datos_pago" placeholder="Banco, tipo y número de cuenta" />
-      </fieldset>
-
       <div class="terminos-box">
         <input type="checkbox" id="acepta_terminos" required />
         <label for="acepta_terminos">
@@ -187,13 +188,29 @@
   const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
   const $ = (id) => document.getElementById(id);
 
-  $("ciclo_facturacion").addEventListener("change", (e) => {
-    $("ciclo_dias_wrap").style.display = e.target.value === "personalizado" ? "block" : "none";
-  });
+  const camposUsuario = ["usuario_nombre", "usuario_correo", "usuario_telefono"];
 
-  $("mismo_que_usuario1").addEventListener("change", (e) => {
-    $("principal-campos").style.display = e.target.checked ? "none" : "block";
+  function sincronizarUsuarioDesdePrincipal() {
+    if (!$("mismo_que_usuario1").checked) return;
+    $("usuario_nombre").value = $("principal_nombre").value;
+    $("usuario_correo").value = $("principal_correo").value;
+    $("usuario_telefono").value = $("principal_telefono").value;
+  }
+
+  function actualizarEstadoTuAcceso() {
+    const mismo = $("mismo_que_usuario1").checked;
+    camposUsuario.forEach((id) => {
+      $(id).readOnly = mismo;
+      $(id).style.background = mismo ? "var(--surface-2)" : "var(--bg)";
+    });
+    if (mismo) sincronizarUsuarioDesdePrincipal();
+  }
+
+  $("mismo_que_usuario1").addEventListener("change", actualizarEstadoTuAcceso);
+  ["principal_nombre", "principal_correo", "principal_telefono"].forEach((id) => {
+    $(id).addEventListener("input", sincronizarUsuarioDesdePrincipal);
   });
+  actualizarEstadoTuAcceso();
 
   $("form-solicitud").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -206,26 +223,30 @@
     }
 
     const mismoQueUsuario1 = $("mismo_que_usuario1").checked;
-    if (!mismoQueUsuario1 && (!$("principal_nombre").value.trim() || !$("principal_correo").value.trim())) {
-      $("form-error").textContent = "Completa nombre y correo del contacto principal, o marca que es la misma persona.";
-      $("form-error").style.display = "block";
-      return;
-    }
 
     const payload = {
       nombre_taller: $("nombre_taller").value.trim(),
+      rut_taller: $("rut_taller").value.trim(),
       calle: $("calle").value.trim(),
       numero: $("numero").value.trim(),
       comuna: $("comuna").value.trim(),
       depto_casa: $("depto_casa").value.trim() || null,
       mismo_que_usuario1: mismoQueUsuario1,
-      principal_nombre: mismoQueUsuario1 ? null : $("principal_nombre").value.trim(),
-      principal_correo: mismoQueUsuario1 ? null : $("principal_correo").value.trim(),
-      principal_telefono: mismoQueUsuario1 ? null : $("principal_telefono").value.trim() || null,
+      principal_nombre: $("principal_nombre").value.trim(),
+      principal_correo: $("principal_correo").value.trim(),
+      principal_telefono: $("principal_telefono").value.trim(),
       usuario_nombre: $("usuario_nombre").value.trim(),
       usuario_cargo: $("usuario_cargo").value.trim() || null,
       usuario_correo: $("usuario_correo").value.trim(),
       usuario_telefono: $("usuario_telefono").value.trim(),
+      usuario2_nombre: $("usuario2_nombre").value.trim() || null,
+      usuario2_cargo: $("usuario2_cargo").value.trim() || null,
+      usuario2_correo: $("usuario2_correo").value.trim() || null,
+      usuario2_telefono: $("usuario2_telefono").value.trim() || null,
+      usuario3_nombre: $("usuario3_nombre").value.trim() || null,
+      usuario3_cargo: $("usuario3_cargo").value.trim() || null,
+      usuario3_correo: $("usuario3_correo").value.trim() || null,
+      usuario3_telefono: $("usuario3_telefono").value.trim() || null,
       propietario_nombre: $("prop_nombre").value.trim() || null,
       propietario_correo: $("prop_correo").value.trim() || null,
       propietario_telefono: $("prop_telefono").value.trim() || null,
@@ -235,11 +256,6 @@
       encargado_pago_nombre: $("pago_nombre").value.trim() || null,
       encargado_pago_correo: $("pago_correo").value.trim() || null,
       encargado_pago_telefono: $("pago_telefono").value.trim() || null,
-      ciclo_facturacion: $("ciclo_facturacion").value,
-      ciclo_facturacion_dias: $("ciclo_facturacion").value === "personalizado"
-        ? (parseInt($("ciclo_dias").value, 10) || null) : null,
-      metodo_pago: $("metodo_pago").value || null,
-      datos_pago: $("datos_pago").value.trim() || null,
       acepta_terminos: true,
     };
 
