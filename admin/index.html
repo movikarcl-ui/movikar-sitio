@@ -230,7 +230,7 @@
     <section class="panel" id="panel-solicitudes">
       <p class="subtitulo" style="margin-bottom:16px;">Talleres que completaron el formulario de autoservicio y esperan aprobación.</p>
       <table>
-        <thead><tr><th>Taller</th><th>Contacto de acceso</th><th>Contactos</th><th>Ciclo pedido</th><th></th></tr></thead>
+        <thead><tr><th>Taller</th><th>Usuarios</th><th>Contactos</th><th>RUT</th><th></th></tr></thead>
         <tbody id="tabla-solicitudes"></tbody>
       </table>
     </section>
@@ -555,19 +555,24 @@
     if (!data.length) { tbody.innerHTML = `<tr><td colspan="5" class="vacio">No hay solicitudes pendientes.</td></tr>`; return; }
 
     tbody.innerHTML = data.map((s) => {
-      const cicloTexto = s.ciclo_facturacion === "personalizado" ? `cada ${s.ciclo_facturacion_dias || "?"} días` : s.ciclo_facturacion;
       const contactos = `
         <div class="contactos-mini">
           ${s.propietario_nombre ? `<div><strong>Propietario:</strong> ${s.propietario_nombre} · ${s.propietario_correo || "—"} · ${s.propietario_telefono || "—"}</div>` : ""}
           ${s.encargado_nombre ? `<div><strong>Encargado:</strong> ${s.encargado_nombre} · ${s.encargado_correo || "—"} · ${s.encargado_telefono || "—"}</div>` : ""}
           ${s.encargado_pago_nombre ? `<div><strong>Pago:</strong> ${s.encargado_pago_nombre} · ${s.encargado_pago_correo || "—"} · ${s.encargado_pago_telefono || "—"}</div>` : ""}
         </div>`;
+      const usuarios = `
+        <div class="usuarios-lista">
+          <div>U1: ${s.usuario_nombre}${s.usuario_cargo ? ` · ${s.usuario_cargo}` : ""}<br><span class="mono">${s.usuario_correo}</span></div>
+          ${s.usuario2_nombre ? `<div>U2: ${s.usuario2_nombre}${s.usuario2_cargo ? ` · ${s.usuario2_cargo}` : ""}<br><span class="mono">${s.usuario2_correo || "—"}</span></div>` : ""}
+          ${s.usuario3_nombre ? `<div>U3: ${s.usuario3_nombre}${s.usuario3_cargo ? ` · ${s.usuario3_cargo}` : ""}<br><span class="mono">${s.usuario3_correo || "—"}</span></div>` : ""}
+        </div>`;
       return `
         <tr>
           <td><strong>${s.nombre_taller}</strong><br><span class="mono" style="color:var(--dim);">${s.calle} ${s.numero}, ${s.comuna}</span></td>
-          <td>${s.usuario_nombre}${s.usuario_cargo ? ` · ${s.usuario_cargo}` : ""}<br><span class="mono">${s.usuario_correo}</span></td>
+          <td>${usuarios}</td>
           <td>${contactos || "—"}</td>
-          <td class="mono">${cicloTexto}</td>
+          <td class="mono">${s.rut_taller || "—"}</td>
           <td>
             <button class="link-accion" data-aprobar="${s.id}">Aprobar</button>
             <button class="link-accion rojo" data-rechazar="${s.id}">Rechazar</button>
