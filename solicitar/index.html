@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Solicitar acceso — MoviKar</title>
+<title>Alta Taller Mecánico - Movikar</title>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
@@ -60,8 +60,8 @@
 <main>
   <div id="vista-form">
     <div class="intro">
-      <h1>Solicita acceso a MoviKar</h1>
-      <p>Cuéntanos sobre tu taller. Revisamos cada solicitud y te contactamos para activar el acceso — no hay mínimos ni contrato de permanencia.</p>
+      <h1>Alta Taller Mecánico - Movikar</h1>
+      <p>Cuéntanos sobre tu taller. Revisaremos cada solicitud y te contactamos para activar el acceso — no hay mínimos ni contrato de permanencia.</p>
     </div>
 
     <div id="form-error" class="error" style="display:none;"></div>
@@ -82,8 +82,25 @@
       </fieldset>
 
       <fieldset>
+        <legend>Contacto principal</legend>
+        <p class="legend-ayuda">Es quien queda como responsable y puede ver el historial de traslados (no necesariamente quien agenda día a día).</p>
+        <div class="terminos-box" style="margin-bottom:14px;">
+          <input type="checkbox" id="mismo_que_usuario1" checked />
+          <label for="mismo_que_usuario1">El contacto principal es la misma persona que la de "Tu acceso" abajo.</label>
+        </div>
+        <div id="principal-campos" style="display:none;">
+          <label for="principal_nombre">Nombre del contacto principal</label>
+          <input id="principal_nombre" />
+          <div class="grid-2">
+            <div><label for="principal_correo">Correo</label><input id="principal_correo" type="email" /></div>
+            <div><label for="principal_telefono">Teléfono</label><input id="principal_telefono" /></div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
         <legend>Tu acceso</legend>
-        <p class="legend-ayuda">Con este correo vas a iniciar sesión para agendar traslados. Quedas como contacto principal del taller.</p>
+        <p class="legend-ayuda">Con este correo vas a iniciar sesión para agendar traslados.</p>
         <label for="usuario_nombre">Tu nombre</label>
         <input id="usuario_nombre" required />
         <label for="usuario_cargo">Tu cargo <span class="opcional">(opcional)</span></label>
@@ -174,6 +191,10 @@
     $("ciclo_dias_wrap").style.display = e.target.value === "personalizado" ? "block" : "none";
   });
 
+  $("mismo_que_usuario1").addEventListener("change", (e) => {
+    $("principal-campos").style.display = e.target.checked ? "none" : "block";
+  });
+
   $("form-solicitud").addEventListener("submit", async (e) => {
     e.preventDefault();
     $("form-error").style.display = "none";
@@ -184,12 +205,23 @@
       return;
     }
 
+    const mismoQueUsuario1 = $("mismo_que_usuario1").checked;
+    if (!mismoQueUsuario1 && (!$("principal_nombre").value.trim() || !$("principal_correo").value.trim())) {
+      $("form-error").textContent = "Completa nombre y correo del contacto principal, o marca que es la misma persona.";
+      $("form-error").style.display = "block";
+      return;
+    }
+
     const payload = {
       nombre_taller: $("nombre_taller").value.trim(),
       calle: $("calle").value.trim(),
       numero: $("numero").value.trim(),
       comuna: $("comuna").value.trim(),
       depto_casa: $("depto_casa").value.trim() || null,
+      mismo_que_usuario1: mismoQueUsuario1,
+      principal_nombre: mismoQueUsuario1 ? null : $("principal_nombre").value.trim(),
+      principal_correo: mismoQueUsuario1 ? null : $("principal_correo").value.trim(),
+      principal_telefono: mismoQueUsuario1 ? null : $("principal_telefono").value.trim() || null,
       usuario_nombre: $("usuario_nombre").value.trim(),
       usuario_cargo: $("usuario_cargo").value.trim() || null,
       usuario_correo: $("usuario_correo").value.trim(),
