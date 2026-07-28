@@ -257,19 +257,33 @@
       encargado_pago_correo: $("pago_correo").value.trim() || null,
       encargado_pago_telefono: $("pago_telefono").value.trim() || null,
       acepta_terminos: true,
+      estado: "pendiente",
     };
 
     const btn = $("btn-enviar");
     btn.disabled = true; btn.textContent = "Enviando...";
     const { error } = await sb.from("solicitudes_talleres").insert(payload);
-    btn.disabled = false; btn.textContent = "Enviar solicitud";
 
     if (error) {
+      btn.disabled = false; btn.textContent = "Enviar solicitud";
       $("form-error").textContent = "No se pudo enviar: " + error.message;
       $("form-error").style.display = "block";
       return;
     }
 
+    // Correo de confirmación al contacto principal. No bloquea el flujo si falla:
+    // la solicitud ya quedó guardada y el admin la va a ver de todos modos.
+    try {
+      await sb.functions.invoke("notificar-solicitud", {
+        body: {
+          nombre_taller: payload.nombre_taller,
+          principal_nombre: payload.principal_nombre,
+          principal_correo: payload.principal_correo,
+        },
+      });
+    } catch (_) { /* silencioso a propósito */ }
+
+    btn.disabled = false; btn.textContent = "Enviar solicitud";
     $("vista-form").style.display = "none";
     $("vista-exito").style.display = "block";
   });
