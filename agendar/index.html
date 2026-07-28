@@ -30,7 +30,6 @@
   @media (prefers-reduced-motion: reduce){*{animation:none !important; transition:none !important;}}
   body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;min-height:100vh;}
 
-  /* ---- HEADER / BRAND ---- */
   header{
     display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;
     padding:18px clamp(16px,4vw,32px);border-bottom:1px solid var(--line);
@@ -60,7 +59,6 @@
   .taller-chip .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);flex-shrink:0;}
   .taller-name{color:var(--ink);font-weight:600;}
 
-  /* ---- HERO ---- */
   .hero{max-width:680px;margin:0 auto;padding:clamp(28px,5vw,44px) clamp(16px,4vw,32px) 6px;}
   .hero-eyebrow{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--teal-deep);letter-spacing:.06em;text-transform:uppercase;margin:0 0 10px;}
   .hero h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(23px,4.4vw,30px);line-height:1.15;margin:0 0 12px;letter-spacing:-0.01em;color:var(--ink);}
@@ -68,25 +66,30 @@
   .hero p{font-size:14.5px;color:var(--ink-dim);margin:0;line-height:1.5;}
   .hero p b{color:var(--ink);font-weight:600;}
 
-  /* ---- MAIN (single focused column) ---- */
   main{max-width:680px;margin:0 auto;padding:20px clamp(16px,4vw,32px) 90px;}
   .card{background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);padding:clamp(18px,3vw,26px);box-shadow:0 1px 3px rgba(22,48,44,0.05), 0 8px 24px rgba(22,48,44,0.04);}
 
   .step-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--teal-deep);letter-spacing:.04em;margin:0 0 10px;text-transform:uppercase;}
   .step-label:not(:first-child){margin-top:22px;}
 
-  .tipo-grid{display:flex;gap:10px;}
-  @media (max-width:520px){.tipo-grid{flex-direction:column;}}
-  .tipo-card{border:1px solid var(--line);border-radius:9px;padding:14px 10px;text-align:center;cursor:pointer;transition:flex-grow .25s ease, background .2s, border-color .2s, opacity .2s;background:var(--surface);flex:1 1 0;overflow:hidden;opacity:.75;}
+  .tipo-grid{display:flex;flex-wrap:wrap;gap:10px;}
+  .tipo-card{
+    border:1px solid var(--line);border-radius:9px;padding:14px 10px;text-align:center;cursor:pointer;
+    transition:background .2s, border-color .2s, opacity .2s;background:var(--surface);
+    flex:1 1 108px;min-width:108px;opacity:.75;
+  }
   .tipo-card:hover{border-color:var(--teal);opacity:1;}
   .tipo-card:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
-  .tipo-card.active{border-color:var(--teal);background:var(--teal-dim);flex:2.4 1 0;opacity:1;}
-  @media (max-width:520px){.tipo-card.active{flex:1 1 0;}}
+  .tipo-card.active{border-color:var(--teal);background:var(--teal-dim);opacity:1;}
   .tipo-icon{width:28px;height:28px;margin:0 auto 8px;color:var(--ink-dim);}
   .tipo-card.active .tipo-icon{color:var(--teal-deep);}
-  .tipo-name{font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;}
+  .tipo-name{font-size:13px;font-weight:600;color:var(--ink);white-space:normal;}
   .tipo-desc{font-size:10.5px;color:var(--ink-dim);margin-top:4px;line-height:1.3;display:none;font-family:'JetBrains Mono',monospace;letter-spacing:-0.01em;}
   .tipo-card.active .tipo-desc{display:block;}
+  @media (min-width:601px){
+    .tipo-card{flex:1 1 0;}
+    .tipo-card.active{flex:1.6 1 0;}
+  }
 
   .when-toggle{display:flex;gap:10px;}
   .when-opt{flex:1;border:1px solid var(--line);border-radius:8px;padding:12px;cursor:pointer;text-align:center;transition:.15s;background:var(--surface);}
@@ -140,7 +143,6 @@
   .editing-banner{display:none;background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal-deep);border-radius:8px;padding:9px 12px;font-size:12px;font-weight:600;margin-bottom:14px;}
   .editing-banner.show{display:block;}
 
-  /* ---- TRAY ---- */
   .tray{margin-top:26px;border:1px dashed var(--line);border-radius:9px;padding:16px;background:var(--surface);}
   .tray-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
   .tray-title{font-family:'Space Grotesk',sans-serif;font-size:13.5px;font-weight:600;color:var(--ink);}
@@ -170,14 +172,12 @@
   .confirm-all-btn:disabled{opacity:.35;cursor:default;}
   .confirm-all-btn:disabled:hover{background:var(--teal);}
 
-  /* ---- SUCCESS BANNER ---- */
   .success-banner{
     display:none;background:var(--ok-dim);border:1px solid var(--ok);color:var(--ok);
     border-radius:8px;padding:12px 14px;font-size:13px;font-weight:600;margin-bottom:18px;
     align-items:center;gap:8px;
   }
 
-  /* ---- LOGIN GATE ---- */
   .login-wrap{max-width:400px;margin:60px auto;padding:0 clamp(16px,4vw,32px);}
   .login-card{background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);padding:28px;box-shadow:0 1px 3px rgba(22,48,44,0.05), 0 8px 24px rgba(22,48,44,0.04);text-align:center;}
   .login-card h2{font-family:'Space Grotesk',sans-serif;font-size:18px;margin:14px 0 8px;color:var(--ink);}
@@ -367,7 +367,7 @@
         <div class="error-msg" id="errorComuna">Ingresa la comuna.</div>
       </div>
       <div>
-        <label for="deptoCasa">Depto / casa (opcional)</label>
+        <label for="deptoCasa">Depto / casa / local (opcional)</label>
         <input type="text" id="deptoCasa" placeholder="Ej: Depto 302">
       </div>
     </div>
@@ -396,9 +396,6 @@
 </div>
 
 <script>
-// ============================================================
-// CONFIG MoviKar — Supabase
-// ============================================================
 const SUPABASE_URL = 'https://gcivybtcccaslyzkzgri.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_IVjRfzdWhEO3yb5LkUz7pw_5IA-CxLW';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -422,9 +419,6 @@ function showLogin(){
 
 sb.auth.getSession().then(async ({data})=>{
   if(!data.session){ showLogin(); return; }
-  // No basta con que haya una sesión guardada localmente — hay que
-  // confirmar contra el servidor que ese usuario todavía existe.
-  // Si fue eliminado en Supabase, esto lo detecta y cierra la sesión.
   const { data: userData, error } = await sb.auth.getUser();
   if(error || !userData.user){
     await sb.auth.signOut();
@@ -491,7 +485,6 @@ document.getElementById('verifyCodeBtn').addEventListener('click', async ()=>{
     msg.textContent = '⚠ Ese código ya venció o no es válido. Pide uno nuevo con el botón de arriba y usa el más reciente.';
     msg.classList.add('err');
   }
-  // si funciona, onAuthStateChange se encarga de mostrar la app
 });
 
 document.getElementById('logoutBtn').addEventListener('click', async ()=>{
@@ -564,7 +557,6 @@ function renderTray(){
   });
 }
 
-// --- Selección accesible por teclado para tipo y when (patrón radiogroup) ---
 function setupRadioGroup(container, onSelect){
   const items = Array.from(container.querySelectorAll('[role="radio"]'));
   items.forEach((item, idx)=>{
@@ -689,8 +681,6 @@ document.getElementById('addBtn').addEventListener('click', ()=>{
 
   if(!valid) return;
 
-  // Si es "Ahora", se guarda la hora real de este momento — es lo que
-  // ve el chofer como referencia de "lo antes posible", no queda vacío.
   const fechaPrincipalValue = selectedWhen === 'ahora'
     ? new Date().toISOString()
     : (document.getElementById('fechaPrincipal').value || '');
@@ -713,7 +703,6 @@ document.getElementById('addBtn').addEventListener('click', ()=>{
   lastAddress = { calle, numero, comuna, deptoCasa };
   document.getElementById('repeatAddr').style.display = 'inline';
 
-  const wasEditing = editingIndex !== null;
   editingIndex = null;
   document.getElementById('addBtn').textContent = '+ Agregar a la lista';
   document.getElementById('cancelEditBtn').classList.remove('show');
@@ -750,8 +739,6 @@ document.getElementById('confirmAllBtn').addEventListener('click', async ()=>{
     fecha_principal: t.fechaPrincipal ? new Date(t.fechaPrincipal).toISOString() : null,
     entrega_pendiente: t.entregaPendiente,
     fecha_entrega: t.fechaEntrega ? new Date(t.fechaEntrega).toISOString() : null,
-    // Cada etapa arranca en 'agendado' solo si el traslado la incluye.
-    // Ej: tipo 'entrega' no tiene etapa de retiro, así que queda en null.
     estado_retiro: (t.tipo === 'retiro' || t.tipo === 'ambos') ? 'agendado' : null,
     estado_entrega: (t.tipo === 'entrega' || t.tipo === 'ambos') ? 'agendado' : null,
     patente: t.patente,
