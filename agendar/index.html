@@ -372,6 +372,21 @@
       </div>
     </div>
     <button type="button" class="quick-link" id="repeatAddr" style="display:none;margin-bottom:14px;">Usar la última dirección</button>
+
+    <p class="step-label">Datos del cliente (dueño del vehículo)</p>
+    <div class="field-row two-col">
+      <div>
+        <label for="clienteNombre">Nombre del cliente</label>
+        <input type="text" id="clienteNombre" placeholder="Ej: Juan Pérez">
+        <div class="error-msg" id="errorClienteNombre">Ingresa el nombre del cliente.</div>
+      </div>
+      <div>
+        <label for="clienteTelefono">Teléfono del cliente</label>
+        <input type="text" id="clienteTelefono" placeholder="Ej: +56 9 1234 5678">
+        <div class="error-msg" id="errorClienteTelefono">Ingresa el teléfono del cliente.</div>
+      </div>
+    </div>
+
     <div class="field-row">
       <label for="notas">Notas para el chofer (opcional)</label>
       <textarea id="notas" placeholder="Ej: llamar antes de llegar, portón trasero"></textarea>
@@ -401,9 +416,31 @@ const SUPABASE_ANON_KEY = 'sb_publishable_IVjRfzdWhEO3yb5LkUz7pw_5IA-CxLW';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
+let currentTallerId = null;
 
-function showApp(user){
+async function resolverTallerId(authUserId){
+  const { data, error } = await sb
+    .from('taller_usuarios')
+    .select('taller_id, puede_agendar, estado')
+    .eq('auth_user_id', authUserId)
+    .eq('estado', 'activo')
+    .maybeSingle();
+  if(error || !data) return null;
+  return data;
+}
+
+async function showApp(user){
   currentUser = user;
+  const tu = await resolverTallerId(user.id);
+  if(!tu || !tu.puede_agendar){
+    showLogin();
+    const msg = document.getElementById('loginMsg');
+    msg.className = 'login-msg err';
+    msg.textContent = '⚠ Tu acceso no tiene permiso para agendar traslados. Escríbenos a movikarcl@gmail.com si crees que esto es un error.';
+    await sb.auth.signOut();
+    return;
+  }
+  currentTallerId = tu.taller_id;
   document.getElementById('loginWrap').style.display = 'none';
   document.getElementById('appShell').style.display = 'block';
   document.getElementById('tallerChip').style.display = 'flex';
@@ -412,6 +449,7 @@ function showApp(user){
 
 function showLogin(){
   currentUser = null;
+  currentTallerId = null;
   document.getElementById('loginWrap').style.display = 'block';
   document.getElementById('appShell').style.display = 'none';
   document.getElementById('tallerChip').style.display = 'none';
@@ -535,6 +573,7 @@ function renderTray(){
       <div class="tray-item-info">
         <b>${TIPO_LABEL[t.tipo]}</b> · ${t.patente}${(t.marca || t.modelo) ? ' · ' + [t.marca, t.modelo].filter(Boolean).join(' ') : ''}
         <div class="tray-item-meta">${fullAddress(t)} · <a href="${wazeLink(t)}" target="_blank" rel="noopener" style="color:var(--teal-deep);">Ver en Waze ↗</a> · ${displayWhen(t)}</div>
+        <div class="tray-item-meta">Cliente: ${t.clienteNombre} · ${t.clienteTelefono}</div>
         ${t.notas ? `<div class="tray-item-notes">"${t.notas}"</div>` : ''}
       </div>
       <div class="tray-item-actions">
@@ -628,6 +667,8 @@ function startEdit(i){
   document.getElementById('numero').value = t.numero;
   document.getElementById('comuna').value = t.comuna;
   document.getElementById('deptoCasa').value = t.deptoCasa || '';
+  document.getElementById('clienteNombre').value = t.clienteNombre || '';
+  document.getElementById('clienteTelefono').value = t.clienteTelefono || '';
   document.getElementById('notas').value = t.notas || '';
 
   document.getElementById('addBtn').textContent = 'Guardar cambios';
@@ -650,6 +691,8 @@ function cancelEdit(){
   document.getElementById('numero').value = '';
   document.getElementById('comuna').value = '';
   document.getElementById('deptoCasa').value = '';
+  document.getElementById('clienteNombre').value = '';
+  document.getElementById('clienteTelefono').value = '';
   document.getElementById('notas').value = '';
   document.getElementById('fechaPrincipal').value = '';
   document.getElementById('fechaEntrega').value = '';
@@ -666,16 +709,22 @@ document.getElementById('addBtn').addEventListener('click', ()=>{
   const numero = document.getElementById('numero').value.trim();
   const comuna = document.getElementById('comuna').value.trim();
   const deptoCasa = document.getElementById('deptoCasa').value.trim();
+  const clienteNombre = document.getElementById('clienteNombre').value.trim();
+  const clienteTelefono = document.getElementById('clienteTelefono').value.trim();
   const notas = document.getElementById('notas').value.trim();
 
   let valid = true;
-  ['patente','calle','numero','comuna'].forEach(id => document.getElementById(id).classList.remove('field-error'));
-  clearError('errorPatente'); clearError('errorCalle'); clearError('errorNumero'); clearError('errorComuna'); clearError('errorFechaPrincipal'); clearError('errorFechaEntrega');
+  ['patente','calle','numero','comuna','clienteNombre','clienteTelefono'].forEach(id => document.getElementById(id).classList.remove('field-error'));
+  clearError('errorPatente'); clearError('errorCalle'); clearError('errorNumero'); clearError('errorComuna');
+  clearError('errorFechaPrincipal'); clearError('errorFechaEntrega');
+  clearError('errorClienteNombre'); clearError('errorClienteTelefono');
 
   if(!patente){ showError('errorPatente'); document.getElementById('patente').classList.add('field-error'); valid = false; }
   if(!calle){ showError('errorCalle'); document.getElementById('calle').classList.add('field-error'); valid = false; }
   if(!numero){ showError('errorNumero'); document.getElementById('numero').classList.add('field-error'); valid = false; }
   if(!comuna){ showError('errorComuna'); document.getElementById('comuna').classList.add('field-error'); valid = false; }
+  if(!clienteNombre){ showError('errorClienteNombre'); document.getElementById('clienteNombre').classList.add('field-error'); valid = false; }
+  if(!clienteTelefono){ showError('errorClienteTelefono'); document.getElementById('clienteTelefono').classList.add('field-error'); valid = false; }
   if(selectedWhen === 'programar' && !document.getElementById('fechaPrincipal').value){ showError('errorFechaPrincipal'); valid = false; }
   if(selectedTipo === 'ambos' && !entregaPendienteFlag && !document.getElementById('fechaEntrega').value){ showError('errorFechaEntrega'); valid = false; }
 
@@ -691,7 +740,8 @@ document.getElementById('addBtn').addEventListener('click', ()=>{
     fechaPrincipal: fechaPrincipalValue,
     entregaPendiente: entregaPendienteFlag,
     fechaEntrega: document.getElementById('fechaEntrega').value || '',
-    patente, marca, modelo, calle, numero, comuna, deptoCasa, notas
+    patente, marca, modelo, calle, numero, comuna, deptoCasa,
+    clienteNombre, clienteTelefono, notas
   };
 
   if(editingIndex !== null){
@@ -717,6 +767,8 @@ document.getElementById('addBtn').addEventListener('click', ()=>{
   document.getElementById('numero').value = '';
   document.getElementById('comuna').value = '';
   document.getElementById('deptoCasa').value = '';
+  document.getElementById('clienteNombre').value = '';
+  document.getElementById('clienteTelefono').value = '';
   document.getElementById('notas').value = '';
   document.getElementById('fechaPrincipal').value = '';
   document.getElementById('fechaEntrega').value = '';
@@ -725,7 +777,7 @@ document.getElementById('addBtn').addEventListener('click', ()=>{
 });
 
 document.getElementById('confirmAllBtn').addEventListener('click', async ()=>{
-  if(!currentUser) return;
+  if(!currentUser || !currentTallerId) return;
   const btn = document.getElementById('confirmAllBtn');
   const errorBanner = document.getElementById('errorBanner');
   errorBanner.style.display = 'none';
@@ -733,7 +785,7 @@ document.getElementById('confirmAllBtn').addEventListener('click', async ()=>{
   btn.textContent = 'Guardando...';
 
   const rows = queue.map(t => ({
-    taller_id: currentUser.id,
+    taller_id: currentTallerId,
     tipo: t.tipo,
     when_mode: t.whenMode,
     fecha_principal: t.fechaPrincipal ? new Date(t.fechaPrincipal).toISOString() : null,
@@ -748,6 +800,8 @@ document.getElementById('confirmAllBtn').addEventListener('click', async ()=>{
     numero: t.numero,
     comuna: t.comuna,
     depto_casa: t.deptoCasa || null,
+    cliente_nombre: t.clienteNombre,
+    cliente_telefono: t.clienteTelefono,
     notas: t.notas || null
   }));
 
