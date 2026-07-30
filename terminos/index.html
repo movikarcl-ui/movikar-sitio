@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Términos y Condiciones — MoviKar</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<style>
+  :root {
+    --bg: #FFFFFF; --surface: #F6F9F8; --surface-2: #EDF3F1;
+    --ink: #16302C; --dim: #5E7570; --line: #DCE6E3;
+    --turquesa: #009688; --turquesa-claro: #E3F5F2; --turquesa-profundo: #00695E;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--surface); color: var(--ink); font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+  main { max-width: 720px; margin: 0 auto; padding: 40px 20px 80px; }
+  .intro { text-align: center; margin-bottom: 28px; }
+  .intro img { height: 56px; margin-bottom: 14px; }
+  .intro h1 { font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; color: var(--turquesa-profundo); margin: 0; }
+  .documento { background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: clamp(20px, 4vw, 40px); line-height: 1.6; }
+  .documento h1 { font-family: 'Space Grotesk', sans-serif; font-size: 1.3rem; }
+  .documento h2 { font-family: 'Space Grotesk', sans-serif; font-size: 1.05rem; color: var(--turquesa-profundo); margin-top: 28px; }
+  .documento hr { border: none; border-top: 1px solid var(--line); margin: 20px 0; }
+  .documento p, .documento li { font-size: 0.92rem; color: var(--ink); }
+  .documento a { color: var(--turquesa-profundo); }
+  .estado { text-align: center; color: var(--dim); font-size: 0.9rem; padding: 40px 0; }
+</style>
+</head>
+<body>
+
+<main>
+  <div class="intro">
+    <img src="/favicon.svg" alt="MoviKar" />
+    <h1>Términos y Condiciones</h1>
+  </div>
+  <div id="contenido" class="documento">
+    <p class="estado">Cargando...</p>
+  </div>
+</main>
+
+<script>
+  const SUPABASE_URL = "https://gcivybtcccaslyzkzgri.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_IVjRfzdWhEO3yb5LkUz7pw_5IA-CxLW";
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  (async () => {
+    const contenedor = document.getElementById("contenido");
+    const { data, error } = await sb
+      .from("contenido_legal")
+      .select("contenido")
+      .eq("clave", "terminos_condiciones")
+      .maybeSingle();
+
+    if (error || !data) {
+      contenedor.innerHTML = '<p class="estado">No se pudo cargar el documento. Intenta de nuevo más tarde o escríbenos a movikarcl@gmail.com.</p>';
+      return;
+    }
+
+    contenedor.innerHTML = marked.parse(data.contenido);
+  })();
+</script>
+</body>
+</html>
