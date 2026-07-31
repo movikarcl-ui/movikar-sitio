@@ -415,6 +415,16 @@ const SUPABASE_URL = 'https://gcivybtcccaslyzkzgri.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_IVjRfzdWhEO3yb5LkUz7pw_5IA-CxLW';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// Avisa a la Edge Function que un traslado fue creado, para que geocodifique
+// la dirección y busque chofer disponible. No bloquea ni frena el flujo si falla.
+function notificarAsignacion(trasladoId){
+  sb.functions.invoke('geocodificar-asignar', {
+    body: { traslado_id: trasladoId }
+  }).catch((err) => {
+    console.error('No se pudo disparar geocodificar-asignar:', err);
+  });
+}
+
 let currentUser = null;
 let currentTallerId = null;
 
@@ -805,7 +815,7 @@ document.getElementById('confirmAllBtn').addEventListener('click', async ()=>{
     notas: t.notas || null
   }));
 
-  const { error } = await sb.from('traslados').insert(rows);
+  const { data: inserted, error } = await sb.from('traslados').insert(rows).select('id');
 
   btn.disabled = false;
   btn.textContent = 'Confirmar y agendar';
@@ -815,6 +825,10 @@ document.getElementById('confirmAllBtn').addEventListener('click', async ()=>{
     errorBanner.style.display = 'flex';
     return;
   }
+
+  // Cada traslado recién creado dispara la geocodificación + búsqueda de chofer,
+  // sin frenar la confirmación visual para el taller.
+  (inserted || []).forEach(row => notificarAsignacion(row.id));
 
   const n = queue.length;
   queue = [];
