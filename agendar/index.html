@@ -69,8 +69,17 @@
   main{max-width:680px;margin:0 auto;padding:20px clamp(16px,4vw,32px) 90px;}
   .card{background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);padding:clamp(18px,3vw,26px);box-shadow:0 1px 3px rgba(22,48,44,0.05), 0 8px 24px rgba(22,48,44,0.04);}
 
-  .step-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--teal-deep);letter-spacing:.04em;margin:0 0 10px;text-transform:uppercase;}
-  .step-label:not(:first-child){margin-top:22px;}
+  /* ---- Pasos con línea guía ---- */
+  .step-block{position:relative;padding-left:0;margin-bottom:22px;}
+  .step-block:last-of-type{margin-bottom:0;}
+  .step-head{display:flex;align-items:center;gap:10px;margin:0 0 4px;}
+  .step-num{
+    width:22px;height:22px;border-radius:50%;background:var(--teal-dim);color:var(--teal-deep);
+    font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .step-title{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;color:var(--ink);}
+  .step-caption{font-size:11.5px;color:var(--ink-dim);margin:0 0 12px 32px;line-height:1.4;}
 
   .tipo-grid{display:flex;flex-wrap:wrap;gap:10px;}
   .tipo-card{
@@ -126,14 +135,59 @@
   .quick-link{background:none;border:none;color:var(--teal-deep);font-size:11.5px;cursor:pointer;padding:0;margin-top:6px;text-decoration:underline;}
   .quick-link:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
 
+  /* ---- Patente + botón de consulta (placeholder Boostr) ---- */
+  .patente-row{position:relative;}
+  .patente-input-wrap{display:flex;gap:6px;}
+  .patente-input-wrap input{flex:1;}
+  .btn-patente{
+    flex-shrink:0;background:var(--surface);border:1px solid var(--line);color:var(--ink-dim);
+    border-radius:7px;padding:0 12px;font-size:11.5px;cursor:not-allowed;white-space:nowrap;
+    display:flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;
+  }
+  .btn-patente svg{width:13px;height:13px;flex-shrink:0;}
+
+  /* ---- Aviso de coincidencia con traslado anterior ---- */
+  .match-hint{
+    display:none;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+    background:var(--teal-dim);border:1px solid var(--teal);border-radius:8px;
+    padding:9px 12px;margin-top:8px;font-size:12px;color:var(--teal-deep);
+  }
+  .match-hint.show{display:flex;}
+  .match-hint-text{flex:1;min-width:180px;}
+  .match-hint button{
+    background:var(--teal);color:#fff;border:none;border-radius:6px;padding:6px 11px;
+    font-size:11.5px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif;
+  }
+  .match-hint button:hover{background:var(--teal-deep);}
+  .match-hint-close{background:none !important;color:var(--teal-deep) !important;padding:6px 4px !important;font-size:15px !important;}
+
+  /* ---- Sugerencias de dirección (Nominatim) ---- */
+  .addr-wrap{position:relative;}
+  .addr-suggestions{
+    display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:20;
+    background:#fff;border:1px solid var(--line);border-radius:8px;
+    box-shadow:0 6px 20px rgba(22,48,44,0.12);max-height:220px;overflow-y:auto;
+  }
+  .addr-suggestions.show{display:block;}
+  .addr-suggestion{
+    padding:9px 12px;font-size:12.5px;color:var(--ink);cursor:pointer;border-bottom:1px solid var(--line);line-height:1.35;
+  }
+  .addr-suggestion:last-child{border-bottom:none;}
+  .addr-suggestion:hover, .addr-suggestion.hover{background:var(--teal-dim);}
+  .addr-suggestion small{display:block;color:var(--ink-dim);font-size:10.5px;margin-top:1px;}
+  .addr-status{font-size:10.5px;color:var(--ink-dim);margin-top:4px;font-family:'JetBrains Mono',monospace;}
+  .addr-status.ok{color:var(--teal-deep);}
+
   .btn-row{display:flex;gap:10px;margin-top:20px;align-items:center;}
   .add-btn{
     flex:1;background:var(--ink);color:var(--bg);
     border:none;border-radius:7px;padding:12px;font-weight:600;font-size:13.5px;
     cursor:pointer;transition:.15s;font-family:'Space Grotesk',sans-serif;
+    display:flex;align-items:center;justify-content:center;gap:8px;
   }
   .add-btn:hover{background:var(--teal-deep);}
   .add-btn:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+  .add-btn.pulse-ok{background:var(--ok);}
   .cancel-edit-btn{
     display:none;background:none;border:1px solid var(--line);color:var(--ink-dim);
     border-radius:7px;padding:12px 14px;font-weight:600;font-size:12.5px;cursor:pointer;white-space:nowrap;
@@ -148,8 +202,9 @@
   .tray-title{font-family:'Space Grotesk',sans-serif;font-size:13.5px;font-weight:600;color:var(--ink);}
   .tray-count{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--teal-deep);background:var(--teal-dim);padding:2px 8px;border-radius:12px;}
   .tray-empty{font-size:12px;color:var(--ink-dim);padding:10px 2px;}
-  .tray-item{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px;padding:9px 6px;border-top:1px solid var(--line);animation:slideIn .25s ease;border-radius:6px;}
+  .tray-item{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px;padding:9px 6px;border-top:1px solid var(--line);animation:slideIn .25s ease;border-radius:6px;transition:background 1.1s ease;}
   .tray-item.editing{background:var(--teal-dim);border-top-color:transparent;}
+  .tray-item.just-added{background:var(--ok-dim);}
   @keyframes slideIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
   .tray-item:first-of-type{border-top:none;}
   .tray-item-info{font-size:12.5px;color:var(--ink);}
@@ -165,17 +220,24 @@
   .confirm-all-btn{
     width:100%;margin-top:14px;background:var(--teal);color:#fff;border:none;
     border-radius:7px;padding:12px;font-weight:700;font-size:13.5px;font-family:'Space Grotesk',sans-serif;
-    cursor:pointer;transition:.15s;
+    cursor:pointer;transition:background .15s;display:flex;align-items:center;justify-content:center;gap:9px;
   }
   .confirm-all-btn:hover{background:var(--teal-deep);}
   .confirm-all-btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
   .confirm-all-btn:disabled{opacity:.35;cursor:default;}
   .confirm-all-btn:disabled:hover{background:var(--teal);}
+  .confirm-all-btn.success{background:var(--ok);}
+  .btn-spinner{
+    width:15px;height:15px;border-radius:50%;border:2px solid rgba(255,255,255,.4);
+    border-top-color:#fff;animation:spin .7s linear infinite;flex-shrink:0;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .btn-check{width:16px;height:16px;flex-shrink:0;}
 
   .success-banner{
     display:none;background:var(--ok-dim);border:1px solid var(--ok);color:var(--ok);
     border-radius:8px;padding:12px 14px;font-size:13px;font-weight:600;margin-bottom:18px;
-    align-items:center;gap:8px;
+    align-items:center;gap:8px;animation:slideIn .25s ease;
   }
 
   .login-wrap{max-width:400px;margin:60px auto;padding:0 clamp(16px,4vw,32px);}
@@ -283,117 +345,148 @@
     <div class="success-banner" id="errorBanner" style="background:var(--coral-dim);border-color:var(--coral);color:var(--coral);">⚠ <span id="errorText"></span></div>
     <div class="editing-banner" id="editingBanner">✎ Editando un traslado de la lista — los cambios se guardan al hacer clic en "Guardar cambios".</div>
 
-    <p class="step-label">1 · Tipo de traslado</p>
-    <div class="tipo-grid" id="tipoGrid" role="radiogroup" aria-label="Tipo de traslado">
-      <div class="tipo-card active" data-tipo="retiro" role="radio" aria-checked="true" tabindex="0">
-        <svg class="tipo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 11l9-7 9 7"/><path d="M5 10v9h14v-9"/><path d="M15 19v-5h-3"/></svg>
-        <div class="tipo-name">Retiro</div>
-        <div class="tipo-desc">Casa del cliente → Taller</div>
-      </div>
-      <div class="tipo-card" data-tipo="entrega" role="radio" aria-checked="false" tabindex="-1">
-        <svg class="tipo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="7" width="16" height="10" rx="1.5"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M4 12h16"/></svg>
-        <div class="tipo-name">Entrega</div>
-        <div class="tipo-desc">Taller → Casa del cliente</div>
-      </div>
-      <div class="tipo-card" data-tipo="ambos" role="radio" aria-checked="false" tabindex="-1">
-        <svg class="tipo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 7h11l-3-3M17 17H6l3 3"/></svg>
-        <div class="tipo-name">Ambos</div>
-        <div class="tipo-desc">Casa ⇄ Taller (los dos sentidos)</div>
-      </div>
-    </div>
-
-    <p class="step-label" id="whenLabel">2 · Retiro: ¿cuándo?</p>
-    <div class="when-toggle" id="whenToggle" role="radiogroup" aria-label="Cuándo">
-      <div class="when-opt active" data-w="ahora" role="radio" aria-checked="true" tabindex="0">
-        <div class="when-opt-title">Ahora</div>
-        <div class="when-opt-sub">Urgente, sin agendar</div>
-      </div>
-      <div class="when-opt" data-w="programar" role="radio" aria-checked="false" tabindex="-1">
-        <div class="when-opt-title">Programar</div>
-        <div class="when-opt-sub">Elegir fecha y hora</div>
-      </div>
-    </div>
-    <div class="datetime-block hidden" id="datetimeBlock">
-      <label for="fechaPrincipal">Fecha y hora</label>
-      <input type="datetime-local" id="fechaPrincipal">
-      <div class="error-msg" id="errorFechaPrincipal">Elige fecha y hora, o cambia a "Ahora".</div>
-    </div>
-
-    <div id="entregaBlock" style="display:none;">
-      <p class="step-label">3 · Entrega: ¿cuándo?</p>
-      <div class="checkbox-row">
-        <input type="checkbox" id="entregaPendiente" checked>
-        <label for="entregaPendiente" style="margin:0;color:var(--ink);font-size:12.5px;">Aún no sé la fecha — coordinar después</label>
-      </div>
-      <div class="datetime-block hidden" id="entregaDatetimeBlock">
-        <label for="fechaEntrega">Fecha y hora de entrega</label>
-        <input type="datetime-local" id="fechaEntrega">
-        <div class="error-msg" id="errorFechaEntrega">Elige fecha y hora, o marca "coordinar después".</div>
+    <div class="step-block">
+      <div class="step-head"><span class="step-num">1</span><span class="step-title">Tipo de traslado</span></div>
+      <p class="step-caption">¿Qué necesitas: llevar el auto a un domicilio, retirarlo, o ambos?</p>
+      <div class="tipo-grid" id="tipoGrid" role="radiogroup" aria-label="Tipo de traslado">
+        <div class="tipo-card active" data-tipo="retiro" role="radio" aria-checked="true" tabindex="0">
+          <svg class="tipo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 11l9-7 9 7"/><path d="M5 10v9h14v-9"/><path d="M15 19v-5h-3"/></svg>
+          <div class="tipo-name">Retiro</div>
+          <div class="tipo-desc">Casa del cliente → Taller</div>
+        </div>
+        <div class="tipo-card" data-tipo="entrega" role="radio" aria-checked="false" tabindex="-1">
+          <svg class="tipo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="7" width="16" height="10" rx="1.5"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M4 12h16"/></svg>
+          <div class="tipo-name">Entrega</div>
+          <div class="tipo-desc">Taller → Casa del cliente</div>
+        </div>
+        <div class="tipo-card" data-tipo="ambos" role="radio" aria-checked="false" tabindex="-1">
+          <svg class="tipo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 7h11l-3-3M17 17H6l3 3"/></svg>
+          <div class="tipo-name">Ambos</div>
+          <div class="tipo-desc">Casa ⇄ Taller (los dos sentidos)</div>
+        </div>
       </div>
     </div>
 
-    <p class="step-label">Datos del traslado</p>
-    <div class="field-row three-col">
-      <div>
-        <label for="patente">Patente</label>
-        <input type="text" id="patente" placeholder="Ej: HTXR-21" style="text-transform:uppercase;">
-        <div class="error-msg" id="errorPatente">Ingresa la patente.</div>
+    <div class="step-block">
+      <div class="step-head"><span class="step-num">2</span><span class="step-title" id="whenLabel">Retiro: ¿cuándo?</span></div>
+      <p class="step-caption">Si es urgente, elige "Ahora" y buscamos chofer de inmediato.</p>
+      <div class="when-toggle" id="whenToggle" role="radiogroup" aria-label="Cuándo">
+        <div class="when-opt active" data-w="ahora" role="radio" aria-checked="true" tabindex="0">
+          <div class="when-opt-title">Ahora</div>
+          <div class="when-opt-sub">Urgente, sin agendar</div>
+        </div>
+        <div class="when-opt" data-w="programar" role="radio" aria-checked="false" tabindex="-1">
+          <div class="when-opt-title">Programar</div>
+          <div class="when-opt-sub">Elegir fecha y hora</div>
+        </div>
       </div>
-      <div>
-        <label for="marca">Marca</label>
-        <input type="text" id="marca" placeholder="Ej: Chevrolet">
+      <div class="datetime-block hidden" id="datetimeBlock">
+        <label for="fechaPrincipal">Fecha y hora</label>
+        <input type="datetime-local" id="fechaPrincipal">
+        <div class="error-msg" id="errorFechaPrincipal">Elige fecha y hora, o cambia a "Ahora".</div>
       </div>
-      <div>
-        <label for="modelo">Modelo</label>
-        <input type="text" id="modelo" placeholder="Ej: Sail">
-      </div>
-    </div>
-    <div class="field-row two-col">
-      <div>
-        <label for="calle">Calle</label>
-        <input type="text" id="calle" placeholder="Ej: Av. Los Leones">
-        <div class="error-msg" id="errorCalle">Ingresa la calle.</div>
-      </div>
-      <div>
-        <label for="numero">Número</label>
-        <input type="text" id="numero" placeholder="Ej: 1420">
-        <div class="error-msg" id="errorNumero">Ingresa el número.</div>
-      </div>
-    </div>
-    <div class="field-row two-col">
-      <div>
-        <label for="comuna">Comuna</label>
-        <input type="text" id="comuna" placeholder="Ej: Providencia">
-        <div class="error-msg" id="errorComuna">Ingresa la comuna.</div>
-      </div>
-      <div>
-        <label for="deptoCasa">Depto / casa / local (opcional)</label>
-        <input type="text" id="deptoCasa" placeholder="Ej: Depto 302">
-      </div>
-    </div>
-    <button type="button" class="quick-link" id="repeatAddr" style="display:none;margin-bottom:14px;">Usar la última dirección</button>
 
-    <p class="step-label">Datos del cliente (dueño del vehículo)</p>
-    <div class="field-row two-col">
-      <div>
-        <label for="clienteNombre">Nombre del cliente</label>
-        <input type="text" id="clienteNombre" placeholder="Ej: Juan Pérez">
-        <div class="error-msg" id="errorClienteNombre">Ingresa el nombre del cliente.</div>
-      </div>
-      <div>
-        <label for="clienteTelefono">Teléfono del cliente</label>
-        <input type="text" id="clienteTelefono" placeholder="Ej: +56 9 1234 5678">
-        <div class="error-msg" id="errorClienteTelefono">Ingresa el teléfono del cliente.</div>
+      <div id="entregaBlock" style="display:none;margin-top:16px;">
+        <div class="step-head"><span class="step-num">3</span><span class="step-title">Entrega: ¿cuándo?</span></div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="entregaPendiente" checked>
+          <label for="entregaPendiente" style="margin:0;color:var(--ink);font-size:12.5px;">Aún no sé la fecha — coordinar después</label>
+        </div>
+        <div class="datetime-block hidden" id="entregaDatetimeBlock">
+          <label for="fechaEntrega">Fecha y hora de entrega</label>
+          <input type="datetime-local" id="fechaEntrega">
+          <div class="error-msg" id="errorFechaEntrega">Elige fecha y hora, o marca "coordinar después".</div>
+        </div>
       </div>
     </div>
 
-    <div class="field-row">
-      <label for="notas">Notas para el chofer (opcional)</label>
-      <textarea id="notas" placeholder="Ej: llamar antes de llegar, portón trasero"></textarea>
+    <div class="step-block">
+      <div class="step-head"><span class="step-num">4</span><span class="step-title">Datos del vehículo</span></div>
+      <p class="step-caption">La patente es lo único obligatorio aquí — marca y modelo ayudan al chofer a reconocerlo.</p>
+      <div class="field-row three-col">
+        <div class="patente-row">
+          <label for="patente">Patente</label>
+          <div class="patente-input-wrap">
+            <input type="text" id="patente" placeholder="Ej: HTXR-21" style="text-transform:uppercase;">
+            <button type="button" class="btn-patente" id="btnBuscarPatente" disabled title="Muy pronto: vamos a poder autocompletar marca y modelo con solo la patente.">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+              pronto
+            </button>
+          </div>
+          <div class="error-msg" id="errorPatente">Ingresa la patente.</div>
+          <div class="match-hint" id="matchHint">
+            <span class="match-hint-text">Encontramos un traslado anterior con esta patente.</span>
+            <button type="button" id="btnUsarMatch">Usar esos datos</button>
+            <button type="button" class="match-hint-close" id="btnCerrarMatch" aria-label="Cerrar aviso">×</button>
+          </div>
+        </div>
+        <div>
+          <label for="marca">Marca</label>
+          <input type="text" id="marca" placeholder="Ej: Chevrolet">
+        </div>
+        <div>
+          <label for="modelo">Modelo</label>
+          <input type="text" id="modelo" placeholder="Ej: Sail">
+        </div>
+      </div>
+    </div>
+
+    <div class="step-block">
+      <div class="step-head"><span class="step-num">5</span><span class="step-title">Dirección</span></div>
+      <p class="step-caption">Escribe la calle y elige una sugerencia para completar todo automáticamente.</p>
+      <div class="field-row two-col">
+        <div class="addr-wrap">
+          <label for="calle">Calle</label>
+          <input type="text" id="calle" placeholder="Ej: Av. Los Leones" autocomplete="off">
+          <div class="addr-suggestions" id="addrSuggestions"></div>
+          <div class="error-msg" id="errorCalle">Ingresa la calle.</div>
+          <div class="addr-status" id="addrStatus"></div>
+        </div>
+        <div>
+          <label for="numero">Número</label>
+          <input type="text" id="numero" placeholder="Ej: 1420">
+          <div class="error-msg" id="errorNumero">Ingresa el número.</div>
+        </div>
+      </div>
+      <div class="field-row two-col">
+        <div>
+          <label for="comuna">Comuna</label>
+          <input type="text" id="comuna" placeholder="Ej: Providencia">
+          <div class="error-msg" id="errorComuna">Ingresa la comuna.</div>
+        </div>
+        <div>
+          <label for="deptoCasa">Depto / casa / local (opcional)</label>
+          <input type="text" id="deptoCasa" placeholder="Ej: Depto 302">
+        </div>
+      </div>
+      <button type="button" class="quick-link" id="repeatAddr" style="display:none;margin-bottom:0;">Usar la última dirección</button>
+    </div>
+
+    <div class="step-block">
+      <div class="step-head"><span class="step-num">6</span><span class="step-title">Datos del cliente</span></div>
+      <p class="step-caption">El dueño del vehículo — el chofer lo contacta si necesita coordinar algo puntual.</p>
+      <div class="field-row two-col">
+        <div>
+          <label for="clienteNombre">Nombre del cliente</label>
+          <input type="text" id="clienteNombre" placeholder="Ej: Juan Pérez">
+          <div class="error-msg" id="errorClienteNombre">Ingresa el nombre del cliente.</div>
+        </div>
+        <div>
+          <label for="clienteTelefono">Teléfono del cliente</label>
+          <input type="text" id="clienteTelefono" placeholder="Ej: +56 9 1234 5678">
+          <div class="error-msg" id="errorClienteTelefono">Ingresa el teléfono del cliente.</div>
+        </div>
+      </div>
+      <div class="field-row">
+        <label for="notas">Notas para el chofer (opcional)</label>
+        <textarea id="notas" placeholder="Ej: llamar antes de llegar, portón trasero"></textarea>
+      </div>
     </div>
 
     <div class="btn-row">
-      <button class="add-btn" id="addBtn">+ Agregar a la lista</button>
+      <button class="add-btn" id="addBtn">
+        <span id="addBtnText">+ Agregar a la lista</span>
+      </button>
       <button type="button" class="cancel-edit-btn" id="cancelEditBtn">Cancelar edición</button>
     </div>
 
@@ -403,7 +496,9 @@
         <span class="tray-count" id="trayCount">0</span>
       </div>
       <div id="trayList"><div class="tray-empty">Agrega traslados arriba — puedes cargar varios antes de enviarlos todos juntos.</div></div>
-      <button class="confirm-all-btn" id="confirmAllBtn" disabled>Confirmar y agendar</button>
+      <button class="confirm-all-btn" id="confirmAllBtn" disabled>
+        <span id="confirmBtnText">Confirmar y agendar</span>
+      </button>
     </div>
 
   </div>
@@ -548,6 +643,13 @@ let lastAddress = {};
 let queue = [];
 let editingIndex = null;
 
+// Coordenadas de la dirección elegida vía sugerencia (se limpian si el usuario edita a mano)
+let direccionSeleccionadaLat = null;
+let direccionSeleccionadaLng = null;
+
+// Datos de un traslado anterior encontrado por patente, listos para autocompletar
+let matchEncontrado = null;
+
 function fmtDateTime(iso){
   if(!iso) return null;
   return new Date(iso).toLocaleString('es-CL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
@@ -570,6 +672,8 @@ function displayWhen(t){
   return t.whenMode==='ahora' ? ('Ahora' + (fmtDateTime(t.fechaPrincipal) ? ' · solicitado ' + fmtDateTime(t.fechaPrincipal) : '')) : (fmtDateTime(t.fechaPrincipal) || 'Sin fecha definida');
 }
 
+let ultimoIndiceAgregado = null;
+
 function renderTray(){
   const list = document.getElementById("trayList");
   document.getElementById("trayCount").textContent = queue.length;
@@ -579,7 +683,7 @@ function renderTray(){
     return;
   }
   list.innerHTML = queue.map((t,i)=>`
-    <div class="tray-item ${i===editingIndex ? 'editing' : ''}">
+    <div class="tray-item ${i===editingIndex ? 'editing' : ''} ${i===ultimoIndiceAgregado ? 'just-added' : ''}">
       <div class="tray-item-info">
         <b>${TIPO_LABEL[t.tipo]}</b> · ${t.patente}${(t.marca || t.modelo) ? ' · ' + [t.marca, t.modelo].filter(Boolean).join(' ') : ''}
         <div class="tray-item-meta">${fullAddress(t)} · <a href="${wazeLink(t)}" target="_blank" rel="noopener" style="color:var(--teal-deep);">Ver en Waze ↗</a> · ${displayWhen(t)}</div>
@@ -604,6 +708,9 @@ function renderTray(){
   list.querySelectorAll('.tray-edit').forEach(btn=>{
     btn.addEventListener('click', ()=> startEdit(+btn.dataset.i));
   });
+  if(ultimoIndiceAgregado !== null){
+    setTimeout(()=>{ ultimoIndiceAgregado = null; renderTray(); }, 1100);
+  }
 }
 
 function setupRadioGroup(container, onSelect){
@@ -630,7 +737,7 @@ function setupRadioGroup(container, onSelect){
 const tipoCtrl = setupRadioGroup(document.getElementById('tipoGrid'), (item)=>{
   selectedTipo = item.dataset.tipo;
   document.getElementById('entregaBlock').style.display = selectedTipo==='ambos' ? 'block' : 'none';
-  document.getElementById('whenLabel').textContent = selectedTipo==='entrega' ? '2 · Entrega: ¿cuándo?' : '2 · Retiro: ¿cuándo?';
+  document.getElementById('whenLabel').textContent = selectedTipo==='entrega' ? 'Entrega: ¿cuándo?' : 'Retiro: ¿cuándo?';
   clearError('errorPatente'); clearError('errorCalle'); clearError('errorNumero'); clearError('errorComuna');
 });
 
@@ -651,15 +758,146 @@ document.getElementById('repeatAddr').addEventListener('click', ()=>{
   document.getElementById('numero').value = lastAddress.numero || '';
   document.getElementById('comuna').value = lastAddress.comuna || '';
   document.getElementById('deptoCasa').value = lastAddress.deptoCasa || '';
+  direccionSeleccionadaLat = lastAddress.lat || null;
+  direccionSeleccionadaLng = lastAddress.lng || null;
   clearError('errorCalle'); clearError('errorNumero'); clearError('errorComuna');
 });
 
 function showError(id){ document.getElementById(id).classList.add('show'); }
 function clearError(id){ document.getElementById(id).classList.remove('show'); }
 
+// ---------- Autocompletar desde un traslado anterior del mismo taller (por patente) ----------
+function debounce(fn, delay){
+  let t;
+  return (...args)=>{ clearTimeout(t); t = setTimeout(()=>fn(...args), delay); };
+}
+
+const buscarMatchPorPatente = debounce(async (patenteVal)=>{
+  if(!currentTallerId || editingIndex !== null || !patenteVal || patenteVal.length < 4){
+    ocultarMatchHint();
+    return;
+  }
+  const { data } = await sb
+    .from('traslados')
+    .select('marca, modelo, calle, numero, comuna, depto_casa, cliente_nombre, cliente_telefono, domicilio_lat, domicilio_lng')
+    .eq('taller_id', currentTallerId)
+    .eq('patente', patenteVal)
+    .order('created_at', { ascending:false })
+    .limit(1);
+  if(data && data.length){
+    matchEncontrado = data[0];
+    document.getElementById('matchHint').classList.add('show');
+  } else {
+    ocultarMatchHint();
+  }
+}, 500);
+
+function ocultarMatchHint(){
+  matchEncontrado = null;
+  document.getElementById('matchHint').classList.remove('show');
+}
+
+document.getElementById('patente').addEventListener('input', (e)=>{
+  buscarMatchPorPatente(e.target.value.trim().toUpperCase());
+});
+
+document.getElementById('btnUsarMatch').addEventListener('click', ()=>{
+  if(!matchEncontrado) return;
+  document.getElementById('marca').value = matchEncontrado.marca || '';
+  document.getElementById('modelo').value = matchEncontrado.modelo || '';
+  document.getElementById('calle').value = matchEncontrado.calle || '';
+  document.getElementById('numero').value = matchEncontrado.numero || '';
+  document.getElementById('comuna').value = matchEncontrado.comuna || '';
+  document.getElementById('deptoCasa').value = matchEncontrado.depto_casa || '';
+  document.getElementById('clienteNombre').value = matchEncontrado.cliente_nombre || '';
+  document.getElementById('clienteTelefono').value = matchEncontrado.cliente_telefono || '';
+  direccionSeleccionadaLat = matchEncontrado.domicilio_lat || null;
+  direccionSeleccionadaLng = matchEncontrado.domicilio_lng || null;
+  ocultarMatchHint();
+});
+
+document.getElementById('btnCerrarMatch').addEventListener('click', ocultarMatchHint);
+
+// ---------- Sugerencias de dirección vía Nominatim (gratis, sin API key) ----------
+let addrAbortController = null;
+
+const buscarSugerenciasDireccion = debounce(async ()=>{
+  const calleVal = document.getElementById('calle').value.trim();
+  const comunaVal = document.getElementById('comuna').value.trim();
+  const box = document.getElementById('addrSuggestions');
+  const status = document.getElementById('addrStatus');
+
+  if(calleVal.length < 4){
+    box.classList.remove('show'); box.innerHTML = '';
+    return;
+  }
+
+  if(addrAbortController) addrAbortController.abort();
+  addrAbortController = new AbortController();
+
+  status.textContent = 'Buscando...';
+  status.classList.remove('ok');
+
+  const query = `${calleVal}${comunaVal ? ', ' + comunaVal : ''}, Chile`;
+  const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&countrycodes=cl&limit=5&email=movikarcl@gmail.com&q=${encodeURIComponent(query)}`;
+
+  try{
+    const res = await fetch(url, { signal: addrAbortController.signal });
+    const data = await res.json();
+    if(!data || !data.length){
+      box.classList.remove('show'); box.innerHTML = '';
+      status.textContent = 'Sin sugerencias — puedes escribir la dirección manualmente.';
+      return;
+    }
+    status.textContent = '';
+    box.innerHTML = data.map((r,i)=>`
+      <div class="addr-suggestion" data-i="${i}">
+        ${r.display_name}
+      </div>
+    `).join('');
+    box.classList.add('show');
+    box.querySelectorAll('.addr-suggestion').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        const r = data[+el.dataset.i];
+        const addr = r.address || {};
+        document.getElementById('calle').value = addr.road || calleVal;
+        document.getElementById('numero').value = addr.house_number || document.getElementById('numero').value;
+        document.getElementById('comuna').value = addr.suburb || addr.city_district || addr.city || addr.town || addr.municipality || comunaVal;
+        direccionSeleccionadaLat = parseFloat(r.lat);
+        direccionSeleccionadaLng = parseFloat(r.lon);
+        box.classList.remove('show'); box.innerHTML = '';
+        status.textContent = '✓ Dirección confirmada.';
+        status.classList.add('ok');
+        clearError('errorCalle'); clearError('errorNumero'); clearError('errorComuna');
+      });
+    });
+  }catch(err){
+    if(err.name !== 'AbortError'){
+      status.textContent = 'No se pudo buscar la dirección — puedes escribirla manualmente.';
+    }
+  }
+}, 500);
+
+['calle','comuna'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', ()=>{
+    direccionSeleccionadaLat = null;
+    direccionSeleccionadaLng = null;
+    document.getElementById('addrStatus').classList.remove('ok');
+    buscarSugerenciasDireccion();
+  });
+});
+
+document.addEventListener('click', (e)=>{
+  const box = document.getElementById('addrSuggestions');
+  if(!box.contains(e.target) && e.target.id !== 'calle'){
+    box.classList.remove('show');
+  }
+});
+
 function startEdit(i){
   const t = queue[i];
   editingIndex = i;
+  ocultarMatchHint();
 
   tipoCtrl.select(tipoCtrl.items.findIndex(el => el.dataset.tipo === t.tipo));
   whenCtrl.select(whenCtrl.items.findIndex(el => el.dataset.w === t.whenMode));
@@ -680,8 +918,10 @@ function startEdit(i){
   document.getElementById('clienteNombre').value = t.clienteNombre || '';
   document.getElementById('clienteTelefono').value = t.clienteTelefono || '';
   document.getElementById('notas').value = t.notas || '';
+  direccionSeleccionadaLat = t.domicilioLat || null;
+  direccionSeleccionadaLng = t.domicilioLng || null;
 
-  document.getElementById('addBtn').textContent = 'Guardar cambios';
+  document.getElementById('addBtnText').textContent = 'Guardar cambios';
   document.getElementById('cancelEditBtn').classList.add('show');
   document.getElementById('editingBanner').classList.add('show');
   document.getElementById('successBanner').style.display = 'none';
@@ -691,7 +931,7 @@ function startEdit(i){
 
 function cancelEdit(){
   editingIndex = null;
-  document.getElementById('addBtn').textContent = '+ Agregar a la lista';
+  document.getElementById('addBtnText').textContent = '+ Agregar a la lista';
   document.getElementById('cancelEditBtn').classList.remove('show');
   document.getElementById('editingBanner').classList.remove('show');
   document.getElementById('patente').value = '';
@@ -706,6 +946,9 @@ function cancelEdit(){
   document.getElementById('notas').value = '';
   document.getElementById('fechaPrincipal').value = '';
   document.getElementById('fechaEntrega').value = '';
+  direccionSeleccionadaLat = null;
+  direccionSeleccionadaLng = null;
+  ocultarMatchHint();
   renderTray();
 }
 
@@ -751,22 +994,35 @@ document.getElementById('addBtn').addEventListener('click', ()=>{
     entregaPendiente: entregaPendienteFlag,
     fechaEntrega: document.getElementById('fechaEntrega').value || '',
     patente, marca, modelo, calle, numero, comuna, deptoCasa,
-    clienteNombre, clienteTelefono, notas
+    clienteNombre, clienteTelefono, notas,
+    domicilioLat: direccionSeleccionadaLat,
+    domicilioLng: direccionSeleccionadaLng
   };
 
   if(editingIndex !== null){
     queue[editingIndex] = item;
+    ultimoIndiceAgregado = editingIndex;
   } else {
     queue.push(item);
+    ultimoIndiceAgregado = queue.length - 1;
   }
 
-  lastAddress = { calle, numero, comuna, deptoCasa };
+  lastAddress = { calle, numero, comuna, deptoCasa, lat: direccionSeleccionadaLat, lng: direccionSeleccionadaLng };
   document.getElementById('repeatAddr').style.display = 'inline';
 
   editingIndex = null;
-  document.getElementById('addBtn').textContent = '+ Agregar a la lista';
+  document.getElementById('addBtnText').textContent = '+ Agregar a la lista';
   document.getElementById('cancelEditBtn').classList.remove('show');
   document.getElementById('editingBanner').classList.remove('show');
+
+  // Feedback visual breve en el botón para que se note que se guardó
+  const addBtn = document.getElementById('addBtn');
+  addBtn.classList.add('pulse-ok');
+  document.getElementById('addBtnText').textContent = '✓ Agregado';
+  setTimeout(()=>{
+    addBtn.classList.remove('pulse-ok');
+    document.getElementById('addBtnText').textContent = '+ Agregar a la lista';
+  }, 700);
 
   renderTray();
 
@@ -783,16 +1039,20 @@ document.getElementById('addBtn').addEventListener('click', ()=>{
   document.getElementById('fechaPrincipal').value = '';
   document.getElementById('fechaEntrega').value = '';
   document.getElementById('successBanner').style.display = 'none';
+  direccionSeleccionadaLat = null;
+  direccionSeleccionadaLng = null;
+  ocultarMatchHint();
   document.getElementById('patente').focus();
 });
 
 document.getElementById('confirmAllBtn').addEventListener('click', async ()=>{
   if(!currentUser || !currentTallerId) return;
   const btn = document.getElementById('confirmAllBtn');
+  const btnText = document.getElementById('confirmBtnText');
   const errorBanner = document.getElementById('errorBanner');
   errorBanner.style.display = 'none';
   btn.disabled = true;
-  btn.textContent = 'Guardando...';
+  btn.innerHTML = '<span class="btn-spinner"></span><span>Guardando...</span>';
 
   const rows = queue.map(t => ({
     taller_id: currentTallerId,
@@ -812,15 +1072,16 @@ document.getElementById('confirmAllBtn').addEventListener('click', async ()=>{
     depto_casa: t.deptoCasa || null,
     cliente_nombre: t.clienteNombre,
     cliente_telefono: t.clienteTelefono,
-    notas: t.notas || null
+    notas: t.notas || null,
+    domicilio_lat: t.domicilioLat || null,
+    domicilio_lng: t.domicilioLng || null
   }));
 
   const { data: inserted, error } = await sb.from('traslados').insert(rows).select('id');
 
-  btn.disabled = false;
-  btn.textContent = 'Confirmar y agendar';
-
   if(error){
+    btn.disabled = false;
+    btn.innerHTML = '<span id="confirmBtnText">Confirmar y agendar</span>';
     document.getElementById('errorText').textContent = 'No se pudo guardar: ' + error.message;
     errorBanner.style.display = 'flex';
     return;
@@ -830,12 +1091,22 @@ document.getElementById('confirmAllBtn').addEventListener('click', async ()=>{
   // sin frenar la confirmación visual para el taller.
   (inserted || []).forEach(row => notificarAsignacion(row.id));
 
+  // Feedback visual claro: check verde antes de volver al estado normal
+  btn.classList.add('success');
+  btn.innerHTML = '<svg class="btn-check" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg><span>¡Agendado!</span>';
+
   const n = queue.length;
   queue = [];
   renderTray();
   const banner = document.getElementById('successBanner');
   document.getElementById('successText').textContent = n === 1 ? '1 traslado agendado. Te avisamos cuando el chofer esté asignado.' : n + ' traslados agendados. Te avisamos cuando cada chofer esté asignado.';
   banner.style.display = 'flex';
+
+  setTimeout(()=>{
+    btn.classList.remove('success');
+    btn.disabled = true;
+    btn.innerHTML = '<span id="confirmBtnText">Confirmar y agendar</span>';
+  }, 1400);
 });
 
 renderTray();
