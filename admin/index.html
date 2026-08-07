@@ -41,6 +41,7 @@
   button.secundario { background: none; border: 1px solid var(--line); color: var(--dim); border-radius: 8px; padding: 6px 12px; font-size: 0.8rem; cursor: pointer; }
   .error { color: var(--coral); background: var(--coral-claro); border-radius: 8px; padding: 8px 12px; font-size: 0.82rem; margin-bottom: 14px; }
   .ok-msg { color: var(--ok); background: var(--ok-claro); border-radius: 8px; padding: 8px 12px; font-size: 0.82rem; margin-bottom: 14px; }
+  .aviso-compartido { color: var(--turquesa-profundo); background: var(--turquesa-claro); border-radius: 8px; padding: 8px 12px; font-size: 0.8rem; margin: -6px 0 14px; }
 
   .tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
   .tabs button { background: var(--bg); border: 1px solid var(--line); color: var(--dim); padding: 8px 16px; border-radius: 999px; font-family: 'Inter'; font-weight: 500; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px; }
@@ -68,10 +69,13 @@
   th, td { text-align: left; padding: 10px 14px; font-size: 0.85rem; border-bottom: 1px solid var(--line); vertical-align: top; }
   th { background: var(--surface-2); color: var(--dim); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em; }
   tr:last-child td { border-bottom: none; }
+  tr.fila-grupo td { background: var(--turquesa-claro); font-weight: 600; color: var(--turquesa-profundo); padding: 8px 14px; border-bottom: 1px solid var(--line); }
+  tr.fila-grupo .grupo-rut { font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 0.72rem; color: var(--turquesa-profundo); opacity: 0.85; margin-left: 8px; }
+  tr.fila-taller td { padding-left: 22px; }
   .badge { font-family: 'JetBrains Mono'; font-size: 0.7rem; padding: 3px 8px; border-radius: 6px; display: inline-block; }
   .badge.pendiente { background: var(--surface-2); color: var(--dim); }
-  .badge.aprobado, .badge.activo { background: var(--ok-claro); color: var(--ok); }
-  .badge.rechazado, .badge.inactivo { background: var(--coral-claro); color: var(--coral); }
+  .badge.aprobado, .badge.activo, .badge.habilitado { background: var(--ok-claro); color: var(--ok); }
+  .badge.rechazado, .badge.inactivo, .badge.deshabilitado { background: var(--coral-claro); color: var(--coral); }
   .badge.principal { background: var(--turquesa-claro); color: var(--turquesa-profundo); }
   select.estado-select { margin: 0; padding: 4px 8px; font-size: 0.78rem; width: auto; }
   button.link-accion { background: none; border: none; color: var(--turquesa-profundo); cursor: pointer; font-size: 0.8rem; font-family: 'Inter'; font-weight: 500; padding: 0; margin-right: 10px; }
@@ -170,15 +174,16 @@
       <details class="card-form">
         <summary>Dar de alta un taller manualmente</summary>
         <div class="card-form-body">
-          <p class="subtitulo">Para talleres que prefieres cargar tú directamente, sin pasar por el formulario de solicitud.</p>
+          <p class="subtitulo">Para talleres que prefieres cargar tú directamente, sin pasar por el formulario de solicitud. Si el RUT ya existe en el sistema, este taller se asocia automáticamente a ese cliente de facturación (comparte tarifa con sus otros locales); si es un RUT nuevo, se crea un cliente de facturación nuevo.</p>
           <div id="taller-error" class="error" style="display:none;"></div>
           <div id="taller-ok" class="ok-msg" style="display:none;"></div>
+          <div id="taller-aviso-compartido" class="aviso-compartido" style="display:none;"></div>
 
           <fieldset style="border-top:none; padding-top:0;">
             <legend>Taller</legend>
             <label for="t-nombre">Nombre del taller</label>
-            <input id="t-nombre" type="text" />
-            <label for="t-rut">RUT del taller</label>
+            <input id="t-nombre" type="text" placeholder="Ej: Pompeyo Carrasco La Cisterna" />
+            <label for="t-rut">RUT (del cliente de facturación)</label>
             <input id="t-rut" type="text" placeholder="Ej: 76.123.456-7" />
             <div class="grid-2">
               <div><label for="t-calle">Calle</label><input id="t-calle" type="text" /></div>
@@ -265,8 +270,9 @@
             </div>
           </fieldset>
 
-          <fieldset>
-            <legend>Facturación <span class="opcional">(solo admin — no visible para el taller)</span></legend>
+          <fieldset id="t-facturacion-fieldset">
+            <legend>Facturación del cliente (RUT) <span class="opcional">— solo admin, no visible para el taller</span></legend>
+            <p class="subtitulo" style="margin-top:-4px;">Si el RUT ya existe, estos datos se ignoran y se usan los del cliente existente. Si es un RUT nuevo, quedan guardados para todos sus futuros talleres.</p>
             <label for="t-ciclo">Ciclo de facturación</label>
             <select id="t-ciclo">
               <option value="semanal">Semanal</option>
@@ -297,7 +303,7 @@
       </details>
 
       <div class="filtros-row">
-        <input type="text" id="filtro-talleres" placeholder="Buscar por nombre o comuna..." />
+        <input type="text" id="filtro-talleres" placeholder="Buscar por nombre, RUT o comuna..." />
         <select id="orden-talleres">
           <option value="reciente">Más reciente primero</option>
           <option value="nombre">Nombre (A-Z)</option>
@@ -305,7 +311,7 @@
         </select>
       </div>
       <table>
-        <thead><tr><th>Taller</th><th>RUT</th><th>Dirección</th><th>Ciclo</th><th>Usuarios (máx. 3)</th><th></th></tr></thead>
+        <thead><tr><th>Taller</th><th>Dirección</th><th>Usuarios (máx. 3)</th><th>Estado</th><th></th></tr></thead>
         <tbody id="tabla-talleres"></tbody>
       </table>
     </section>
@@ -433,6 +439,8 @@
   let cacheUsuariosPorTaller = {};
   let cacheSolicitudesPendientes = [];
   let cacheChoferes = [];
+  let cacheClientesPorId = {};
+  let cacheTarifasOkPorCliente = {}; // { cliente_id: { retiro: bool, entrega: bool } }
 
   function irATab(nombre) {
     document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("activo"));
@@ -477,7 +485,8 @@
       const q = textoFiltro.toLowerCase();
       out = out.filter((x) =>
         (x.nombre_taller || "").toLowerCase().includes(q) ||
-        (x.comuna || "").toLowerCase().includes(q));
+        (x.comuna || "").toLowerCase().includes(q) ||
+        (x.rut_taller || "").toLowerCase().includes(q));
     }
     out = [...out];
     if (criterioOrden === "nombre") {
@@ -493,7 +502,7 @@
   async function cargarTalleres() {
     const tbody = $("tabla-talleres");
     const { data: talleres, error } = await sb.from("talleres").select("*");
-    if (error) { tbody.innerHTML = `<tr><td colspan="6" class="vacio">No se pudo cargar: ${error.message}</td></tr>`; return; }
+    if (error) { tbody.innerHTML = `<tr><td colspan="5" class="vacio">No se pudo cargar: ${error.message}</td></tr>`; return; }
 
     const { data: usuarios } = await sb.from("taller_usuarios").select("*").order("nombre");
     const usuariosPorTaller = {};
@@ -501,44 +510,89 @@
       (usuariosPorTaller[u.taller_id] = usuariosPorTaller[u.taller_id] || []).push(u);
     });
 
+    const { data: clientes } = await sb.from("clientes_facturacion").select("*");
+    const clientesPorId = {};
+    (clientes || []).forEach((c) => { clientesPorId[c.id] = c; });
+
+    const { data: tarifas } = await sb.from("tarifas_cliente").select("cliente_facturacion_id, etapa").eq("activa", true);
+    const tarifasOk = {};
+    (tarifas || []).forEach((t) => {
+      tarifasOk[t.cliente_facturacion_id] = tarifasOk[t.cliente_facturacion_id] || { retiro: false, entrega: false };
+      tarifasOk[t.cliente_facturacion_id][t.etapa] = true;
+    });
+
     cacheTalleres = talleres || [];
     cacheUsuariosPorTaller = usuariosPorTaller;
+    cacheClientesPorId = clientesPorId;
+    cacheTarifasOkPorCliente = tarifasOk;
     renderTalleres();
     renderDashboard();
   }
 
+  function clienteTieneTarifaCompleta(clienteId) {
+    const t = cacheTarifasOkPorCliente[clienteId];
+    return !!(t && t.retiro && t.entrega);
+  }
+
   function renderTalleres() {
     const tbody = $("tabla-talleres");
-    if (!cacheTalleres.length) { tbody.innerHTML = `<tr><td colspan="6" class="vacio">Todavía no hay talleres dados de alta.</td></tr>`; return; }
+    if (!cacheTalleres.length) { tbody.innerHTML = `<tr><td colspan="5" class="vacio">Todavía no hay talleres dados de alta.</td></tr>`; return; }
 
     const texto = $("filtro-talleres").value.trim();
     const orden = $("orden-talleres").value;
     const lista = ordenarYFiltrar(cacheTalleres, texto, orden, (t) => (cacheUsuariosPorTaller[t.id] || []).length);
 
-    if (!lista.length) { tbody.innerHTML = `<tr><td colspan="6" class="vacio">Sin resultados para ese filtro.</td></tr>`; return; }
+    if (!lista.length) { tbody.innerHTML = `<tr><td colspan="5" class="vacio">Sin resultados para ese filtro.</td></tr>`; return; }
 
-    tbody.innerHTML = lista.map((t) => {
-      const us = cacheUsuariosPorTaller[t.id] || [];
-      const cicloTexto = t.ciclo_facturacion === "personalizado"
-        ? `cada ${t.ciclo_facturacion_dias || "?"} días` : t.ciclo_facturacion;
-      const listaUsuarios = us.length
-        ? `<div class="usuarios-lista">${us.map((u) => `<div>${u.nombre}${u.cargo ? ` <span class="cargo">· ${u.cargo}</span>` : ""} <span class="badge ${u.estado}">${u.estado}</span>${u.es_principal ? ` <span class="badge principal">principal</span>` : ""}${u.puede_agendar === false ? ` <span class="badge pendiente">solo lectura</span>` : ""}<br><span class="mono">${u.correo}${u.telefono ? " · " + u.telefono : ""}</span></div>`).join("")}</div>`
-        : `<span class="vacio" style="padding:0;">Sin usuarios</span>`;
-      const limite = t.limite_usuarios ?? 3;
-      const alLimite = us.length >= limite;
-      return `
-        <tr>
-          <td><strong>${t.nombre_taller}</strong></td>
-          <td class="mono">${t.rut_taller || "—"}</td>
-          <td>${t.calle} ${t.numero}${t.depto_casa ? ", " + t.depto_casa : ""}, ${t.comuna}</td>
-          <td class="mono">${cicloTexto}</td>
-          <td>${listaUsuarios}<div class="mono" style="color:var(--dim); margin-top:4px;">${us.length}/${limite}</div></td>
-          <td>
-            <button class="link-accion" data-editar="${t.id}">Editar</button>
-            <button class="link-accion" data-agregar="${t.id}" ${alLimite ? "disabled title='Límite alcanzado'" : ""}>+ Usuario</button>
-            <button class="link-accion rojo" data-eliminar="${t.id}">Eliminar</button>
-          </td>
-        </tr>`;
+    const grupos = [];
+    const indicePorCliente = {};
+    lista.forEach((t) => {
+      const cid = t.cliente_facturacion_id || "sin_cliente";
+      if (!(cid in indicePorCliente)) {
+        indicePorCliente[cid] = grupos.length;
+        grupos.push({ clienteId: cid, talleres: [] });
+      }
+      grupos[indicePorCliente[cid]].talleres.push(t);
+    });
+
+    tbody.innerHTML = grupos.map((g) => {
+      const cliente = cacheClientesPorId[g.clienteId];
+      const cicloTexto = cliente
+        ? (cliente.ciclo_facturacion === "personalizado" ? `cada ${cliente.ciclo_facturacion_dias || "?"} días` : cliente.ciclo_facturacion)
+        : "—";
+      const encabezado = cliente
+        ? `<tr class="fila-grupo"><td colspan="5">${cliente.razon_social} <span class="grupo-rut">RUT ${cliente.rut} · ciclo ${cicloTexto} · ${g.talleres.length} local${g.talleres.length !== 1 ? "es" : ""}</span></td></tr>`
+        : `<tr class="fila-grupo"><td colspan="5">Sin cliente de facturación asociado</td></tr>`;
+
+      const filas = g.talleres.map((t) => {
+        const us = cacheUsuariosPorTaller[t.id] || [];
+        const listaUsuarios = us.length
+          ? `<div class="usuarios-lista">${us.map((u) => `<div>${u.nombre}${u.cargo ? ` <span class="cargo">· ${u.cargo}</span>` : ""} <span class="badge ${u.estado}">${u.estado}</span>${u.es_principal ? ` <span class="badge principal">principal</span>` : ""}${u.puede_agendar === false ? ` <span class="badge pendiente">solo lectura</span>` : ""}<br><span class="mono">${u.correo}${u.telefono ? " · " + u.telefono : ""}</span></div>`).join("")}</div>`
+          : `<span class="vacio" style="padding:0;">Sin usuarios</span>`;
+        const limite = t.limite_usuarios ?? 3;
+        const alLimite = us.length >= limite;
+        const tieneTarifa = clienteTieneTarifaCompleta(g.clienteId);
+        const estadoBadge = t.habilitado
+          ? `<span class="badge habilitado">habilitado</span>`
+          : `<span class="badge deshabilitado">deshabilitado</span>`;
+        const tarifaAviso = tieneTarifa ? "" : `<div class="mono" style="color:var(--coral); margin-top:4px;">sin tarifa cargada</div>`;
+        const btnHabilitarLabel = t.habilitado ? "Deshabilitar" : "Habilitar";
+        return `
+          <tr class="fila-taller">
+            <td><strong>${t.nombre_taller}</strong><br><span class="mono" style="color:var(--dim);">${t.rut_taller || "sin RUT"}</span></td>
+            <td>${t.calle} ${t.numero}${t.depto_casa ? ", " + t.depto_casa : ""}, ${t.comuna}</td>
+            <td>${listaUsuarios}<div class="mono" style="color:var(--dim); margin-top:4px;">${us.length}/${limite}</div></td>
+            <td>${estadoBadge}${tarifaAviso}</td>
+            <td>
+              <button class="link-accion" data-editar="${t.id}">Editar</button>
+              <button class="link-accion" data-agregar="${t.id}" ${alLimite ? "disabled title='Límite alcanzado'" : ""}>+ Usuario</button>
+              <button class="link-accion" data-habilitar="${t.id}">${btnHabilitarLabel}</button>
+              <button class="link-accion rojo" data-eliminar="${t.id}">Eliminar</button>
+            </td>
+          </tr>`;
+      }).join("");
+
+      return encabezado + filas;
     }).join("");
 
     tbody.querySelectorAll("[data-editar]").forEach((btn) => {
@@ -570,18 +624,37 @@
         cargarTalleres();
       });
     });
+
+    tbody.querySelectorAll("[data-habilitar]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const t = cacheTalleres.find((x) => x.id === btn.dataset.habilitar);
+        if (!t) return;
+        const yaHabilitado = t.habilitado;
+        if (!yaHabilitado && !clienteTieneTarifaCompleta(t.cliente_facturacion_id)) {
+          alert("Este cliente de facturación todavía no tiene tarifa cargada para retiro y entrega. Carga la tarifa antes de habilitar el taller (pantalla Tarifas — próximamente; mientras tanto, contacta al equipo técnico).");
+          return;
+        }
+        const { error } = await sb.from("talleres").update({ habilitado: !yaHabilitado }).eq("id", t.id);
+        if (error) { alert("No se pudo actualizar: " + error.message); return; }
+        cargarTalleres();
+      });
+    });
   }
 
   $("filtro-talleres").addEventListener("input", renderTalleres);
   $("orden-talleres").addEventListener("change", renderTalleres);
 
   let editingTallerId = null;
+  let editingClienteFacturacionId = null;
 
   function resetFormTaller() {
     editingTallerId = null;
+    editingClienteFacturacionId = null;
     $("t-usuario1-fieldset").style.display = "block";
     $("t-usuario2-fieldset").style.display = "block";
     $("t-usuario3-fieldset").style.display = "block";
+    $("t-facturacion-fieldset").querySelector("legend").innerHTML = 'Facturación del cliente (RUT) <span class="opcional">— solo admin, no visible para el taller</span>';
+    ocultar("taller-aviso-compartido");
     document.querySelector('#panel-talleres details.card-form summary').textContent = "Dar de alta un taller manualmente";
     $("btn-crear-taller").textContent = "Crear taller";
     $("btn-cancelar-taller").style.display = "none";
@@ -598,7 +671,8 @@
 
   function cargarTallerParaEditar(t) {
     editingTallerId = t.id;
-    $("t-usuario1-fieldset").style.display = "none"; // no se editan usuarios acá, solo datos del taller
+    editingClienteFacturacionId = t.cliente_facturacion_id || null;
+    $("t-usuario1-fieldset").style.display = "none";
     $("t-usuario2-fieldset").style.display = "none";
     $("t-usuario3-fieldset").style.display = "none";
     document.querySelector('#panel-talleres details.card-form').open = true;
@@ -611,20 +685,32 @@
     $("t-numero").value = t.numero || "";
     $("t-comuna").value = t.comuna || "";
     $("t-depto").value = t.depto_casa || "";
-    $("t-ciclo").value = t.ciclo_facturacion || "30_dias";
-    $("t-ciclo-dias-wrap").style.display = t.ciclo_facturacion === "personalizado" ? "block" : "none";
-    $("t-ciclo-dias").value = t.ciclo_facturacion_dias || "";
     $("t-prop-nombre").value = t.propietario_nombre || "";
     $("t-prop-correo").value = t.propietario_correo || "";
     $("t-prop-telefono").value = t.propietario_telefono || "";
     $("t-enc-nombre").value = t.encargado_nombre || "";
     $("t-enc-correo").value = t.encargado_correo || "";
     $("t-enc-telefono").value = t.encargado_telefono || "";
-    $("t-pago-nombre").value = t.encargado_pago_nombre || "";
-    $("t-pago-correo").value = t.encargado_pago_correo || "";
-    $("t-pago-telefono").value = t.encargado_pago_telefono || "";
-    $("t-metodo-pago").value = t.metodo_pago || "";
-    $("t-datos-pago").value = t.datos_pago || "";
+
+    const cliente = cacheClientesPorId[t.cliente_facturacion_id];
+    if (cliente) {
+      $("t-ciclo").value = cliente.ciclo_facturacion || "30_dias";
+      $("t-ciclo-dias-wrap").style.display = cliente.ciclo_facturacion === "personalizado" ? "block" : "none";
+      $("t-ciclo-dias").value = cliente.ciclo_facturacion_dias || "";
+      $("t-pago-nombre").value = cliente.encargado_pago_nombre || "";
+      $("t-pago-correo").value = cliente.encargado_pago_correo || "";
+      $("t-pago-telefono").value = cliente.encargado_pago_telefono || "";
+      $("t-metodo-pago").value = cliente.metodo_pago || "";
+      $("t-datos-pago").value = cliente.datos_pago || "";
+      $("t-facturacion-fieldset").querySelector("legend").innerHTML =
+        `Facturación de ${cliente.razon_social} <span class="opcional">— RUT ${cliente.rut}</span>`;
+      const otrosTalleres = cacheTalleres.filter((x) => x.cliente_facturacion_id === t.cliente_facturacion_id && x.id !== t.id);
+      if (otrosTalleres.length) {
+        $("taller-aviso-compartido").textContent = `Estos datos de facturación son compartidos: al guardar, también se actualizan para ${otrosTalleres.map((x) => x.nombre_taller).join(", ")}.`;
+        $("taller-aviso-compartido").style.display = "block";
+      }
+    }
+
     $("t-nombre").scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
@@ -644,14 +730,17 @@
       numero: $("t-numero").value.trim(),
       comuna: $("t-comuna").value.trim(),
       depto_casa: $("t-depto").value.trim() || null,
-      ciclo_facturacion: ciclo,
-      ciclo_facturacion_dias: ciclo === "personalizado" ? (parseInt($("t-ciclo-dias").value, 10) || null) : null,
       propietario_nombre: $("t-prop-nombre").value.trim() || null,
       propietario_correo: $("t-prop-correo").value.trim() || null,
       propietario_telefono: $("t-prop-telefono").value.trim() || null,
       encargado_nombre: $("t-enc-nombre").value.trim() || null,
       encargado_correo: $("t-enc-correo").value.trim() || null,
       encargado_telefono: $("t-enc-telefono").value.trim() || null,
+    };
+
+    const datosCliente = {
+      ciclo_facturacion: ciclo,
+      ciclo_facturacion_dias: ciclo === "personalizado" ? (parseInt($("t-ciclo-dias").value, 10) || null) : null,
       encargado_pago_nombre: $("t-pago-nombre").value.trim() || null,
       encargado_pago_correo: $("t-pago-correo").value.trim() || null,
       encargado_pago_telefono: $("t-pago-telefono").value.trim() || null,
@@ -665,12 +754,16 @@
 
     const btn = $("btn-crear-taller");
 
-    // ---- Modo edición: update directo a la tabla, sin Edge Function ----
     if (editingTallerId) {
       btn.disabled = true; btn.textContent = "Guardando...";
-      const { error } = await sb.from("talleres").update(datosTaller).eq("id", editingTallerId);
+      const { error: errTaller } = await sb.from("talleres").update(datosTaller).eq("id", editingTallerId);
+      let errCliente = null;
+      if (!errTaller && editingClienteFacturacionId) {
+        const res = await sb.from("clientes_facturacion").update(datosCliente).eq("id", editingClienteFacturacionId);
+        errCliente = res.error;
+      }
       btn.disabled = false; btn.textContent = "Guardar cambios";
-      if (error) return mostrarError("taller-error", error.message);
+      if (errTaller || errCliente) return mostrarError("taller-error", (errTaller || errCliente).message);
       $("taller-ok").textContent = "Cambios guardados.";
       $("taller-ok").style.background = ""; $("taller-ok").style.color = "";
       $("taller-ok").style.display = "block";
@@ -679,15 +772,15 @@
       return;
     }
 
-    // ---- Modo creación ----
     const mismo = $("t-mismo-usuario1").checked;
     const payload = {
       modo: "crear_taller",
       taller: {
         ...datosTaller,
+        ...datosCliente,
         propietario: { nombre: datosTaller.propietario_nombre, correo: datosTaller.propietario_correo, telefono: datosTaller.propietario_telefono },
         encargado: { nombre: datosTaller.encargado_nombre, correo: datosTaller.encargado_correo, telefono: datosTaller.encargado_telefono },
-        encargado_pago: { nombre: datosTaller.encargado_pago_nombre, correo: datosTaller.encargado_pago_correo, telefono: datosTaller.encargado_pago_telefono },
+        encargado_pago: { nombre: datosCliente.encargado_pago_nombre, correo: datosCliente.encargado_pago_correo, telefono: datosCliente.encargado_pago_telefono },
       },
       usuario: {
         nombre: $("t-u-nombre").value.trim(),
@@ -733,7 +826,7 @@
       $("taller-ok").style.background = "var(--coral-claro)";
       $("taller-ok").style.color = "var(--coral)";
     } else {
-      $("taller-ok").textContent = "Taller creado correctamente. Correos de bienvenida enviados.";
+      $("taller-ok").textContent = "Taller creado correctamente (queda deshabilitado hasta cargar tarifa). Correos de bienvenida enviados.";
       $("taller-ok").style.background = "";
       $("taller-ok").style.color = "";
     }
@@ -804,7 +897,7 @@
         const correos = (res.data && res.data.correos) || {};
         const fallidos = Object.entries(correos).filter(([, v]) => v && v.enviado === false);
         if (fallidos.length) {
-          alert("Taller aprobado. Algunos correos no se enviaron: " + fallidos.map(([k, v]) => `${k} (${v.motivo})`).join("; "));
+          alert("Taller aprobado (queda deshabilitado hasta cargar tarifa). Algunos correos no se enviaron: " + fallidos.map(([k, v]) => `${k} (${v.motivo})`).join("; "));
         }
         cargarSolicitudes(); cargarTalleres();
       });
