@@ -399,8 +399,21 @@
         Todavía no existe el registro de chofer con cuenta propia — estas filas se crean manualmente mientras tanto.
       </p>
       <table>
-        <thead><tr><th>Nombre</th><th>Teléfono</th><th>Correo</th><th>Estado</th></tr></thead>
+        <thead><tr><th>Nombre</th><th>Teléfono</th><th>Correo</th><th>Estado</th><th>Pendiente de pago</th><th></th></tr></thead>
         <tbody id="tabla-choferes"></tbody>
+      </table>
+
+      <h3 style="font-size:0.95rem; margin:28px 0 4px;">Pagos a choferes</h3>
+      <div class="filtros-row">
+        <select id="filtro-pagos-estado">
+          <option value="">Todos los estados</option>
+          <option value="pendiente">Pendiente de pago</option>
+          <option value="pagada">Pagada</option>
+        </select>
+      </div>
+      <table>
+        <thead><tr><th>Chofer</th><th>Período</th><th>Monto</th><th>Estado</th><th></th></tr></thead>
+        <tbody id="tabla-pagos-chofer"></tbody>
       </table>
     </section>
   </main>
@@ -491,7 +504,7 @@
     if (!user) return;
     $("vista-login").style.display = "none";
     $("vista-panel").style.display = "block";
-    await Promise.all([cargarTalleres(), cargarSolicitudes(), cargarChoferes(), cargarTarifas(), cargarFacturacion()]);
+    await Promise.all([cargarTalleres(), cargarSolicitudes(), cargarChoferes(), cargarTarifas(), cargarFacturacion(), cargarPagosChofer()]);
   }
 
   // ---------- Talleres ----------
@@ -1209,14 +1222,46 @@
   $("orden-solicitudes").addEventListener("change", renderSolicitudes);
 
   // ---------- Choferes ----------
+  let pendientesPorChofer = {};
+
+  async function calcularPendientesChofer() {
+    pendientesPorChofer = {};
+    const { data: pagosPend, error: errP } = await sb
+      .from("pagos_chofer")
+      .select("id, pagos_chofer_items(traslado_id, etapa)")
+      .eq("estado", "pendiente");
+    const reservado = new Set();
+    if (!errP) (pagosPend || []).forEach((p) => (p.pagos_chofer_items || []).forEach((it) => reservado.add(it.traslado_id + "|" + it.etapa)));
+
+    const { data: traslados, error: errT } = await sb
+      .from("traslados")
+      .select("id, chofer_retiro_id, chofer_entrega_id, estado_pago_chofer_retiro, estado_pago_chofer_entrega, monto_pago_chofer_retiro, monto_pago_chofer_entrega")
+      .or("estado_pago_chofer_retiro.eq.pendiente,estado_pago_chofer_entrega.eq.pendiente");
+    if (errT) return;
+
+    (traslados || []).forEach((t) => {
+      if (t.chofer_retiro_id && t.estado_pago_chofer_retiro === "pendiente" && !reservado.has(t.id + "|retiro")) {
+        const acc = (pendientesPorChofer[t.chofer_retiro_id] = pendientesPorChofer[t.chofer_retiro_id] || { monto: 0, etapas: 0 });
+        acc.monto += t.monto_pago_chofer_retiro || 0; acc.etapas += 1;
+      }
+      if (t.chofer_entrega_id && t.estado_pago_chofer_entrega === "pendiente" && !reservado.has(t.id + "|entrega")) {
+        const acc = (pendientesPorChofer[t.chofer_entrega_id] = pendientesPorChofer[t.chofer_entrega_id] || { monto: 0, etapas: 0 });
+        acc.monto += t.monto_pago_chofer_entrega || 0; acc.etapas += 1;
+      }
+    });
+  }
+
   async function cargarChoferes() {
     const tbody = $("tabla-choferes");
     const { data, error } = await sb.from("choferes").select("*").order("created_at", { ascending: false });
-    if (error) { tbody.innerHTML = `<tr><td colspan="4" class="vacio">No se pudo cargar: ${error.message}</td></tr>`; return; }
+    if (error) { tbody.innerHTML = `<tr><td colspan="6" class="vacio">No se pudo cargar: ${error.message}</td></tr>`; return; }
     cacheChoferes = data || [];
     renderDashboard();
-    if (!data.length) { tbody.innerHTML = `<tr><td colspan="4" class="vacio">No hay choferes registrados todavía.</td></tr>`; return; }
-    tbody.innerHTML = data.map((c) => `
+    await calcularPendientesChofer();
+    if (!data.length) { tbody.innerHTML = `<tr><td colspan="6" class="vacio">No hay choferes registrados todavía.</td></tr>`; return; }
+    tbody.innerHTML = data.map((c) => {
+      const pend = pendientesPorChofer[c.id] || { monto: 0, etapas: 0 };
+      return `
       <tr>
         <td><strong>${c.nombre}</strong></td>
         <td>${c.telefono || "—"}</td>
@@ -1228,14 +1273,111 @@
             <option value="rechazado" ${c.estado === "rechazado" ? "selected" : ""}>Rechazado</option>
           </select>
         </td>
-      </tr>`).join("");
+        <td>${pend.etapas ? fmtMonto(pend.monto) + ` (${pend.etapas})` : "—"}</td>
+        <td>${pend.etapas ? `<button class="primario" data-generar-pago="${c.id}">Generar pago</button>` : ""}</td>
+      </tr>`;
+    }).join("");
+
     tbody.querySelectorAll(".estado-select").forEach((sel) => {
       sel.addEventListener("change", async () => {
         const { error } = await sb.from("choferes").update({ estado: sel.value }).eq("id", sel.dataset.id);
         if (error) alert("No se pudo actualizar: " + error.message);
       });
     });
+    tbody.querySelectorAll("[data-generar-pago]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        if (!confirm("¿Generar pago con todas las etapas pendientes de este chofer? Nace como 'pendiente de pago'.")) return;
+        btn.disabled = true; btn.textContent = "Generando...";
+        const { error } = await sb.rpc("generar_pago_chofer", { p_chofer_id: btn.dataset.generarPago });
+        if (error) { alert("No se pudo generar: " + error.message); btn.disabled = false; btn.textContent = "Generar pago"; return; }
+        cargarChoferes();
+        cargarPagosChofer();
+      });
+    });
   }
+
+  // ---------- Pagos a choferes ----------
+  let cachePagosChofer = [];
+
+  async function cargarPagosChofer() {
+    const tbody = $("tabla-pagos-chofer");
+    const filtro = $("filtro-pagos-estado").value;
+    let q = sb.from("pagos_chofer").select("*, choferes(nombre)").order("created_at", { ascending: false });
+    if (filtro) q = q.eq("estado", filtro);
+    const { data, error } = await q;
+    if (error) { tbody.innerHTML = `<tr><td colspan="5" class="vacio">No se pudo cargar: ${error.message}</td></tr>`; return; }
+    cachePagosChofer = data || [];
+    renderPagosChofer();
+  }
+
+  function renderPagosChofer() {
+    const tbody = $("tabla-pagos-chofer");
+    if (!cachePagosChofer.length) { tbody.innerHTML = `<tr><td colspan="5" class="vacio">Todavía no hay pagos generados.</td></tr>`; return; }
+
+    tbody.innerHTML = cachePagosChofer.map((p) => {
+      const chofer = p.choferes;
+      let acciones = `<button class="link-accion" data-detalle-pago="${p.id}">Ver detalle</button>`;
+      if (p.estado === "pendiente") {
+        acciones += `<button class="link-accion" data-pagar-chofer="${p.id}">Marcar pagada</button><button class="link-accion rojo" data-anular-pago="${p.id}">Anular</button>`;
+      }
+      return `
+        <tr>
+          <td><strong>${chofer ? chofer.nombre : "—"}</strong></td>
+          <td>${fmtFecha(p.periodo_desde)} – ${fmtFecha(p.periodo_hasta)}</td>
+          <td>${fmtMonto(p.monto_total)}</td>
+          <td><span class="badge ${p.estado}">${p.estado === "pendiente" ? "pendiente de pago" : "pagada"}</span></td>
+          <td>${acciones}</td>
+        </tr>
+        <tr class="fila-detalle-factura" id="detalle-pago-${p.id}" style="display:none;"><td colspan="5"></td></tr>`;
+    }).join("");
+
+    tbody.querySelectorAll("[data-detalle-pago]").forEach((btn) => {
+      btn.addEventListener("click", () => toggleDetallePago(btn.dataset.detallePago));
+    });
+    tbody.querySelectorAll("[data-pagar-chofer]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        if (!confirm("¿Marcar este pago como pagado?")) return;
+        btn.disabled = true;
+        const { error } = await sb.rpc("marcar_pago_chofer_pagado", { p_pago_id: btn.dataset.pagarChofer });
+        if (error) { alert("No se pudo actualizar: " + error.message); btn.disabled = false; return; }
+        cargarPagosChofer();
+        cargarChoferes();
+      });
+    });
+    tbody.querySelectorAll("[data-anular-pago]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        if (!confirm("¿Anular este pago pendiente? Sus etapas vuelven a quedar disponibles para un pago nuevo.")) return;
+        btn.disabled = true;
+        const { error } = await sb.rpc("anular_pago_chofer_pendiente", { p_pago_id: btn.dataset.anularPago });
+        if (error) { alert("No se pudo anular: " + error.message); btn.disabled = false; return; }
+        cargarPagosChofer();
+        cargarChoferes();
+      });
+    });
+  }
+
+  async function toggleDetallePago(pagoId) {
+    const fila = $("detalle-pago-" + pagoId);
+    if (fila.style.display === "table-row") { fila.style.display = "none"; return; }
+
+    fila.querySelector("td").innerHTML = `<span class="vacio">Cargando...</span>`;
+    fila.style.display = "table-row";
+
+    const { data, error } = await sb
+      .from("pagos_chofer_items")
+      .select("etapa, monto, traslados(patente)")
+      .eq("pago_chofer_id", pagoId);
+
+    if (error) { fila.querySelector("td").innerHTML = `<span class="vacio">No se pudo cargar el detalle.</span>`; return; }
+
+    const filas = (data || []).map((it) => `<tr><td>${it.traslados ? (it.traslados.patente || "—") : "—"}</td><td>${it.etapa === "retiro" ? "Retiro" : "Entrega"}</td><td>${fmtMonto(it.monto)}</td></tr>`).join("");
+
+    fila.querySelector("td").innerHTML = `
+      <table style="margin:6px 0;"><thead><tr><th>Patente</th><th>Etapa</th><th>Monto</th></tr></thead>
+      <tbody>${filas || `<tr><td colspan="3" class="vacio">Sin etapas asociadas.</td></tr>`}</tbody></table>`;
+  }
+
+  $("filtro-pagos-estado").addEventListener("change", cargarPagosChofer);
 
   (async () => {
     const { data: { user } } = await sb.auth.getUser();
