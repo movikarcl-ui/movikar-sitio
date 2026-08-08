@@ -821,8 +821,8 @@
       datos_pago: $("t-datos-pago").value.trim() || null,
     };
 
-    if (!datosTaller.nombre_taller || !datosTaller.calle || !datosTaller.numero || !datosTaller.comuna) {
-      return mostrarError("taller-error", "Completa nombre y dirección del taller.");
+    if (!datosTaller.nombre_taller || !datosTaller.rut_taller || !datosTaller.calle || !datosTaller.numero || !datosTaller.comuna) {
+      return mostrarError("taller-error", "Completa nombre, RUT y dirección del taller.");
     }
 
     const btn = $("btn-crear-taller");
@@ -880,11 +880,11 @@
         telefono: $("t-p-telefono").value.trim() || null,
       },
     };
-    if (!payload.usuario.nombre || !payload.usuario.correo) {
-      return mostrarError("taller-error", "Completa nombre y correo del primer usuario.");
+    if (!payload.usuario.nombre || !payload.usuario.correo || !payload.usuario.telefono) {
+      return mostrarError("taller-error", "Completa nombre, correo y teléfono del primer usuario.");
     }
-    if (!mismo && (!payload.principal.nombre || !payload.principal.correo)) {
-      return mostrarError("taller-error", "Completa nombre y correo del contacto principal, o marca que es la misma persona que el Usuario 1.");
+    if (!mismo && (!payload.principal.nombre || !payload.principal.correo || !payload.principal.telefono)) {
+      return mostrarError("taller-error", "Completa nombre, correo y teléfono del contacto principal, o marca que es la misma persona que el Usuario 1.");
     }
 
     btn.disabled = true; btn.textContent = "Creando...";
