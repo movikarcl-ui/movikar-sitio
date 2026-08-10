@@ -420,10 +420,10 @@
     <!-- ============ CHOFERES ============ -->
     <section class="panel" id="panel-choferes">
       <p class="subtitulo" style="margin-bottom:16px;">
-        Todavía no existe el registro de chofer con cuenta propia — estas filas se crean manualmente mientras tanto.
+        Incluye altas manuales y postulaciones recibidas por <span class="mono">/reclutamiento</span>. Revisa los documentos antes de aprobar.
       </p>
       <table>
-        <thead><tr><th>Nombre</th><th>Teléfono</th><th>Correo</th><th>Estado</th><th>Pendiente de pago</th><th></th></tr></thead>
+        <thead><tr><th>Nombre</th><th>Teléfono</th><th>Correo</th><th>Estado</th><th>Documentos</th><th>Pendiente de pago</th><th></th></tr></thead>
         <tbody id="tabla-choferes"></tbody>
       </table>
 
@@ -1278,13 +1278,14 @@
   async function cargarChoferes() {
     const tbody = $("tabla-choferes");
     const { data, error } = await sb.from("choferes").select("*").order("created_at", { ascending: false });
-    if (error) { tbody.innerHTML = `<tr><td colspan="6" class="vacio">No se pudo cargar: ${error.message}</td></tr>`; return; }
+    if (error) { tbody.innerHTML = `<tr><td colspan="7" class="vacio">No se pudo cargar: ${error.message}</td></tr>`; return; }
     cacheChoferes = data || [];
     renderDashboard();
     await calcularPendientesChofer();
-    if (!data.length) { tbody.innerHTML = `<tr><td colspan="6" class="vacio">No hay choferes registrados todavía.</td></tr>`; return; }
+    if (!data.length) { tbody.innerHTML = `<tr><td colspan="7" class="vacio">No hay choferes registrados todavía.</td></tr>`; return; }
     tbody.innerHTML = data.map((c) => {
       const pend = pendientesPorChofer[c.id] || { monto: 0, etapas: 0 };
+      const tieneDocumentos = c.doc_licencia || c.doc_cedula_frente || c.doc_cedula_dorso || c.doc_foto_perfil || c.doc_certificado_antecedentes;
       return `
       <tr>
         <td><strong>${c.nombre}</strong></td>
@@ -1297,9 +1298,11 @@
             <option value="rechazado" ${c.estado === "rechazado" ? "selected" : ""}>Rechazado</option>
           </select>
         </td>
+        <td>${tieneDocumentos ? `<button class="link-accion" data-ver-docs="${c.id}">Ver documentos</button>` : "—"}</td>
         <td>${pend.etapas ? fmtMonto(pend.monto) + ` (${pend.etapas})` : "—"}</td>
         <td>${pend.etapas ? `<button class="primario" data-generar-pago="${c.id}">Generar pago</button>` : ""}</td>
-      </tr>`;
+      </tr>
+      <tr class="fila-detalle-factura" id="detalle-docs-${c.id}" style="display:none;"><td colspan="7"></td></tr>`;
     }).join("");
 
     tbody.querySelectorAll(".estado-select").forEach((sel) => {
@@ -1316,6 +1319,72 @@
         if (error) { alert("No se pudo generar: " + error.message); btn.disabled = false; btn.textContent = "Generar pago"; return; }
         cargarChoferes();
         cargarPagosChofer();
+      });
+    });
+    tbody.querySelectorAll("[data-ver-docs]").forEach((btn) => {
+      btn.addEventListener("click", () => toggleDocumentosChofer(btn.dataset.verDocs));
+    });
+  }
+
+  const DOC_LABELS = {
+    doc_licencia: "Licencia de conducir",
+    doc_cedula_frente: "Cédula — frente",
+    doc_cedula_dorso: "Cédula — dorso",
+    doc_foto_perfil: "Foto de perfil",
+    doc_certificado_antecedentes: "Certificado de antecedentes",
+  };
+
+  async function toggleDocumentosChofer(choferId) {
+    const fila = $("detalle-docs-" + choferId);
+    if (fila.style.display === "table-row") { fila.style.display = "none"; return; }
+
+    const celda = fila.querySelector("td");
+    celda.innerHTML = `<span class="vacio">Cargando documentos...</span>`;
+    fila.style.display = "table-row";
+
+    const chofer = cacheChoferes.find((c) => c.id === choferId);
+    if (!chofer) { celda.innerHTML = `<span class="vacio">No se encontró el chofer.</span>`; return; }
+
+    const enlaces = [];
+    for (const campo of Object.keys(DOC_LABELS)) {
+      const ruta = chofer[campo];
+      if (!ruta) continue;
+      const { data, error } = await sb.storage.from("chofer-documentos").createSignedUrl(ruta, 600);
+      if (error || !data) { enlaces.push(`<span class="vacio">${DOC_LABELS[campo]}: no se pudo generar el enlace.</span>`); continue; }
+      enlaces.push(`<a href="${data.signedUrl}" target="_blank" rel="noopener" class="link-accion" style="display:inline-block;">${DOC_LABELS[campo]}</a>`);
+    }
+
+    let acciones = "";
+    if (chofer.estado === "pendiente") {
+      acciones = `
+        <div style="margin-top:14px; display:flex; gap:10px;">
+          <button class="primario" data-aprobar-chofer="${choferId}">Aprobar</button>
+          <button class="link-accion rojo" data-rechazar-chofer="${choferId}">Rechazar</button>
+        </div>`;
+    }
+
+    celda.innerHTML = `
+      <div style="display:flex; flex-direction:column; gap:8px; padding:10px 0;">
+        ${enlaces.join("") || `<span class="vacio">Sin documentos.</span>`}
+        <span style="font-size:0.76rem; color:var(--dim);">Los enlaces expiran en 10 minutos por seguridad.</span>
+        ${acciones}
+      </div>`;
+
+    celda.querySelectorAll("[data-aprobar-chofer]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        btn.disabled = true;
+        const { error } = await sb.from("choferes").update({ estado: "aprobado" }).eq("id", choferId);
+        if (error) { alert("No se pudo aprobar: " + error.message); btn.disabled = false; return; }
+        cargarChoferes();
+      });
+    });
+    celda.querySelectorAll("[data-rechazar-chofer]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        if (!confirm("¿Rechazar esta postulación?")) return;
+        btn.disabled = true;
+        const { error } = await sb.from("choferes").update({ estado: "rechazado" }).eq("id", choferId);
+        if (error) { alert("No se pudo rechazar: " + error.message); btn.disabled = false; return; }
+        cargarChoferes();
       });
     });
   }
