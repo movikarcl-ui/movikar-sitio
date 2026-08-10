@@ -184,6 +184,14 @@
     <div class="msg" id="loginMsg"></div>
   </div>
 
+  <!-- ESTADO NO APROBADO (postulación en revisión o rechazada) -->
+  <div class="card" id="estadoCard" style="display:none; text-align:center; padding:32px 20px;">
+    <div id="estadoIcono" style="width:56px; height:56px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.6rem; margin:0 auto 18px;"></div>
+    <h2 id="estadoTitulo" style="margin-bottom:8px;"></h2>
+    <p class="sub" id="estadoTexto"></p>
+    <button class="btn" id="btnSalirEstado" style="margin-top:18px; background:var(--surface-2); color:var(--ink);">Cerrar sesión</button>
+  </div>
+
   <!-- APP -->
   <div class="app-shell" id="appShell">
 
@@ -364,7 +372,7 @@ document.getElementById('btnVerificar').addEventListener('click', async ()=>{
   }
 });
 
-document.getElementById('btnLogout').addEventListener('click', ()=>{
+function cerrarSesion(){
   pararGeolocalizacion();
   detenerAlarma();
   localStorage.removeItem('movikar_chofer_id');
@@ -373,22 +381,49 @@ document.getElementById('btnLogout').addEventListener('click', ()=>{
   clearInterval(refreshInterval);
   document.getElementById('loginCard').style.display = 'block';
   document.getElementById('appShell').style.display = 'none';
+  document.getElementById('estadoCard').style.display = 'none';
   document.getElementById('pasoCodigo').style.display = 'none';
   document.getElementById('telefono').value = '';
   document.getElementById('codigo').value = '';
   hideMsg('loginMsg');
-});
+}
+document.getElementById('btnLogout').addEventListener('click', cerrarSesion);
+document.getElementById('btnSalirEstado').addEventListener('click', cerrarSesion);
 
 // ---------- APP ----------
 async function iniciarApp(){
   document.getElementById('loginCard').style.display = 'none';
+
+  const { data: chofer } = await sb.from('choferes').select('nombre, estado').eq('id', choferId).maybeSingle();
+
+  if(chofer && chofer.estado !== 'aprobado'){
+    document.getElementById('appShell').style.display = 'none';
+    document.getElementById('estadoCard').style.display = 'block';
+    const icono = document.getElementById('estadoIcono');
+    const titulo = document.getElementById('estadoTitulo');
+    const texto = document.getElementById('estadoTexto');
+    if(chofer.estado === 'rechazado'){
+      icono.style.background = 'var(--coral-claro, #FFEEE7)';
+      icono.style.color = 'var(--coral, #E8542F)';
+      icono.textContent = '✕';
+      titulo.textContent = 'Postulación no aprobada';
+      texto.textContent = 'Tu postulación no fue aprobada en esta oportunidad. Si crees que es un error, escríbenos por WhatsApp.';
+    } else {
+      icono.style.background = 'var(--turquesa-claro, #E3F5F2)';
+      icono.style.color = 'var(--turquesa-profundo, #00695E)';
+      icono.textContent = '⏳';
+      titulo.textContent = 'Tu postulación está en revisión';
+      texto.textContent = 'Recibimos tus datos y documentos. Te vamos a contactar por correo apenas la revisemos — no hace falta que hagas nada más por ahora.';
+    }
+    return;
+  }
+
   document.getElementById('appShell').style.display = 'block';
 
   const telefono = localStorage.getItem('movikar_chofer_telefono') || 'Chofer';
   document.getElementById('choferNombre').textContent = telefono;
   document.getElementById('avatarInicial').textContent = telefono.replace(/[^A-Za-z]/g,'')[0]?.toUpperCase() || 'C';
 
-  const { data: chofer } = await sb.from('choferes').select('nombre').eq('id', choferId).maybeSingle();
   if(chofer?.nombre){
     const primerNombre = chofer.nombre.split(' ')[0];
     document.getElementById('saludoHola').textContent = `¡Hola, ${primerNombre}! 👋`;
