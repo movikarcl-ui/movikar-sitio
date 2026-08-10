@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Súmate como chofer — MoviKar</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Súmate como chofer — MoviKar" />
+<meta property="og:description" content="Postula para trasladar vehículos con MoviKar. Sube tus documentos y te contactamos." />
+<meta property="og:image" content="https://movikar.vercel.app/og-image.png" />
+<meta property="og:url" content="https://movikar.vercel.app/reclutamiento" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Súmate como chofer — MoviKar" />
+<meta name="twitter:description" content="Postula para trasladar vehículos con MoviKar. Sube tus documentos y te contactamos." />
+<meta name="twitter:image" content="https://movikar.vercel.app/og-image.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --bg: #FFFFFF; --surface: #F6F9F8; --surface-2: #EDF3F1;
+    --ink: #16302C; --dim: #5E7570; --line: #DCE6E3;
+    --turquesa: #009688; --turquesa-claro: #E3F5F2; --turquesa-profundo: #00695E;
+    --coral: #E8542F; --coral-claro: #FFEEE7; --ok: #1F8F5C; --ok-claro: #E6F6EC;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--surface); color: var(--ink); font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+  h1, h2 { font-family: 'Space Grotesk', sans-serif; margin: 0; }
+  main { max-width: 560px; margin: 0 auto; padding: 40px 20px 80px; }
+  .intro { margin-bottom: 28px; }
+  .intro h1 { font-size: 1.6rem; color: var(--turquesa-profundo); margin-bottom: 8px; }
+  .intro p { color: var(--dim); font-size: 0.95rem; line-height: 1.5; margin: 0; }
+
+  fieldset { border: none; border-top: 1px solid var(--line); padding: 20px 0 0; margin: 0 0 20px; }
+  legend { padding: 0 0 4px; font-family: 'Space Grotesk', sans-serif; font-size: 1.02rem; }
+  .legend-ayuda { color: var(--dim); font-size: 0.82rem; margin: 0 0 14px; }
+
+  label { display: block; font-size: 0.82rem; color: var(--dim); margin-bottom: 4px; font-weight: 500; }
+  input, select, textarea {
+    width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 8px;
+    background: var(--bg); color: var(--ink); font-family: 'Inter'; font-size: 0.92rem; margin-bottom: 14px;
+  }
+  input:focus, select:focus { outline: 2px solid var(--turquesa); outline-offset: 1px; border-color: var(--turquesa); }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+  @media (max-width: 560px) { .grid-2 { grid-template-columns: 1fr; } }
+  .opcional { color: var(--dim); font-weight: 400; }
+
+  input[type="file"] { padding: 9px 10px; font-size: 0.85rem; }
+  .archivo-ayuda { color: var(--dim); font-size: 0.76rem; margin: -10px 0 14px; }
+  .archivo-nombre { font-size: 0.8rem; color: var(--turquesa-profundo); margin: -10px 0 14px; display: none; }
+
+  .terminos-box { display: flex; align-items: flex-start; gap: 10px; background: var(--surface-2); border-radius: 10px; padding: 14px; margin-bottom: 18px; }
+  .terminos-box input { width: auto; margin: 3px 0 0; flex-shrink: 0; }
+  .terminos-box label { color: var(--ink); font-size: 0.85rem; font-weight: 400; margin: 0; }
+  .terminos-box a { color: var(--turquesa-profundo); }
+
+  button.primario { width: 100%; background: var(--turquesa); color: white; border: none; border-radius: 8px; padding: 13px; font-family: 'Inter'; font-weight: 600; font-size: 0.95rem; cursor: pointer; }
+  button.primario:hover { background: var(--turquesa-profundo); }
+  button.primario:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .error { color: var(--coral); background: var(--coral-claro); border-radius: 8px; padding: 10px 12px; font-size: 0.85rem; margin-bottom: 16px; }
+
+  #vista-exito { display: none; text-align: center; padding: 60px 20px; }
+  #vista-exito .icono { width: 56px; height: 56px; border-radius: 50%; background: var(--ok-claro); color: var(--ok); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; margin: 0 auto 20px; }
+  #vista-exito h1 { font-size: 1.4rem; margin-bottom: 10px; }
+  #vista-exito p { color: var(--dim); font-size: 0.95rem; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<main>
+  <div id="vista-form">
+    <div class="intro">
+      <img src="/favicon.svg" alt="MoviKar" style="height:88px; margin-bottom:18px; filter: drop-shadow(0 4px 10px rgba(0,150,136,0.25));" />
+      <h1>Súmate como chofer MoviKar</h1>
+      <p>Traslada vehículos entre talleres y clientes. Completa tus datos y sube tus documentos — revisamos cada postulación y te contactamos.</p>
+    </div>
+
+    <div id="form-error" class="error" style="display:none;"></div>
+
+    <form id="form-postulacion">
+      <fieldset style="border-top:none; padding-top:0;">
+        <legend>Tus datos</legend>
+        <label for="nombre">Nombre completo</label>
+        <input id="nombre" required />
+        <div class="grid-2">
+          <div><label for="correo">Correo</label><input id="correo" type="email" required /></div>
+          <div><label for="telefono">Teléfono</label><input id="telefono" required /></div>
+        </div>
+        <div class="grid-2">
+          <div><label for="rut">RUT</label><input id="rut" placeholder="Ej: 12.345.678-9" required /></div>
+          <div><label for="comuna">Comuna <span class="opcional">(opcional)</span></label><input id="comuna" /></div>
+        </div>
+        <label for="tipo_licencia">Clase de licencia de conducir</label>
+        <input id="tipo_licencia" placeholder="Ej: B" required />
+      </fieldset>
+
+      <fieldset>
+        <legend>Documentos</legend>
+        <p class="legend-ayuda">Foto o PDF, hasta 8 MB cada uno.</p>
+
+        <label for="doc_licencia">Licencia de conducir</label>
+        <input id="doc_licencia" type="file" accept="image/*,application/pdf" required />
+        <div class="archivo-nombre" id="nombre_doc_licencia"></div>
+
+        <label for="doc_cedula_frente">Cédula de identidad — frente</label>
+        <input id="doc_cedula_frente" type="file" accept="image/*,application/pdf" required />
+        <div class="archivo-nombre" id="nombre_doc_cedula_frente"></div>
+
+        <label for="doc_cedula_dorso">Cédula de identidad — dorso</label>
+        <input id="doc_cedula_dorso" type="file" accept="image/*,application/pdf" required />
+        <div class="archivo-nombre" id="nombre_doc_cedula_dorso"></div>
+
+        <label for="doc_foto_perfil">Foto de perfil (tu rostro, clara y reciente)</label>
+        <input id="doc_foto_perfil" type="file" accept="image/*" required />
+        <div class="archivo-nombre" id="nombre_doc_foto_perfil"></div>
+
+        <label for="doc_certificado_antecedentes">Certificado de antecedentes</label>
+        <input id="doc_certificado_antecedentes" type="file" accept="image/*,application/pdf" required />
+        <div class="archivo-nombre" id="nombre_doc_certificado_antecedentes"></div>
+      </fieldset>
+
+      <div class="terminos-box">
+        <input type="checkbox" id="acepta_terminos" required />
+        <label for="acepta_terminos">
+          Acepto los <a href="/terminos" target="_blank">Términos y Condiciones</a> de MoviKar.
+        </label>
+      </div>
+
+      <button type="submit" class="primario" id="btn-enviar">Enviar postulación</button>
+    </form>
+  </div>
+
+  <div id="vista-exito">
+    <div class="icono">✓</div>
+    <h1>Postulación enviada</h1>
+    <p>Vamos a revisar tus datos y documentos. Ya puedes ingresar a <a href="/chofer" style="color:var(--turquesa-profundo);">movikar.vercel.app/chofer</a> con tu correo para ver el estado.</p>
+  </div>
+</main>
+
+<script>
+  const SUPABASE_URL = "https://gcivybtcccaslyzkzgri.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_IVjRfzdWhEO3yb5LkUz7pw_5IA-CxLW";
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const $ = (id) => document.getElementById(id);
+
+  const MAX_BYTES = 8 * 1024 * 1024;
+  const DOCUMENTOS = ["doc_licencia", "doc_cedula_frente", "doc_cedula_dorso", "doc_foto_perfil", "doc_certificado_antecedentes"];
+
+  DOCUMENTOS.forEach((id) => {
+    $(id).addEventListener("change", () => {
+      const file = $(id).files[0];
+      const label = $("nombre_" + id);
+      if (!file) { label.style.display = "none"; return; }
+      label.textContent = `Seleccionado: ${file.name} (${(file.size / 1024 / 1024).toFixed(1)} MB)`;
+      label.style.display = "block";
+    });
+  });
+
+  function mostrarError(msg) {
+    $("form-error").textContent = msg;
+    $("form-error").style.display = "block";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function extensionDe(file) {
+    const partes = file.name.split(".");
+    return partes.length > 1 ? partes.pop().toLowerCase() : "bin";
+  }
+
+  $("form-postulacion").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    $("form-error").style.display = "none";
+
+    if (!$("acepta_terminos").checked) {
+      return mostrarError("Debes aceptar los Términos y Condiciones para continuar.");
+    }
+
+    for (const id of DOCUMENTOS) {
+      const file = $(id).files[0];
+      if (!file) return mostrarError("Falta adjuntar uno de los documentos requeridos.");
+      if (file.size > MAX_BYTES) return mostrarError(`Uno de los documentos ("${file.name}") supera los 8 MB.`);
+    }
+
+    const btn = $("btn-enviar");
+    btn.disabled = true; btn.textContent = "Subiendo documentos...";
+
+    const postulanteId = crypto.randomUUID();
+    const rutasSubidas = {};
+
+    try {
+      for (const id of DOCUMENTOS) {
+        const file = $(id).files[0];
+        const ruta = `${postulanteId}/${id}.${extensionDe(file)}`;
+        const { error: errUpload } = await sb.storage.from("chofer-documentos").upload(ruta, file, {
+          contentType: file.type || "application/octet-stream",
+          upsert: false,
+        });
+        if (errUpload) throw new Error(`No se pudo subir "${id}": ${errUpload.message}`);
+        rutasSubidas[id] = ruta;
+      }
+
+      btn.textContent = "Enviando postulación...";
+
+      const { data, error } = await sb.functions.invoke("postular-chofer", {
+        body: {
+          id: postulanteId,
+          nombre: $("nombre").value.trim(),
+          correo: $("correo").value.trim(),
+          telefono: $("telefono").value.trim(),
+          rut: $("rut").value.trim(),
+          comuna: $("comuna").value.trim() || null,
+          tipo_licencia: $("tipo_licencia").value.trim(),
+          ...rutasSubidas,
+        },
+      });
+
+      if (error) throw new Error(error.message || "No se pudo enviar la postulación.");
+      if (data && data.error) throw new Error(data.error);
+
+      $("vista-form").style.display = "none";
+      $("vista-exito").style.display = "block";
+    } catch (err) {
+      mostrarError(err.message || "Ocurrió un error inesperado. Intenta de nuevo.");
+      btn.disabled = false;
+      btn.textContent = "Enviar postulación";
+    }
+  });
+</script>
+</body>
+</html>
