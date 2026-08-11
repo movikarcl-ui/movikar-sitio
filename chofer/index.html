@@ -514,6 +514,83 @@ async function cargarTrasladoActivo(){
   const direccion = `${activo.calle} ${activo.numero}${activo.depto_casa ? ', '+activo.depto_casa : ''}, ${activo.comuna}`;
   const wazeUrl = `https://waze.com/ul?q=${encodeURIComponent(direccion)}&navigate=yes`;
 
+  if(estadoActual === 'control_fotografico'){
+    cont.innerHTML = `
+      <span class="estado-badge">${etapa === 'retiro' ? 'Retiro' : 'Entrega'} · Control fotográfico</span>
+      <div class="traslado-row"><b>${activo.patente}</b> ${[activo.marca, activo.modelo].filter(Boolean).join(' ')}</div>
+      <p style="color:var(--dim,#5E7570); font-size:13px; margin:10px 0 14px;">Toma al menos 4 fotos del vehículo (frontal, trasera, lateral izquierdo, lateral derecho) antes de completar.</p>
+      <div id="fotosGrid" style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px;"></div>
+      <input type="file" accept="image/*" capture="environment" id="inputFoto" style="display:none;">
+      <button class="btn" id="btnAgregarFoto" style="background:var(--teal-dim); color:var(--teal-deep);">📷 Agregar foto</button>
+      <button class="btn ok" id="btnCompletarFotos" style="margin-top:10px;" disabled>Subir fotos y completar (0/4)</button>
+    `;
+
+    let fotos = [];
+
+    function renderFotosGrid(){
+      const grid = document.getElementById('fotosGrid');
+      grid.innerHTML = fotos.map((f, i) => `
+        <div style="position:relative; aspect-ratio:1; border-radius:8px; overflow:hidden; background:var(--teal-dim);">
+          <img src="${f.previewUrl}" style="width:100%; height:100%; object-fit:cover; display:block;">
+          <button data-quitar="${i}" style="position:absolute; top:4px; right:4px; width:22px; height:22px; border-radius:50%; border:none; background:rgba(0,0,0,0.6); color:#fff; font-size:13px; cursor:pointer; line-height:1;">✕</button>
+        </div>`).join('');
+      grid.querySelectorAll('[data-quitar]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          fotos.splice(Number(btn.dataset.quitar), 1);
+          renderFotosGrid();
+          actualizarBotonCompletar();
+        });
+      });
+    }
+
+    function actualizarBotonCompletar(){
+      const btnCompletar = document.getElementById('btnCompletarFotos');
+      btnCompletar.textContent = `Subir fotos y completar (${fotos.length}/4)`;
+      btnCompletar.disabled = fotos.length < 4;
+    }
+
+    document.getElementById('btnAgregarFoto').addEventListener('click', () => {
+      document.getElementById('inputFoto').click();
+    });
+
+    document.getElementById('inputFoto').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if(!file) return;
+      fotos.push({ file, previewUrl: URL.createObjectURL(file) });
+      renderFotosGrid();
+      actualizarBotonCompletar();
+      e.target.value = '';
+    });
+
+    document.getElementById('btnCompletarFotos').addEventListener('click', async () => {
+      const btnCompletar = document.getElementById('btnCompletarFotos');
+      btnCompletar.disabled = true;
+      btnCompletar.textContent = 'Subiendo fotos...';
+      try{
+        for(let i = 0; i < fotos.length; i++){
+          const ext = (fotos[i].file.name.split('.').pop() || 'jpg').toLowerCase();
+          const ruta = `${activo.id}/${etapa}/${Date.now()}-${i}.${ext}`;
+          const { error: errUpload } = await sb.storage.from('control-fotografico').upload(ruta, fotos[i].file, {
+            contentType: fotos[i].file.type || 'image/jpeg',
+          });
+          if(errUpload) throw new Error('No se pudo subir una foto: ' + errUpload.message);
+          const { error: errInsert } = await sb.from('traslados_fotos').insert({ traslado_id: activo.id, etapa, url: ruta });
+          if(errInsert) throw new Error('No se pudo registrar una foto: ' + errInsert.message);
+        }
+        btnCompletar.textContent = 'Completando traslado...';
+        await invocar('chofer-actualizar', { modo:'avanzar_estado', chofer_id: choferId, traslado_id: activo.id, etapa });
+        await cargarTrasladoActivo();
+      }catch(e){
+        console.error(e);
+        alert(e.message || 'Ocurrió un error al subir las fotos.');
+        btnCompletar.disabled = false;
+        actualizarBotonCompletar();
+      }
+    });
+
+    return;
+  }
+
   cont.innerHTML = `
     <span class="estado-badge">${etapa === 'retiro' ? 'Retiro' : 'Entrega'} · ${ESTADO_LABEL[estadoActual] || estadoActual}</span>
     <div class="traslado-row"><b>${activo.patente}</b> ${[activo.marca, activo.modelo].filter(Boolean).join(' ')}</div>
