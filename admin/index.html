@@ -344,7 +344,7 @@
         <button class="filter-chip" data-filtro-traslado="cancelado">Cancelados</button>
       </div>
       <table>
-        <thead><tr><th>Patente</th><th>Taller</th><th>Tipo</th><th>Retiro</th><th>Chofer retiro</th><th>Entrega</th><th>Chofer entrega</th><th>Fecha</th></tr></thead>
+        <thead><tr><th>Patente</th><th>Taller</th><th>Tipo</th><th>Retiro</th><th>Chofer retiro</th><th>Entrega</th><th>Chofer entrega</th><th>Fecha</th><th>Fotos</th></tr></thead>
         <tbody id="tabla-traslados"></tbody>
       </table>
     </section>
@@ -1519,7 +1519,7 @@
     else if (filtroTrasladoActivo === "completado") filtrados = cacheTraslados.filter(trasladoEsCompletado);
     else if (filtroTrasladoActivo === "cancelado") filtrados = cacheTraslados.filter(trasladoEsCancelado);
 
-    if (!filtrados.length) { tbody.innerHTML = `<tr><td colspan="8" class="vacio">No hay traslados en esta vista.</td></tr>`; return; }
+    if (!filtrados.length) { tbody.innerHTML = `<tr><td colspan="9" class="vacio">No hay traslados en esta vista.</td></tr>`; return; }
 
     tbody.innerHTML = filtrados.map((t) => `
       <tr>
@@ -1531,7 +1531,48 @@
         <td>${t.estado_entrega ? `<span class="badge ${t.estado_entrega}">${ESTADO_LABEL_TRASLADO[t.estado_entrega] || t.estado_entrega}</span>` : "—"}</td>
         <td>${t.chofer_entrega ? t.chofer_entrega.nombre : "—"}</td>
         <td>${fmtFechaHora(t.created_at)}</td>
-      </tr>`).join("");
+        <td><button class="link-accion" data-ver-fotos="${t.id}">Ver fotos</button></td>
+      </tr>
+      <tr class="fila-detalle-factura" id="detalle-fotos-${t.id}" style="display:none;"><td colspan="9"></td></tr>`).join("");
+
+    tbody.querySelectorAll("[data-ver-fotos]").forEach((btn) => {
+      btn.addEventListener("click", () => toggleFotosTraslado(btn.dataset.verFotos));
+    });
+  }
+
+  async function toggleFotosTraslado(trasladoId) {
+    const fila = $("detalle-fotos-" + trasladoId);
+    if (fila.style.display === "table-row") { fila.style.display = "none"; return; }
+
+    const celda = fila.querySelector("td");
+    celda.innerHTML = `<span class="vacio">Cargando fotos...</span>`;
+    fila.style.display = "table-row";
+
+    const { data, error } = await sb
+      .from("traslados_fotos")
+      .select("etapa, url, created_at")
+      .eq("traslado_id", trasladoId)
+      .order("created_at", { ascending: true });
+
+    if (error) { celda.innerHTML = `<span class="vacio">No se pudo cargar: ${error.message}</span>`; return; }
+    if (!data || !data.length) { celda.innerHTML = `<span class="vacio">Sin fotos registradas para este traslado.</span>`; return; }
+
+    const miniaturas = [];
+    for (const foto of data) {
+      const { data: signed, error: errSigned } = await sb.storage.from("control-fotografico").createSignedUrl(foto.url, 600);
+      if (errSigned || !signed) continue;
+      miniaturas.push(`
+        <a href="${signed.signedUrl}" target="_blank" rel="noopener" style="display:block;">
+          <img src="${signed.signedUrl}" style="width:100%; aspect-ratio:1; object-fit:cover; border-radius:8px; border:1px solid var(--line);">
+          <div style="font-size:0.72rem; color:var(--dim); text-align:center; margin-top:2px;">${foto.etapa === "retiro" ? "Retiro" : "Entrega"}</div>
+        </a>`);
+    }
+
+    celda.innerHTML = `
+      <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(90px, 1fr)); gap:10px; padding:10px 0; max-width:520px;">
+        ${miniaturas.join("") || `<span class="vacio">No se pudieron cargar las imágenes.</span>`}
+      </div>
+      <span style="font-size:0.76rem; color:var(--dim);">Los enlaces expiran en 10 minutos por seguridad.</span>`;
   }
 
   document.querySelectorAll("#panel-traslados [data-filtro-traslado]").forEach((btn) => {
