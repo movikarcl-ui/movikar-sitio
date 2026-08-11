@@ -394,7 +394,7 @@ document.getElementById('btnSalirEstado').addEventListener('click', cerrarSesion
 async function iniciarApp(){
   document.getElementById('loginCard').style.display = 'none';
 
-  const { data: chofer } = await sb.from('choferes').select('nombre, estado').eq('id', choferId).maybeSingle();
+  const { data: chofer } = await sb.from('choferes_publico').select('nombre, estado').eq('id', choferId).maybeSingle();
 
   if(chofer && chofer.estado !== 'aprobado'){
     document.getElementById('appShell').style.display = 'none';
