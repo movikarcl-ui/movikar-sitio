@@ -200,6 +200,11 @@
       <div class="sub-hola">Esto es lo que está pasando con tus traslados hoy.</div>
     </div>
 
+    <div id="audioBanner" style="display:none; align-items:center; justify-content:space-between; gap:10px; background:var(--coral-dim); border:1px solid var(--coral); border-radius:12px; padding:12px 14px; margin-bottom:16px;">
+      <span style="font-size:13px; color:var(--ink);">🔔 Activa el sonido para no perderte ninguna oferta</span>
+      <button class="btn coral" id="btnActivarSonido" style="flex-shrink:0; padding:8px 14px; font-size:13px;">Activar</button>
+    </div>
+
     <div class="chofer-chip">
       <div class="chofer-id">
         <div class="avatar" id="avatarInicial">C</div>
@@ -292,13 +297,21 @@ async function invocar(fn, body){
 
 // ---------- Desbloqueo de audio ----------
 function desbloquearAudio(){
-  if(audioCtx) return;
-  try{
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }catch(e){ /* navegador sin soporte, seguimos solo con alarma visual */ }
+  if(!audioCtx){
+    try{
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }catch(e){ /* navegador sin soporte, seguimos solo con alarma visual */ }
+  }
+  if(audioCtx && audioCtx.state === 'suspended'){
+    audioCtx.resume().catch(()=>{});
+  }
+  const banner = document.getElementById('audioBanner');
+  if(banner) banner.style.display = 'none';
 }
 document.addEventListener('click', desbloquearAudio, { once:true });
 document.addEventListener('touchstart', desbloquearAudio, { once:true });
+
+document.getElementById('btnActivarSonido').addEventListener('click', desbloquearAudio);
 
 function reproducirBeep(){
   if(!audioCtx) return;
@@ -394,7 +407,7 @@ document.getElementById('btnSalirEstado').addEventListener('click', cerrarSesion
 async function iniciarApp(){
   document.getElementById('loginCard').style.display = 'none';
 
-  const { data: chofer } = await sb.from('choferes_publico').select('nombre, estado').eq('id', choferId).maybeSingle();
+  const { data: chofer } = await sb.from('choferes_publico').select('nombre, estado, disponible').eq('id', choferId).maybeSingle();
 
   if(chofer && chofer.estado !== 'aprobado'){
     document.getElementById('appShell').style.display = 'none';
@@ -431,6 +444,18 @@ async function iniciarApp(){
     document.getElementById('avatarInicial').textContent = primerNombre[0].toUpperCase();
   }
 
+  if(!audioCtx){
+    document.getElementById('audioBanner').style.display = 'flex';
+  }
+
+  if(chofer?.disponible){
+    document.getElementById('dispToggle').checked = true;
+    activarDisponible();
+  } else {
+    document.getElementById('dispToggle').checked = false;
+    document.getElementById('dispEstado').textContent = 'Desactivado';
+  }
+
   cargarTrasladoActivo();
   revisarOfertas();
   refreshInterval = setInterval(()=>{
@@ -440,37 +465,43 @@ async function iniciarApp(){
 }
 
 // --- Toggle disponible + geolocalización ---
-document.getElementById('dispToggle').addEventListener('change', async (e)=>{
-  const activo = e.target.checked;
-  document.getElementById('dispEstado').textContent = activo ? 'Activo — buscando ubicación...' : 'Desactivado';
+function activarDisponible(){
+  document.getElementById('dispEstado').textContent = 'Activo — buscando ubicación...';
 
-  if(activo){
-    if(!navigator.geolocation){
-      showMsg('loginMsg', '⚠ Este navegador no soporta geolocalización.', 'err');
-      e.target.checked = false;
-      return;
-    }
-    watchId = navigator.geolocation.watchPosition(async (pos)=>{
-      document.getElementById('dispEstado').textContent = 'Activo';
-      try{
-        await invocar('chofer-actualizar', {
-          modo: 'set_disponible',
-          chofer_id: choferId,
-          disponible: true,
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude
-        });
-      }catch(err){ console.error('No se pudo actualizar ubicación:', err); }
-    }, (err)=>{
-      document.getElementById('dispEstado').textContent = 'Sin permiso de ubicación';
-      document.getElementById('dispToggle').checked = false;
-    }, { enableHighAccuracy:true, maximumAge:15000 });
-  } else {
-    pararGeolocalizacion();
-    try{
-      await invocar('chofer-actualizar', { modo:'set_disponible', chofer_id: choferId, disponible: false });
-    }catch(err){ console.error(err); }
+  if(!navigator.geolocation){
+    showMsg('loginMsg', '⚠ Este navegador no soporta geolocalización.', 'err');
+    document.getElementById('dispToggle').checked = false;
+    document.getElementById('dispEstado').textContent = 'Desactivado';
+    return;
   }
+  watchId = navigator.geolocation.watchPosition(async (pos)=>{
+    document.getElementById('dispEstado').textContent = 'Activo';
+    try{
+      await invocar('chofer-actualizar', {
+        modo: 'set_disponible',
+        chofer_id: choferId,
+        disponible: true,
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude
+      });
+    }catch(err){ console.error('No se pudo actualizar ubicación:', err); }
+  }, (err)=>{
+    document.getElementById('dispEstado').textContent = 'Sin permiso de ubicación';
+    document.getElementById('dispToggle').checked = false;
+  }, { enableHighAccuracy:true, maximumAge:15000 });
+}
+
+async function desactivarDisponible(){
+  pararGeolocalizacion();
+  document.getElementById('dispEstado').textContent = 'Desactivado';
+  try{
+    await invocar('chofer-actualizar', { modo:'set_disponible', chofer_id: choferId, disponible: false });
+  }catch(err){ console.error(err); }
+}
+
+document.getElementById('dispToggle').addEventListener('change', (e)=>{
+  if(e.target.checked) activarDisponible();
+  else desactivarDisponible();
 });
 
 function pararGeolocalizacion(){
