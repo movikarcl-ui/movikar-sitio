@@ -94,6 +94,32 @@
       </fieldset>
 
       <fieldset>
+        <legend>Contactos del taller</legend>
+        <p class="legend-ayuda">Nombre, correo y teléfono de cada uno.</p>
+
+        <label>Propietario <span class="opcional">(opcional)</span></label>
+        <div class="grid-3">
+          <input id="prop_nombre" placeholder="Nombre" />
+          <input id="prop_correo" type="email" placeholder="Correo" />
+          <input id="prop_telefono" placeholder="Teléfono" />
+        </div>
+
+        <label>Encargado del taller</label>
+        <div class="grid-3">
+          <input id="enc_nombre" placeholder="Nombre" required />
+          <input id="enc_correo" type="email" placeholder="Correo" required />
+          <input id="enc_telefono" placeholder="Teléfono" required />
+        </div>
+
+        <label>Encargado de pago</label>
+        <div class="grid-3">
+          <input id="pago_nombre" placeholder="Nombre" required />
+          <input id="pago_correo" type="email" placeholder="Correo" required />
+          <input id="pago_telefono" placeholder="Teléfono" required />
+        </div>
+      </fieldset>
+
+      <fieldset>
         <legend>Contacto principal</legend>
         <p class="legend-ayuda">Es quien queda como responsable y puede ver el historial de traslados (no necesariamente quien agenda día a día).</p>
         <label for="principal_nombre">Nombre del contacto principal</label>
@@ -110,7 +136,7 @@
 
       <fieldset>
         <legend>Usuario 1</legend>
-        <p class="legend-ayuda">Con este correo se inicia sesión para agendar traslados.</p>
+        <p class="legend-ayuda">Con este correo se inicia sesión para agendar traslados. Si marcaste arriba que el Contacto principal es la misma persona, esto ya se completa solo.</p>
         <label for="usuario_nombre">Nombre</label>
         <input id="usuario_nombre" required />
         <label for="usuario_cargo">Cargo <span class="opcional">(opcional)</span></label>
@@ -145,32 +171,6 @@
         <input id="usuario3_correo" type="email" />
         <label for="usuario3_telefono">Teléfono</label>
         <input id="usuario3_telefono" />
-      </fieldset>
-
-      <fieldset>
-        <legend>Contactos del taller</legend>
-        <p class="legend-ayuda">Nombre, correo y teléfono de cada uno.</p>
-
-        <label>Propietario</label>
-        <div class="grid-3">
-          <input id="prop_nombre" placeholder="Nombre" />
-          <input id="prop_correo" type="email" placeholder="Correo" />
-          <input id="prop_telefono" placeholder="Teléfono" />
-        </div>
-
-        <label>Encargado del taller</label>
-        <div class="grid-3">
-          <input id="enc_nombre" placeholder="Nombre" />
-          <input id="enc_correo" type="email" placeholder="Correo" />
-          <input id="enc_telefono" placeholder="Teléfono" />
-        </div>
-
-        <label>Encargado de pago</label>
-        <div class="grid-3">
-          <input id="pago_nombre" placeholder="Nombre" />
-          <input id="pago_correo" type="email" placeholder="Correo" />
-          <input id="pago_telefono" placeholder="Teléfono" />
-        </div>
       </fieldset>
 
       <div class="terminos-box">
