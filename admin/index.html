@@ -213,6 +213,28 @@
           </fieldset>
 
           <fieldset>
+            <legend>Contactos del taller</legend>
+            <div class="contacto-label">Propietario <span class="opcional">(opcional)</span></div>
+            <div class="grid-3">
+              <input id="t-prop-nombre" placeholder="Nombre" />
+              <input id="t-prop-correo" type="email" placeholder="Correo" />
+              <input id="t-prop-telefono" placeholder="Teléfono" />
+            </div>
+            <div class="contacto-label">Encargado del taller</div>
+            <div class="grid-3">
+              <input id="t-enc-nombre" placeholder="Nombre" />
+              <input id="t-enc-correo" type="email" placeholder="Correo" />
+              <input id="t-enc-telefono" placeholder="Teléfono" />
+            </div>
+            <div class="contacto-label">Encargado de pago</div>
+            <div class="grid-3">
+              <input id="t-pago-nombre" placeholder="Nombre" />
+              <input id="t-pago-correo" type="email" placeholder="Correo" />
+              <input id="t-pago-telefono" placeholder="Teléfono" />
+            </div>
+          </fieldset>
+
+          <fieldset>
             <legend>Contacto principal</legend>
             <p class="subtitulo" style="margin-top:-4px;">Responsable del taller, con acceso de solo lectura al historial.</p>
             <div style="display:flex; align-items:flex-start; gap:8px; margin-bottom:12px;">
@@ -231,6 +253,7 @@
 
           <fieldset id="t-usuario1-fieldset">
             <legend>Primer usuario (login — puede agendar traslados)</legend>
+            <p class="subtitulo" style="margin-top:-4px;">Si arriba marcaste que el contacto principal es la misma persona, esto se completa solo.</p>
             <label for="t-u-nombre">Nombre</label>
             <input id="t-u-nombre" type="text" />
             <div class="grid-2">
@@ -263,28 +286,6 @@
             </div>
             <label for="t-u3-telefono">Teléfono</label>
             <input id="t-u3-telefono" type="text" />
-          </fieldset>
-
-          <fieldset>
-            <legend>Contactos del taller <span class="opcional">(todos opcionales)</span></legend>
-            <div class="contacto-label">Propietario</div>
-            <div class="grid-3">
-              <input id="t-prop-nombre" placeholder="Nombre" />
-              <input id="t-prop-correo" type="email" placeholder="Correo" />
-              <input id="t-prop-telefono" placeholder="Teléfono" />
-            </div>
-            <div class="contacto-label">Encargado del taller</div>
-            <div class="grid-3">
-              <input id="t-enc-nombre" placeholder="Nombre" />
-              <input id="t-enc-correo" type="email" placeholder="Correo" />
-              <input id="t-enc-telefono" placeholder="Teléfono" />
-            </div>
-            <div class="contacto-label">Encargado de pago</div>
-            <div class="grid-3">
-              <input id="t-pago-nombre" placeholder="Nombre" />
-              <input id="t-pago-correo" type="email" placeholder="Correo" />
-              <input id="t-pago-telefono" placeholder="Teléfono" />
-            </div>
           </fieldset>
 
           <fieldset id="t-facturacion-fieldset">
@@ -847,6 +848,12 @@
 
     if (!datosTaller.nombre_taller || !datosTaller.rut_taller || !datosTaller.calle || !datosTaller.numero || !datosTaller.comuna) {
       return mostrarError("taller-error", "Completa nombre, RUT y dirección del taller.");
+    }
+    if (!datosTaller.encargado_nombre || !datosTaller.encargado_correo || !datosTaller.encargado_telefono) {
+      return mostrarError("taller-error", "Completa nombre, correo y teléfono del Encargado del taller.");
+    }
+    if (!datosCliente.encargado_pago_nombre || !datosCliente.encargado_pago_correo || !datosCliente.encargado_pago_telefono) {
+      return mostrarError("taller-error", "Completa nombre, correo y teléfono del Encargado de pago.");
     }
 
     const btn = $("btn-crear-taller");
