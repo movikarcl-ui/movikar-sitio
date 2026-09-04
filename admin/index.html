@@ -665,7 +665,7 @@
       const filas = g.talleres.map((t) => {
         const us = cacheUsuariosPorTaller[t.id] || [];
         const listaUsuarios = us.length
-          ? `<div class="usuarios-lista">${us.map((u) => `<div>${u.nombre}${u.cargo ? ` <span class="cargo">· ${u.cargo}</span>` : ""} <span class="badge ${u.estado}">${u.estado}</span>${u.es_principal ? ` <span class="badge principal">principal</span>` : ""}${u.puede_agendar === false ? ` <span class="badge pendiente">solo lectura</span>` : ""}<br><span class="mono">${u.correo}${u.telefono ? " · " + u.telefono : ""}</span></div>`).join("")}</div>`
+          ? `<div class="usuarios-lista">${us.map((u) => `<div>${u.nombre}${u.cargo ? ` <span class="cargo">· ${u.cargo}</span>` : ""} <span class="badge ${u.estado}">${u.estado}</span>${u.es_principal ? ` <span class="badge principal">principal</span>` : ""}${u.puede_agendar === false ? ` <span class="badge pendiente">solo lectura</span>` : ""} <button class="link-accion" style="font-size:11px; padding:0;" data-editar-usuario="${u.id}" data-taller-usuario="${t.id}">editar</button><br><span class="mono">${u.correo}${u.telefono ? " · " + u.telefono : ""}</span></div>`).join("")}</div>`
           : `<span class="vacio" style="padding:0;">Sin usuarios</span>`;
         const limite = t.limite_usuarios ?? 3;
         const alLimite = us.length >= limite;
@@ -719,6 +719,35 @@
         const telefono = prompt("Teléfono (opcional):") || null;
         const res = await invocarAdmin({ modo: "agregar_usuario", taller_id: btn.dataset.agregar, usuario: { nombre, correo, cargo, telefono } });
         if (res.error) { alert("No se pudo agregar: " + res.error); return; }
+        cargarTalleres();
+      });
+    });
+
+    tbody.querySelectorAll("[data-editar-usuario]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const usuarios = cacheUsuariosPorTaller[btn.dataset.tallerUsuario] || [];
+        const u = usuarios.find((x) => x.id === btn.dataset.editarUsuario);
+        if (!u) return;
+
+        const nombre = prompt("Nombre:", u.nombre);
+        if (nombre === null) return;
+        const cargo = prompt("Cargo (opcional):", u.cargo || "");
+        if (cargo === null) return;
+        const correo = prompt("Correo:", u.correo);
+        if (correo === null) return;
+        const telefono = prompt("Teléfono (opcional):", u.telefono || "");
+        if (telefono === null) return;
+
+        if (!nombre.trim() || !correo.trim()) { alert("Nombre y correo no pueden quedar vacíos."); return; }
+
+        const { error } = await sb.from("taller_usuarios").update({
+          nombre: nombre.trim(),
+          cargo: cargo.trim() || null,
+          correo: correo.trim(),
+          telefono: telefono.trim() || null,
+        }).eq("id", u.id);
+
+        if (error) { alert("No se pudo actualizar: " + error.message); return; }
         cargarTalleres();
       });
     });
