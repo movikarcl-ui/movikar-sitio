@@ -9,6 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
   :root {
     --bg: #FFFFFF; --surface: #F6F9F8; --surface-2: #EDF3F1;
@@ -87,6 +89,8 @@
   .badge.llegado { background: var(--turquesa-claro); color: var(--turquesa-profundo); }
   .badge.control_fotografico { background: var(--turquesa-claro); color: var(--turquesa-profundo); }
   .badge.cancelado { background: var(--coral-claro); color: var(--coral); }
+  .badge.reasignado { background: var(--coral-claro); color: var(--coral); }
+  .badge.compensacion { background: var(--coral-claro); color: var(--coral); }
   .fila-detalle-factura td { background: var(--surface); }
   .fila-detalle-factura table { border: 1px solid var(--line); }
   select.estado-select { margin: 0; padding: 4px 8px; font-size: 0.78rem; width: auto; }
@@ -99,8 +103,9 @@
   .contactos-mini { font-size: 0.78rem; color: var(--dim); line-height: 1.5; }
   .contactos-mini strong { color: var(--ink); }
 
-  .dash-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px; }
+  .dash-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 14px; }
   @media (max-width: 800px) { .dash-grid { grid-template-columns: 1fr 1fr; } }
+  .dash-grupo-titulo { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--dim); font-weight: 600; margin: 22px 0 10px; }
   .dash-card { background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
   .dash-card-click { cursor: pointer; }
   .dash-card-click:hover { border-color: var(--turquesa); }
@@ -112,6 +117,13 @@
   .filtros-row select { flex: 0 0 auto; width: auto; margin-bottom: 0; }
   .filter-chip { padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--dim); font-size: 0.82rem; font-weight: 500; cursor: pointer; }
   .filter-chip.activo { background: var(--turquesa-claro); color: var(--turquesa-profundo); border-color: var(--turquesa-claro); }
+
+  .modal-fondo { position: fixed; inset: 0; background: rgba(22,48,44,0.45); display:flex; align-items:center; justify-content:center; z-index: 999; padding: 20px; }
+  .modal-caja { background: var(--bg); border-radius: 16px; padding: 24px; max-width: 440px; width: 100%; max-height: 88vh; overflow-y: auto; }
+  .modal-caja h3 { font-size: 1.05rem; margin-bottom: 14px; }
+  .modal-cerrar { float: right; background: none; border: none; color: var(--dim); font-size: 1.1rem; cursor: pointer; }
+  .campo-referencia { font-size: 0.78rem; color: var(--dim); margin: -8px 0 12px; }
+  #mapa-chofer { width: 100%; height: 320px; border-radius: 10px; border: 1px solid var(--line); }
 </style>
 </head>
 <body>
@@ -155,6 +167,7 @@
 
     <!-- ============ INICIO / DASHBOARD ============ -->
     <section class="panel activo" id="panel-inicio">
+      <div class="dash-grupo-titulo">Operación</div>
       <div class="dash-grid">
         <div class="dash-card">
           <div class="dash-num" id="dash-talleres">—</div>
@@ -164,16 +177,41 @@
           <div class="dash-num" id="dash-solicitudes">—</div>
           <div class="dash-label">Solicitudes pendientes</div>
         </div>
-        <div class="dash-card">
-          <div class="dash-num" id="dash-usuarios">—</div>
-          <div class="dash-label">Usuarios activos / cupo total</div>
+        <div class="dash-card dash-card-click" id="dash-card-traslados-totales">
+          <div class="dash-num" id="dash-traslados-totales">—</div>
+          <div class="dash-label">Traslados totales</div>
+        </div>
+        <div class="dash-card dash-card-click" id="dash-card-traslados-activos">
+          <div class="dash-num" id="dash-traslados-activos">—</div>
+          <div class="dash-label">Traslados activos</div>
         </div>
         <div class="dash-card dash-card-click" id="dash-card-choferes">
           <div class="dash-num" id="dash-choferes">—</div>
           <div class="dash-label">Choferes por aprobar</div>
         </div>
+        <div class="dash-card">
+          <div class="dash-num" id="dash-choferes-aprobados">—</div>
+          <div class="dash-label">Choferes aprobados</div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-num" id="dash-usuarios">—</div>
+          <div class="dash-label">Usuarios activos / cupo total</div>
+        </div>
       </div>
-      <div class="dash-acciones">
+
+      <div class="dash-grupo-titulo">Facturación</div>
+      <div class="dash-grid">
+        <div class="dash-card">
+          <div class="dash-num" id="dash-facturacion-mes">—</div>
+          <div class="dash-label">Facturación del mes</div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-num" id="dash-facturacion-total">—</div>
+          <div class="dash-label">Facturación total histórica</div>
+        </div>
+      </div>
+
+      <div class="dash-acciones" style="margin-top:18px;">
         <button class="primario" id="dash-btn-solicitudes">Revisar solicitudes</button>
         <button class="secundario" id="dash-btn-alta">Dar de alta un taller</button>
       </div>
@@ -334,22 +372,23 @@
       </table>
     </section>
 
-    <!-- ============ TARIFAS ============ -->
     <!-- ============ TRASLADOS ============ -->
     <section class="panel" id="panel-traslados">
-      <p class="subtitulo" style="margin-bottom:16px;">Vista de monitoreo, solo lectura. Todos los traslados de todos los talleres.</p>
+      <p class="subtitulo" style="margin-bottom:16px;">Vista de monitoreo y control operativo. Todos los traslados de todos los talleres.</p>
       <div class="filtros-row">
         <button class="filter-chip activo" data-filtro-traslado="todos">Todos</button>
         <button class="filter-chip" data-filtro-traslado="activos">Activos</button>
         <button class="filter-chip" data-filtro-traslado="completado">Completados</button>
         <button class="filter-chip" data-filtro-traslado="cancelado">Cancelados</button>
+        <button class="filter-chip" data-filtro-traslado="reasignado">Reasignados</button>
       </div>
       <table>
-        <thead><tr><th>Patente</th><th>Taller</th><th>Tipo</th><th>Retiro</th><th>Chofer retiro</th><th>Entrega</th><th>Chofer entrega</th><th>Fecha</th><th>Fotos</th></tr></thead>
+        <thead><tr><th>Patente</th><th>Taller</th><th>Tipo</th><th>Retiro</th><th>Chofer retiro</th><th>Entrega</th><th>Chofer entrega</th><th>Fecha</th><th></th></tr></thead>
         <tbody id="tabla-traslados"></tbody>
       </table>
     </section>
 
+    <!-- ============ TARIFAS ============ -->
     <section class="panel" id="panel-tarifas">
       <div class="dash-card" style="margin-bottom:24px;">
         <h3 style="font-size:0.95rem; margin-bottom:4px;">Pago a chofer (tarifa global)</h3>
@@ -451,6 +490,7 @@
   const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
   const $ = (id) => document.getElementById(id);
   let correoEnCurso = "";
+  let correoAdminActual = "";
 
   function mostrarError(elId, msg) { const el = $(elId); el.textContent = msg; el.style.display = "block"; }
   function ocultar(elId) { $(elId).style.display = "none"; }
@@ -527,6 +567,7 @@
   async function entrarAlPanel() {
     const { data: { user } } = await sb.auth.getUser();
     if (!user) return;
+    correoAdminActual = user.email || "";
     $("vista-login").style.display = "none";
     $("vista-panel").style.display = "block";
     await Promise.all([cargarTalleres(), cargarSolicitudes(), cargarChoferes(), cargarTarifas(), cargarFacturacion(), cargarPagosChofer(), cargarTraslados()]);
@@ -554,6 +595,9 @@
     const totalCupo = cacheTalleres.reduce((acc, t) => acc + (t.limite_usuarios ?? 3), 0);
     $("dash-usuarios").textContent = cacheTalleres.length ? `${totalUsuarios} / ${totalCupo}` : "—";
     $("dash-choferes").textContent = cacheChoferes.filter((c) => c.estado === "pendiente").length;
+    $("dash-choferes-aprobados").textContent = cacheChoferes.filter((c) => c.estado === "aprobado").length;
+    $("dash-traslados-totales").textContent = cacheTraslados.length;
+    $("dash-traslados-activos").textContent = cacheTraslados.filter(trasladoEsActivo).length;
 
     const recientes = [...cacheTalleres]
       .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
@@ -569,9 +613,21 @@
       : `<tr><td colspan="3" class="vacio">Todavía no hay talleres dados de alta.</td></tr>`;
   }
 
+  async function renderDashboardFacturacion() {
+    const inicioMes = new Date(); inicioMes.setDate(1); inicioMes.setHours(0,0,0,0);
+    const { data: facturasMes } = await sb.from("facturas").select("monto_total, created_at").gte("created_at", inicioMes.toISOString()).neq("estado", "borrador");
+    const { data: facturasTotal } = await sb.from("facturas").select("monto_total").neq("estado", "borrador");
+    const sumaMes = (facturasMes || []).reduce((a, f) => a + (f.monto_total || 0), 0);
+    const sumaTotal = (facturasTotal || []).reduce((a, f) => a + (f.monto_total || 0), 0);
+    $("dash-facturacion-mes").textContent = fmtMonto(sumaMes);
+    $("dash-facturacion-total").textContent = fmtMonto(sumaTotal);
+  }
+
   $("dash-btn-solicitudes").addEventListener("click", () => irATab("solicitudes"));
   $("dash-card-solicitudes").addEventListener("click", () => irATab("solicitudes"));
   $("dash-card-choferes").addEventListener("click", () => irATab("choferes"));
+  $("dash-card-traslados-totales").addEventListener("click", () => { filtroTrasladoActivo = "todos"; irATab("traslados"); sincronizarChipsTraslado(); renderTraslados(); });
+  $("dash-card-traslados-activos").addEventListener("click", () => { filtroTrasladoActivo = "activos"; irATab("traslados"); sincronizarChipsTraslado(); renderTraslados(); });
   $("dash-btn-alta").addEventListener("click", () => {
     irATab("talleres");
     document.querySelector('#panel-talleres details.card-form').open = true;
@@ -1081,6 +1137,7 @@
 
     renderFacturacionPendiente();
     await cargarFacturas();
+    await renderDashboardFacturacion();
   }
 
   function renderFacturacionPendiente() {
@@ -1494,12 +1551,12 @@
 
     const { data, error } = await sb
       .from("pagos_chofer_items")
-      .select("etapa, monto, traslados(patente)")
+      .select("etapa, monto, origen, traslados(patente)")
       .eq("pago_chofer_id", pagoId);
 
     if (error) { fila.querySelector("td").innerHTML = `<span class="vacio">No se pudo cargar el detalle.</span>`; return; }
 
-    const filas = (data || []).map((it) => `<tr><td>${it.traslados ? (it.traslados.patente || "—") : "—"}</td><td>${it.etapa === "retiro" ? "Retiro" : "Entrega"}</td><td>${fmtMonto(it.monto)}</td></tr>`).join("");
+    const filas = (data || []).map((it) => `<tr><td>${it.traslados ? (it.traslados.patente || "—") : "—"}</td><td>${it.etapa === "retiro" ? "Retiro" : "Entrega"}${it.origen === "compensacion" ? ` <span class="badge compensacion">compensación</span>` : ""}</td><td>${fmtMonto(it.monto)}</td></tr>`).join("");
 
     fila.querySelector("td").innerHTML = `
       <table style="margin:6px 0;"><thead><tr><th>Patente</th><th>Etapa</th><th>Monto</th></tr></thead>
@@ -1508,8 +1565,9 @@
 
   $("filtro-pagos-estado").addEventListener("change", cargarPagosChofer);
 
-  // ---------- Traslados (solo lectura) ----------
+  // ---------- Traslados (monitoreo + control en vivo) ----------
   let cacheTraslados = [];
+  let cacheReasignacionesPorTraslado = {}; // { traslado_id: [reasignaciones] }
   let filtroTrasladoActivo = "todos";
 
   const ESTADO_LABEL_TRASLADO = {
@@ -1517,7 +1575,18 @@
     llegado: "Chofer llegó", control_fotografico: "Registrando fotos",
     completado: "Completado", cancelado: "Cancelado"
   };
+  const ORDEN_ESTADOS = ["agendado", "asignado", "en_camino", "llegado", "control_fotografico", "completado"];
   const TIPO_LABEL_TRASLADO = { retiro: "Retiro", entrega: "Entrega", ambos: "Retiro + Entrega" };
+  const TIPO_FOTO_LABEL = {
+    frontal: "Frontal", trasera: "Trasera",
+    angulo_del_izq: "Ángulo del. izq.", angulo_del_der: "Ángulo del. der.",
+    angulo_tras_izq: "Ángulo tras. izq.", angulo_tras_der: "Ángulo tras. der.",
+    lateral_izq_1: "Lateral izq. 1", lateral_izq_2: "Lateral izq. 2",
+    lateral_der_1: "Lateral der. 1", lateral_der_2: "Lateral der. 2",
+    parabrisas: "Parabrisas", tablero: "Tablero", radio: "Radio",
+    neumatico_repuesto: "Neumático repuesto", adicional: "Adicional",
+  };
+  const ORDEN_TIPOS_FOTO = Object.keys(TIPO_FOTO_LABEL);
 
   function fmtFechaHora(iso) {
     if (!iso) return "—";
@@ -1537,15 +1606,22 @@
     return estados.some((e) => e === "cancelado");
   }
 
+  function sincronizarChipsTraslado() {
+    document.querySelectorAll("#panel-traslados [data-filtro-traslado]").forEach((b) => {
+      b.classList.toggle("activo", b.dataset.filtroTraslado === filtroTrasladoActivo);
+    });
+  }
+
   async function cargarTraslados() {
     const tbody = $("tabla-traslados");
     const { data, error } = await sb
       .from("traslados")
-      .select("id, patente, tipo, created_at, estado_retiro, estado_entrega, talleres(nombre_taller), chofer_retiro:choferes!chofer_retiro_id(nombre), chofer_entrega:choferes!chofer_entrega_id(nombre)")
+      .select("id, patente, tipo, created_at, estado_retiro, estado_entrega, reasignado_manualmente, chofer_retiro_id, chofer_entrega_id, talleres(nombre_taller), chofer_retiro:choferes!chofer_retiro_id(id, nombre, ubicacion_lat, ubicacion_lng), chofer_entrega:choferes!chofer_entrega_id(id, nombre, ubicacion_lat, ubicacion_lng)")
       .order("created_at", { ascending: false });
-    if (error) { tbody.innerHTML = `<tr><td colspan="8" class="vacio">No se pudo cargar: ${error.message}</td></tr>`; return; }
+    if (error) { tbody.innerHTML = `<tr><td colspan="9" class="vacio">No se pudo cargar: ${error.message}</td></tr>`; return; }
     cacheTraslados = data || [];
     renderTraslados();
+    renderDashboard();
   }
 
   function renderTraslados() {
@@ -1554,26 +1630,174 @@
     if (filtroTrasladoActivo === "activos") filtrados = cacheTraslados.filter(trasladoEsActivo);
     else if (filtroTrasladoActivo === "completado") filtrados = cacheTraslados.filter(trasladoEsCompletado);
     else if (filtroTrasladoActivo === "cancelado") filtrados = cacheTraslados.filter(trasladoEsCancelado);
+    else if (filtroTrasladoActivo === "reasignado") filtrados = cacheTraslados.filter((t) => t.reasignado_manualmente);
 
     if (!filtrados.length) { tbody.innerHTML = `<tr><td colspan="9" class="vacio">No hay traslados en esta vista.</td></tr>`; return; }
 
-    tbody.innerHTML = filtrados.map((t) => `
+    tbody.innerHTML = filtrados.map((t) => {
+      const activo = trasladoEsActivo(t);
+      const cancelado = trasladoEsCancelado(t);
+      const badgeReasignado = t.reasignado_manualmente ? ` <span class="badge reasignado">🔄 reasignado</span>` : "";
+      const accionesEtapa = (etapa, choferObj) => {
+        const estado = etapa === "retiro" ? t.estado_retiro : t.estado_entrega;
+        if (!estado || estado === "completado" || estado === "cancelado") return "";
+        let out = `<div style="margin-top:4px; display:flex; gap:8px; flex-wrap:wrap;">`;
+        out += `<button class="link-accion" data-reasignar="${t.id}" data-etapa="${etapa}">Reasignar</button>`;
+        if (ORDEN_ESTADOS.indexOf(estado) < ORDEN_ESTADOS.indexOf("completado")) {
+          out += `<button class="link-accion" data-forzar="${t.id}" data-etapa="${etapa}">Forzar avance</button>`;
+        }
+        if (choferObj && choferObj.ubicacion_lat) {
+          out += `<button class="link-accion" data-ver-mapa="${t.id}" data-etapa="${etapa}">Ver ubicación</button>`;
+        }
+        out += `</div>`;
+        return out;
+      };
+      return `
       <tr>
-        <td class="mono">${t.patente || "—"}</td>
+        <td class="mono">${t.patente || "—"}${badgeReasignado}</td>
         <td>${t.talleres ? t.talleres.nombre_taller : "—"}</td>
         <td>${TIPO_LABEL_TRASLADO[t.tipo] || t.tipo || "—"}</td>
-        <td>${t.estado_retiro ? `<span class="badge ${t.estado_retiro}">${ESTADO_LABEL_TRASLADO[t.estado_retiro] || t.estado_retiro}</span>` : "—"}</td>
+        <td>${t.estado_retiro ? `<span class="badge ${t.estado_retiro}">${ESTADO_LABEL_TRASLADO[t.estado_retiro] || t.estado_retiro}</span>` : "—"}${accionesEtapa("retiro", t.chofer_retiro)}</td>
         <td>${t.chofer_retiro ? t.chofer_retiro.nombre : "—"}</td>
-        <td>${t.estado_entrega ? `<span class="badge ${t.estado_entrega}">${ESTADO_LABEL_TRASLADO[t.estado_entrega] || t.estado_entrega}</span>` : "—"}</td>
+        <td>${t.estado_entrega ? `<span class="badge ${t.estado_entrega}">${ESTADO_LABEL_TRASLADO[t.estado_entrega] || t.estado_entrega}</span>` : "—"}${accionesEtapa("entrega", t.chofer_entrega)}</td>
         <td>${t.chofer_entrega ? t.chofer_entrega.nombre : "—"}</td>
         <td>${fmtFechaHora(t.created_at)}</td>
-        <td><button class="link-accion" data-ver-fotos="${t.id}">Ver fotos</button></td>
+        <td>
+          <button class="link-accion" data-ver-fotos="${t.id}">Fotos</button><br>
+          ${!cancelado ? `<button class="link-accion rojo" data-cancelar="${t.id}">Cancelar</button>` : ""}
+        </td>
       </tr>
-      <tr class="fila-detalle-factura" id="detalle-fotos-${t.id}" style="display:none;"><td colspan="9"></td></tr>`).join("");
+      <tr class="fila-detalle-factura" id="detalle-fotos-${t.id}" style="display:none;"><td colspan="9"></td></tr>`;
+    }).join("");
 
     tbody.querySelectorAll("[data-ver-fotos]").forEach((btn) => {
       btn.addEventListener("click", () => toggleFotosTraslado(btn.dataset.verFotos));
     });
+    tbody.querySelectorAll("[data-cancelar]").forEach((btn) => {
+      btn.addEventListener("click", () => cancelarTraslado(btn.dataset.cancelar));
+    });
+    tbody.querySelectorAll("[data-forzar]").forEach((btn) => {
+      btn.addEventListener("click", () => forzarAvanceEtapa(btn.dataset.forzar, btn.dataset.etapa));
+    });
+    tbody.querySelectorAll("[data-reasignar]").forEach((btn) => {
+      btn.addEventListener("click", () => abrirModalReasignar(btn.dataset.reasignar, btn.dataset.etapa));
+    });
+    tbody.querySelectorAll("[data-ver-mapa]").forEach((btn) => {
+      btn.addEventListener("click", () => abrirModalMapa(btn.dataset.verMapa, btn.dataset.etapa));
+    });
+  }
+
+  document.querySelectorAll("#panel-traslados [data-filtro-traslado]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      filtroTrasladoActivo = btn.dataset.filtroTraslado;
+      sincronizarChipsTraslado();
+      renderTraslados();
+    });
+  });
+
+  async function cancelarTraslado(trasladoId) {
+    if (!confirm("¿Cancelar este traslado por completo? Se cancelan todas sus etapas pendientes y se liberan ofertas activas. Esta acción no se puede deshacer.")) return;
+    const { error } = await sb.rpc("cancelar_traslado", { p_traslado_id: trasladoId });
+    if (error) { alert("No se pudo cancelar: " + error.message); return; }
+    cargarTraslados();
+  }
+
+  async function forzarAvanceEtapa(trasladoId, etapa) {
+    if (!confirm(`¿Forzar el avance de la etapa de ${etapa === "retiro" ? "retiro" : "entrega"} al siguiente estado? Úsalo solo si el chofer quedó atascado y no puede avanzar desde la app.`)) return;
+    const { error } = await sb.rpc("forzar_avance_etapa", { p_traslado_id: trasladoId, p_etapa: etapa });
+    if (error) { alert("No se pudo forzar el avance: " + error.message); return; }
+    cargarTraslados();
+  }
+
+  // ---------- Modal: reasignar chofer ----------
+  function abrirModalReasignar(trasladoId, etapa) {
+    const t = cacheTraslados.find((x) => x.id === trasladoId);
+    if (!t) return;
+    const choferActualId = etapa === "retiro" ? t.chofer_retiro_id : t.chofer_entrega_id;
+    const choferActual = (etapa === "retiro" ? t.chofer_retiro : t.chofer_entrega) || {};
+    const opciones = cacheChoferes
+      .filter((c) => c.estado === "aprobado" && c.id !== choferActualId)
+      .map((c) => `<option value="${c.id}">${c.nombre}</option>`).join("");
+
+    const fondo = document.createElement("div");
+    fondo.className = "modal-fondo";
+    fondo.innerHTML = `
+      <div class="modal-caja">
+        <button class="modal-cerrar" id="modal-reasignar-cerrar">✕</button>
+        <h3>Reasignar chofer — ${etapa === "retiro" ? "Retiro" : "Entrega"}</h3>
+        <p class="subtitulo">Patente ${t.patente || "—"}. Chofer actual: <strong>${choferActual.nombre || "sin asignar"}</strong>.</p>
+        <label for="reasig-chofer-nuevo">Nuevo chofer</label>
+        <select id="reasig-chofer-nuevo">${opciones || `<option value="">No hay choferes aprobados disponibles</option>`}</select>
+        <label for="reasig-monto-nuevo">Monto a pagar al chofer nuevo ($)</label>
+        <input id="reasig-monto-nuevo" type="number" min="0" placeholder="Ej: 8000" />
+        <label for="reasig-monto-original">Monto a pagar al chofer original ($) <span class="opcional">(0 si no corresponde)</span></label>
+        <input id="reasig-monto-original" type="number" min="0" value="0" />
+        <label for="reasig-motivo">Motivo <span class="opcional">(opcional, queda registrado)</span></label>
+        <input id="reasig-motivo" type="text" placeholder="Ej: chofer se enfermó" />
+        <div id="reasig-error" class="error" style="display:none;"></div>
+        <button class="primario full" id="reasig-confirmar">Confirmar reasignación</button>
+      </div>`;
+    document.body.appendChild(fondo);
+
+    fondo.querySelector("#modal-reasignar-cerrar").addEventListener("click", () => fondo.remove());
+    fondo.addEventListener("click", (e) => { if (e.target === fondo) fondo.remove(); });
+
+    fondo.querySelector("#reasig-confirmar").addEventListener("click", async () => {
+      const nuevoChoferId = fondo.querySelector("#reasig-chofer-nuevo").value;
+      const montoNuevo = parseInt(fondo.querySelector("#reasig-monto-nuevo").value, 10);
+      const montoOriginal = parseInt(fondo.querySelector("#reasig-monto-original").value, 10) || 0;
+      const motivo = fondo.querySelector("#reasig-motivo").value.trim() || null;
+      const errEl = fondo.querySelector("#reasig-error");
+      errEl.style.display = "none";
+
+      if (!nuevoChoferId) { errEl.textContent = "Selecciona un chofer nuevo."; errEl.style.display = "block"; return; }
+      if (!montoNuevo || montoNuevo < 0) { errEl.textContent = "Ingresa el monto a pagar al chofer nuevo."; errEl.style.display = "block"; return; }
+
+      const btn = fondo.querySelector("#reasig-confirmar");
+      btn.disabled = true; btn.textContent = "Guardando...";
+      const { error } = await sb.rpc("reasignar_chofer_etapa", {
+        p_traslado_id: trasladoId,
+        p_etapa: etapa,
+        p_chofer_nuevo_id: nuevoChoferId,
+        p_monto_chofer_nuevo: montoNuevo,
+        p_monto_chofer_original: montoOriginal,
+        p_motivo: motivo,
+        p_admin_correo: correoAdminActual,
+      });
+      btn.disabled = false; btn.textContent = "Confirmar reasignación";
+      if (error) { errEl.textContent = "No se pudo reasignar: " + error.message; errEl.style.display = "block"; return; }
+      fondo.remove();
+      cargarTraslados();
+      cargarChoferes();
+      cargarPagosChofer();
+    });
+  }
+
+  // ---------- Modal: mapa de ubicación ----------
+  function abrirModalMapa(trasladoId, etapa) {
+    const t = cacheTraslados.find((x) => x.id === trasladoId);
+    if (!t) return;
+    const chofer = (etapa === "retiro" ? t.chofer_retiro : t.chofer_entrega) || {};
+    if (!chofer.ubicacion_lat) { alert("Este chofer todavía no tiene ubicación registrada."); return; }
+
+    const fondo = document.createElement("div");
+    fondo.className = "modal-fondo";
+    fondo.innerHTML = `
+      <div class="modal-caja" style="max-width:520px;">
+        <button class="modal-cerrar" id="modal-mapa-cerrar">✕</button>
+        <h3>Ubicación de ${chofer.nombre || "chofer"}</h3>
+        <p class="subtitulo">Patente ${t.patente || "—"} · ${etapa === "retiro" ? "Retiro" : "Entrega"}</p>
+        <div id="mapa-chofer"></div>
+      </div>`;
+    document.body.appendChild(fondo);
+    fondo.querySelector("#modal-mapa-cerrar").addEventListener("click", () => fondo.remove());
+    fondo.addEventListener("click", (e) => { if (e.target === fondo) fondo.remove(); });
+
+    setTimeout(() => {
+      const mapa = L.map("mapa-chofer").setView([chofer.ubicacion_lat, chofer.ubicacion_lng], 15);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "© OpenStreetMap" }).addTo(mapa);
+      L.marker([chofer.ubicacion_lat, chofer.ubicacion_lng]).addTo(mapa).bindPopup(chofer.nombre || "Chofer").openPopup();
+    }, 50);
   }
 
   async function toggleFotosTraslado(trasladoId) {
@@ -1586,39 +1810,47 @@
 
     const { data, error } = await sb
       .from("traslados_fotos")
-      .select("etapa, url, created_at")
+      .select("etapa, tipo, url, created_at")
       .eq("traslado_id", trasladoId)
       .order("created_at", { ascending: true });
 
     if (error) { celda.innerHTML = `<span class="vacio">No se pudo cargar: ${error.message}</span>`; return; }
     if (!data || !data.length) { celda.innerHTML = `<span class="vacio">Sin fotos registradas para este traslado.</span>`; return; }
 
-    const miniaturas = [];
-    for (const foto of data) {
-      const { data: signed, error: errSigned } = await sb.storage.from("control-fotografico").createSignedUrl(foto.url, 600);
-      if (errSigned || !signed) continue;
-      miniaturas.push(`
-        <a href="${signed.signedUrl}" target="_blank" rel="noopener" style="display:block;">
-          <img src="${signed.signedUrl}" style="width:100%; aspect-ratio:1; object-fit:cover; border-radius:8px; border:1px solid var(--line);">
-          <div style="font-size:0.72rem; color:var(--dim); text-align:center; margin-top:2px;">${foto.etapa === "retiro" ? "Retiro" : "Entrega"}</div>
-        </a>`);
+    async function bloqueEtapa(etapaNombre, fotos) {
+      if (!fotos.length) return "";
+      const porTipo = {};
+      fotos.forEach((f) => { (porTipo[f.tipo || "adicional"] = porTipo[f.tipo || "adicional"] || []).push(f); });
+      const tiposOrdenados = [...ORDEN_TIPOS_FOTO.filter((tp) => porTipo[tp]), ...Object.keys(porTipo).filter((tp) => !ORDEN_TIPOS_FOTO.includes(tp))];
+
+      let html = `<h4 style="font-size:0.85rem; margin:14px 0 8px;">${etapaNombre === "retiro" ? "Retiro" : "Entrega"}</h4>`;
+      html += `<div style="display:flex; flex-direction:column; gap:14px;">`;
+      for (const tipo of tiposOrdenados) {
+        const grupo = porTipo[tipo];
+        html += `<div><div style="font-size:0.76rem; color:var(--dim); margin-bottom:6px;">${TIPO_FOTO_LABEL[tipo] || tipo} (${grupo.length})</div>`;
+        html += `<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(90px, 1fr)); gap:8px;">`;
+        for (const foto of grupo) {
+          const { data: signed, error: errSigned } = await sb.storage.from("control-fotografico").createSignedUrl(foto.url, 600);
+          if (errSigned || !signed) continue;
+          html += `<a href="${signed.signedUrl}" target="_blank" rel="noopener"><img src="${signed.signedUrl}" style="width:100%; aspect-ratio:1; object-fit:cover; border-radius:8px; border:1px solid var(--line);"></a>`;
+        }
+        html += `</div></div>`;
+      }
+      html += `</div>`;
+      return html;
     }
 
-    celda.innerHTML = `
-      <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(90px, 1fr)); gap:10px; padding:10px 0; max-width:520px;">
-        ${miniaturas.join("") || `<span class="vacio">No se pudieron cargar las imágenes.</span>`}
-      </div>
-      <span style="font-size:0.76rem; color:var(--dim);">Los enlaces expiran en 10 minutos por seguridad.</span>`;
-  }
+    const retiro = data.filter((f) => f.etapa === "retiro");
+    const entrega = data.filter((f) => f.etapa === "entrega");
+    const htmlRetiro = await bloqueEtapa("retiro", retiro);
+    const htmlEntrega = await bloqueEtapa("entrega", entrega);
 
-  document.querySelectorAll("#panel-traslados [data-filtro-traslado]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      filtroTrasladoActivo = btn.dataset.filtroTraslado;
-      document.querySelectorAll("#panel-traslados [data-filtro-traslado]").forEach((b) => b.classList.remove("activo"));
-      btn.classList.add("activo");
-      renderTraslados();
-    });
-  });
+    celda.innerHTML = `
+      <div style="max-width:560px;">
+        ${htmlRetiro}${htmlEntrega}
+        <span style="font-size:0.76rem; color:var(--dim);">Los enlaces expiran en 10 minutos por seguridad.</span>
+      </div>`;
+  }
 
   (async () => {
     const { data: { user } } = await sb.auth.getUser();
