@@ -47,6 +47,8 @@
   @media (max-width: 560px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
   .opcional { color: var(--dim); font-weight: 400; }
 
+  .rut-mensaje { font-size: 0.76rem; color: var(--coral); margin: -10px 0 14px; display: none; }
+
   .terminos-box { display: flex; align-items: flex-start; gap: 10px; background: var(--surface-2); border-radius: 10px; padding: 14px; margin-bottom: 18px; }
   .terminos-box input { width: auto; margin: 3px 0 0; flex-shrink: 0; }
   .terminos-box label { color: var(--ink); font-size: 0.85rem; font-weight: 400; margin: 0; }
@@ -82,7 +84,8 @@
         <label for="nombre_taller">Nombre del taller</label>
         <input id="nombre_taller" required />
         <label for="rut_taller">RUT del taller</label>
-        <input id="rut_taller" placeholder="Ej: 76.123.456-7" required />
+        <input id="rut_taller" placeholder="Ej: 76123456-7" required />
+        <div class="rut-mensaje" id="rut_taller-mensaje">RUT inválido — revisa el dígito verificador.</div>
         <div class="grid-2">
           <div><label for="calle">Calle</label><input id="calle" required /></div>
           <div><label for="numero">Número</label><input id="numero" required /></div>
@@ -198,6 +201,48 @@
   const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
   const $ = (id) => document.getElementById(id);
 
+  // ---------- Validación de RUT chileno (módulo 11) ----------
+  function limpiarRut(v) { return (v || "").replace(/[^0-9kK]/g, "").toUpperCase(); }
+  function calcularDvRut(cuerpo) {
+    let suma = 0, multiplo = 2;
+    for (let i = cuerpo.length - 1; i >= 0; i--) {
+      suma += parseInt(cuerpo[i], 10) * multiplo;
+      multiplo = multiplo === 7 ? 2 : multiplo + 1;
+    }
+    const resto = 11 - (suma % 11);
+    if (resto === 11) return "0";
+    if (resto === 10) return "K";
+    return String(resto);
+  }
+  function rutEsValido(v) {
+    const limpio = limpiarRut(v);
+    if (limpio.length < 2) return false;
+    const cuerpo = limpio.slice(0, -1);
+    const dv = limpio.slice(-1);
+    if (!/^\d+$/.test(cuerpo)) return false;
+    return calcularDvRut(cuerpo) === dv;
+  }
+  function formatoGuardadoRut(v) {
+    const limpio = limpiarRut(v);
+    if (limpio.length < 2) return limpio;
+    return limpio.slice(0, -1) + "-" + limpio.slice(-1);
+  }
+  function activarValidacionRut(inputId, mensajeId) {
+    const input = $(inputId);
+    const mensaje = mensajeId ? $(mensajeId) : null;
+    input.addEventListener("input", () => {
+      const limpio = limpiarRut(input.value);
+      if (limpio.length < 2) { input.style.borderColor = ""; if (mensaje) mensaje.style.display = "none"; return; }
+      const ok = rutEsValido(input.value);
+      input.style.borderColor = ok ? "var(--ok)" : "var(--coral)";
+      if (mensaje) mensaje.style.display = ok ? "none" : "block";
+    });
+    input.addEventListener("blur", () => {
+      if (rutEsValido(input.value)) input.value = formatoGuardadoRut(input.value);
+    });
+  }
+  activarValidacionRut("rut_taller", "rut_taller-mensaje");
+
   const camposUsuario = ["usuario_nombre", "usuario_correo", "usuario_telefono"];
 
   function sincronizarUsuarioDesdePrincipal() {
@@ -225,6 +270,14 @@
   $("form-solicitud").addEventListener("submit", async (e) => {
     e.preventDefault();
     $("form-error").style.display = "none";
+
+    if (!rutEsValido($("rut_taller").value)) {
+      $("form-error").textContent = "El RUT del taller no es válido. Revisa el dígito verificador.";
+      $("form-error").style.display = "block";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    $("rut_taller").value = formatoGuardadoRut($("rut_taller").value);
 
     if (!$("acepta_terminos").checked) {
       $("form-error").textContent = "Debes aceptar los Términos y Condiciones para continuar.";
