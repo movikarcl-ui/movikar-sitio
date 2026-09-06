@@ -117,6 +117,7 @@
   .filtros-row select { flex: 0 0 auto; width: auto; margin-bottom: 0; }
   .filter-chip { padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--dim); font-size: 0.82rem; font-weight: 500; cursor: pointer; }
   .filter-chip.activo { background: var(--turquesa-claro); color: var(--turquesa-profundo); border-color: var(--turquesa-claro); }
+  .rut-mensaje { font-size: 0.76rem; color: var(--coral); margin: -10px 0 14px; display: none; }
 
   .modal-fondo { position: fixed; inset: 0; background: rgba(22,48,44,0.45); display:flex; align-items:center; justify-content:center; z-index: 999; padding: 20px; }
   .modal-caja { background: var(--bg); border-radius: 16px; padding: 24px; max-width: 440px; width: 100%; max-height: 88vh; overflow-y: auto; }
@@ -239,7 +240,8 @@
             <label for="t-nombre">Nombre del taller</label>
             <input id="t-nombre" type="text" placeholder="Ej: Pompeyo Carrasco La Cisterna" />
             <label for="t-rut">RUT (del cliente de facturación)</label>
-            <input id="t-rut" type="text" placeholder="Ej: 76.123.456-7" />
+            <input id="t-rut" type="text" placeholder="Ej: 76123456-7" />
+            <div class="rut-mensaje" id="t-rut-mensaje">RUT inválido — revisa el dígito verificador.</div>
             <div class="grid-2">
               <div><label for="t-calle">Calle</label><input id="t-calle" type="text" /></div>
               <div><label for="t-numero">Número</label><input id="t-numero" type="text" /></div>
@@ -494,6 +496,48 @@
 
   function mostrarError(elId, msg) { const el = $(elId); el.textContent = msg; el.style.display = "block"; }
   function ocultar(elId) { $(elId).style.display = "none"; }
+
+  // ---------- Validación de RUT chileno (módulo 11) ----------
+  function limpiarRut(v) { return (v || "").replace(/[^0-9kK]/g, "").toUpperCase(); }
+  function calcularDvRut(cuerpo) {
+    let suma = 0, multiplo = 2;
+    for (let i = cuerpo.length - 1; i >= 0; i--) {
+      suma += parseInt(cuerpo[i], 10) * multiplo;
+      multiplo = multiplo === 7 ? 2 : multiplo + 1;
+    }
+    const resto = 11 - (suma % 11);
+    if (resto === 11) return "0";
+    if (resto === 10) return "K";
+    return String(resto);
+  }
+  function rutEsValido(v) {
+    const limpio = limpiarRut(v);
+    if (limpio.length < 2) return false;
+    const cuerpo = limpio.slice(0, -1);
+    const dv = limpio.slice(-1);
+    if (!/^\d+$/.test(cuerpo)) return false;
+    return calcularDvRut(cuerpo) === dv;
+  }
+  function formatoGuardadoRut(v) {
+    const limpio = limpiarRut(v);
+    if (limpio.length < 2) return limpio;
+    return limpio.slice(0, -1) + "-" + limpio.slice(-1);
+  }
+  function activarValidacionRut(inputId, mensajeId) {
+    const input = $(inputId);
+    const mensaje = mensajeId ? $(mensajeId) : null;
+    input.addEventListener("input", () => {
+      const limpio = limpiarRut(input.value);
+      if (limpio.length < 2) { input.style.borderColor = ""; if (mensaje) mensaje.style.display = "none"; return; }
+      const ok = rutEsValido(input.value);
+      input.style.borderColor = ok ? "var(--ok)" : "var(--coral)";
+      if (mensaje) mensaje.style.display = ok ? "none" : "block";
+    });
+    input.addEventListener("blur", () => {
+      if (rutEsValido(input.value)) input.value = formatoGuardadoRut(input.value);
+    });
+  }
+  activarValidacionRut("t-rut", "t-rut-mensaje");
 
   async function invocarAdmin(payload) {
     const { data, error } = await sb.functions.invoke("admin-crear-taller", { body: payload });
@@ -934,6 +978,10 @@
     if (!datosTaller.nombre_taller || !datosTaller.rut_taller || !datosTaller.calle || !datosTaller.numero || !datosTaller.comuna) {
       return mostrarError("taller-error", "Completa nombre, RUT y dirección del taller.");
     }
+    if (!editingTallerId && !rutEsValido(datosTaller.rut_taller)) {
+      return mostrarError("taller-error", "El RUT ingresado no es válido. Revisa el dígito verificador.");
+    }
+    if (!editingTallerId) datosTaller.rut_taller = formatoGuardadoRut(datosTaller.rut_taller);
     if (!datosTaller.encargado_nombre || !datosTaller.encargado_correo || !datosTaller.encargado_telefono) {
       return mostrarError("taller-error", "Completa nombre, correo y teléfono del Encargado del taller.");
     }
