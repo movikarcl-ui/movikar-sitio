@@ -1,0 +1,737 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MoviKar — Portal de clientes</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="MoviKar — Portal de clientes" />
+<meta property="og:description" content="Revisa tus traslados y facturación con MoviKar." />
+<meta property="og:image" content="https://movikar.vercel.app/og-image.png" />
+<meta property="og:url" content="https://movikar.vercel.app/mi-taller" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --bg:#FFFFFF; --surface:#F6F9F8; --surface-2:#EDF3F1;
+    --ink:#16302C; --ink-dim:#5E7570; --line:#DCE6E3;
+    --teal:#009688; --teal-dim:#E3F5F2; --teal-deep:#00695E;
+    --coral:#E8542F; --coral-dim:#FFEEE7; --ok:#1F8F5C; --ok-dim:#E6F6EC;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--surface);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3{font-family:'Space Grotesk',sans-serif;margin:0;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+
+  header{background:var(--bg);border-bottom:1px solid var(--line);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+  .brand{display:flex;align-items:center;gap:14px;}
+  .brand-mark{width:52px;height:52px;border-radius:13px;background:var(--teal-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .brand-mark svg{width:34px;height:34px;}
+  .brand-name{font-family:'Space Grotesk';font-weight:700;font-size:24px;line-height:1.1;letter-spacing:-.01em;color:var(--ink);}
+  .brand-tag{font-size:11px;color:var(--teal-deep);font-weight:600;letter-spacing:.04em;margin-top:2px;}
+  .user-chip{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--ink-dim);}
+  .user-avatar{width:32px;height:32px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:700;font-size:13px;flex-shrink:0;}
+  .user-role{background:var(--surface-2);color:var(--ink-dim);font-size:10px;font-weight:600;padding:2px 7px;border-radius:6px;margin-left:2px;}
+  .logout{background:none;border:none;color:var(--ink-dim);font-size:11px;text-decoration:underline;cursor:pointer;padding:0;font-family:'Inter';}
+
+  /* ---- Login ---- */
+  .login-wrap{max-width:400px;margin:70px auto;padding:0 20px;}
+  .login-card{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:28px;text-align:center;box-shadow:0 1px 3px rgba(22,48,44,0.05), 0 8px 24px rgba(22,48,44,0.04);}
+  .login-card h2{font-size:18px;margin:14px 0 8px;}
+  .login-card p{font-size:13px;color:var(--ink-dim);margin:0 0 20px;line-height:1.5;}
+  .login-card input{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:8px;font-size:13.5px;margin-bottom:12px;text-align:center;font-family:'Inter';}
+  .login-btn{width:100%;background:var(--ink);color:#fff;border:none;border-radius:8px;padding:12px;font-weight:600;font-size:13.5px;cursor:pointer;font-family:'Space Grotesk';}
+  .login-btn:hover{background:var(--teal-deep);}
+  .login-btn:disabled{opacity:.5;cursor:default;}
+  .login-msg{font-size:13px;font-weight:600;margin-top:14px;padding:11px 14px;border-radius:8px;display:none;text-align:left;line-height:1.4;}
+  .login-msg.ok{color:var(--ok);background:var(--ok-dim);border:1px solid var(--ok);display:block;}
+  .login-msg.err{color:var(--coral);background:var(--coral-dim);border:1px solid var(--coral);display:block;}
+
+  .app-shell{display:none;}
+
+  /* ---- Banda de contexto ---- */
+  .context-band{background:linear-gradient(135deg, #0E2B26 0%, #16302C 55%, #0A2320 100%);color:#fff;padding:30px 28px 26px;position:relative;}
+  .context-band-deco{position:absolute;inset:0;overflow:hidden;pointer-events:none;border-radius:inherit;}
+  .context-band-deco::before{content:"";position:absolute;top:-60px;right:-40px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle, rgba(0,150,136,.45), transparent 70%);}
+  .context-band-deco::after{content:"";position:absolute;bottom:-80px;left:30%;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle, rgba(232,84,47,.18), transparent 70%);}
+  .context-inner{max-width:1180px;margin:0 auto;position:relative;z-index:1;}
+  .context-rut{font-size:11.5px;color:rgba(255,255,255,.55);margin-bottom:8px;letter-spacing:.02em;}
+  .context-row{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;}
+  .context-taller-name{font-family:'Space Grotesk';font-weight:700;font-size:32px;letter-spacing:-.01em;display:flex;align-items:center;gap:12px;}
+  .taller-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+  .context-sub{color:rgba(255,255,255,.6);font-size:12.5px;margin-top:6px;}
+
+  .taller-switcher{position:relative;z-index:20;}
+  .switcher-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:#fff;padding:9px 14px;border-radius:10px;font-size:12.5px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:8px;}
+  .switcher-btn:hover{background:rgba(255,255,255,.14);}
+  .switcher-btn svg{width:14px;height:14px;opacity:.8;}
+  .switcher-panel{display:none;position:absolute;top:calc(100% + 8px);right:0;z-index:50;width:280px;background:#fff;color:var(--ink);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.28);border:1px solid var(--line);overflow:hidden;}
+  .switcher-panel.open{display:block;}
+  .switcher-search{padding:10px;border-bottom:1px solid var(--line);}
+  .switcher-search input{width:100%;border:1px solid var(--line);border-radius:7px;padding:7px 10px;font-size:12.5px;font-family:'Inter';}
+  .switcher-list{max-height:260px;overflow-y:auto;}
+  .switcher-item{display:flex;align-items:center;gap:9px;padding:9px 14px;font-size:12.5px;cursor:pointer;}
+  .switcher-item:hover{background:var(--surface);}
+  .switcher-item.selected{background:var(--teal-dim);color:var(--teal-deep);font-weight:600;}
+  .switcher-item .taller-dot{width:8px;height:8px;}
+  .switcher-all{border-bottom:1px solid var(--line);font-weight:600;}
+  .switcher-compare-link{display:block;text-align:center;padding:11px;font-size:12px;font-weight:600;color:var(--teal-deep);background:var(--teal-dim);cursor:pointer;border-top:1px solid var(--line);}
+
+  main{max-width:1180px;margin:0 auto;padding:26px 28px 90px;}
+
+  .view-tabs{display:flex;gap:6px;margin-bottom:22px;}
+  .view-tab{background:none;border:none;font-family:'Space Grotesk';font-size:14px;font-weight:600;color:var(--ink-dim);padding:8px 4px;cursor:pointer;border-bottom:2px solid transparent;}
+  .view-tab.active{color:var(--ink);border-bottom-color:var(--coral);}
+
+  .page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:20px;flex-wrap:wrap;}
+  .page-head p{color:var(--ink-dim);font-size:13px;}
+  .periodo-select{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:8px 12px;font-size:12.5px;font-family:'Inter';}
+
+  .kpi-band{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:14px;margin-bottom:26px;}
+  @media (max-width:900px){.kpi-band{grid-template-columns:1fr 1fr;}}
+  .kpi-hero{background:linear-gradient(135deg, var(--teal-deep), var(--teal));color:#fff;border-radius:14px;padding:22px 24px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;}
+  .kpi-hero::after{content:"";position:absolute;right:-24px;top:-24px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.12);}
+  .kpi-hero-label{font-size:12px;color:rgba(255,255,255,.8);margin-bottom:10px;}
+  .kpi-hero-value{font-family:'Space Grotesk';font-size:32px;font-weight:700;letter-spacing:-.01em;}
+  .kpi-hero-sub{font-size:12px;color:#fff;margin-top:10px;display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.16);padding:4px 10px;border-radius:999px;width:fit-content;}
+  .kpi-card{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:10px;}
+  .kpi-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;}
+  .kpi-icon svg{width:17px;height:17px;}
+  .kpi-card-label{font-size:11.5px;color:var(--ink-dim);}
+  .kpi-card-value{font-family:'Space Grotesk';font-size:23px;font-weight:700;}
+  .kpi-card-sub{font-size:10.5px;color:var(--ink-dim);}
+
+  .content-grid{display:grid;grid-template-columns:1.7fr 1fr;gap:20px;align-items:start;}
+  @media (max-width:960px){.content-grid{grid-template-columns:1fr;}}
+
+  .panel{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:20px;}
+  .panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;}
+  .panel-head h2{font-size:15px;}
+
+  .filtros{display:flex;gap:8px;flex-wrap:wrap;}
+  .filtro-chip{border:1px solid var(--line);background:var(--surface);color:var(--ink-dim);padding:6px 12px;border-radius:999px;font-size:11.5px;font-weight:500;cursor:pointer;}
+  .filtro-chip.active{background:var(--teal-dim);border-color:var(--teal);color:var(--teal-deep);}
+  .filtro-select{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:6px 10px;font-size:11.5px;color:var(--ink);}
+
+  table{width:100%;border-collapse:collapse;}
+  th,td{text-align:left;padding:10px 8px;font-size:12.5px;border-bottom:1px solid var(--line);}
+  th{color:var(--ink-dim);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;}
+  tr:last-child td{border-bottom:none;}
+  td.patente{font-family:'JetBrains Mono';font-size:11.5px;}
+  .estado-pill{font-size:10.5px;font-weight:600;padding:3px 9px;border-radius:999px;display:inline-block;}
+  .estado-pill.completado{background:var(--ok-dim);color:var(--ok);}
+  .estado-pill.en-curso{background:var(--teal-dim);color:var(--teal-deep);}
+  .estado-pill.agendado{background:var(--surface-2);color:var(--ink-dim);}
+  .estado-pill.cancelado{background:var(--coral-dim);color:var(--coral);}
+  .taller-tag{font-size:10.5px;color:var(--ink-dim);display:flex;align-items:center;gap:6px;}
+  .taller-tag .taller-dot{width:7px;height:7px;}
+  .vacio-tabla{text-align:center;color:var(--ink-dim);font-size:12px;padding:24px 0;}
+
+  .paginacion{display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:11.5px;color:var(--ink-dim);}
+  .paginacion button{background:none;border:1px solid var(--line);border-radius:6px;padding:5px 10px;color:var(--ink-dim);cursor:pointer;font-size:11.5px;}
+  .paginacion button:disabled{opacity:.4;cursor:default;}
+
+  .side-stack{display:flex;flex-direction:column;gap:16px;}
+  .factura-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);}
+  .factura-row:last-child{border-bottom:none;padding-bottom:0;}
+  .factura-info{font-size:12.5px;}
+  .factura-info b{display:block;font-size:13px;}
+  .factura-info span{color:var(--ink-dim);font-size:11px;}
+  .factura-monto{font-family:'JetBrains Mono';font-size:12.5px;text-align:right;}
+  .factura-estado{font-size:10px;display:block;margin-top:2px;}
+  .factura-estado.pagada{color:var(--ok);}
+  .factura-estado.emitida{color:var(--teal-deep);}
+  .factura-estado.borrador{color:var(--ink-dim);}
+  .factura-estado.vencida{color:var(--coral);}
+
+  .chart-bars{display:flex;align-items:flex-end;gap:8px;height:110px;margin-top:12px;}
+  .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;}
+  .bar{width:100%;border-radius:5px 5px 2px 2px;background:var(--teal-dim);min-height:2px;}
+  .bar.current{background:linear-gradient(180deg, var(--teal), var(--teal-deep));}
+  .bar-label{font-size:9.5px;color:var(--ink-dim);margin-top:6px;}
+
+  /* ---- Comparativa ---- */
+  #vistaComparar{display:none;}
+  .compare-table-wrap{overflow-x:auto;}
+  table.compare{min-width:600px;}
+  table.compare th:first-child, table.compare td:first-child{position:sticky;left:0;background:var(--bg);}
+  .compare-taller-cell{display:flex;align-items:center;gap:8px;font-weight:600;}
+  .compare-bar-cell{display:flex;align-items:center;gap:8px;}
+  .compare-bar-track{flex:1;height:7px;background:var(--surface-2);border-radius:4px;overflow:hidden;min-width:70px;}
+  .compare-bar-fill{height:100%;border-radius:4px;background:var(--teal);}
+  .compare-value{font-family:'JetBrains Mono';font-size:11.5px;white-space:nowrap;}
+  .tendencia{display:inline-flex;align-items:center;gap:3px;font-family:'JetBrains Mono';font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;}
+  .tendencia.up{color:var(--ok);background:var(--ok-dim);}
+  .tendencia.down{color:var(--coral);background:var(--coral-dim);}
+  .tendencia.flat{color:var(--ink-dim);background:var(--surface-2);}
+  .compare-note{font-size:11px;color:var(--ink-dim);margin-top:12px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-mark">
+      <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+        <path d="M6 26.6 L7.5 26.6 A4.5 4.5 0 0 1 16.5 26.6 L23.5 26.6 A4.5 4.5 0 0 1 32.5 26.6 L34 26.6 C36.3 24.3 35.3 19.7 31.5 17.5 C29.3 15 26.3 13 23 13 L16 13 C12.7 13 9.7 15 7.5 17.5 C4.7 19.7 3.7 24.3 6 26.6 Z" fill="#009688"/>
+        <circle cx="12" cy="26.6" r="4" fill="#16302C"/><circle cx="12" cy="26.6" r="1.5" fill="#F6F9F8"/>
+        <circle cx="28" cy="26.6" r="4" fill="#16302C"/><circle cx="28" cy="26.6" r="1.5" fill="#F6F9F8"/>
+      </svg>
+    </div>
+    <div>
+      <div class="brand-name">MoviKar</div>
+      <div class="brand-tag">PORTAL DE CLIENTES</div>
+    </div>
+  </div>
+  <div class="user-chip" id="userChip" style="display:none;">
+    <div class="user-avatar" id="userAvatar">?</div>
+    <div>
+      <span id="userNombre"></span><span class="user-role" id="userRolBadge"></span><br>
+      <button class="logout" id="logoutBtn">cerrar sesión</button>
+    </div>
+  </div>
+</header>
+
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <h2>Ingresa a tu Portal MoviKar</h2>
+    <p>Para propietarios, encargados de pago y jefes de taller. Escribe tu correo y te mandamos un código de acceso.</p>
+    <input type="text" id="loginEmail" placeholder="tu@correo.cl">
+    <button class="login-btn" id="loginBtn">Enviarme un código de acceso</button>
+    <div class="login-msg" id="loginMsg"></div>
+    <div id="otpBlock" style="display:none;margin-top:18px;padding-top:18px;border-top:1px solid var(--line);">
+      <p style="font-size:12px;color:var(--ink-dim);margin:0 0 10px;">Ingresa aquí el código de 8 dígitos que te llegó por correo:</p>
+      <input type="text" id="loginCode" placeholder="12345678" maxlength="8" style="text-align:center;letter-spacing:4px;font-family:'JetBrains Mono';">
+      <button class="login-btn" id="verifyCodeBtn" style="background:var(--teal);">Confirmar código</button>
+    </div>
+  </div>
+</div>
+
+<div class="app-shell" id="appShell">
+
+  <div class="context-band">
+    <div class="context-band-deco"></div>
+    <div class="context-inner">
+      <div class="context-row">
+        <div>
+          <div class="context-rut" id="contextRut">—</div>
+          <div class="context-taller-name"><span class="taller-dot" id="contextDot" style="background:#4DD0C4;"></span><span id="contextNombre">—</span></div>
+          <div class="context-sub" id="contextSub"></div>
+        </div>
+        <div class="taller-switcher" id="tallerSwitcherWrap" style="display:none;">
+          <button class="switcher-btn" id="switcherBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="7" height="7" rx="1.5"/><rect x="14" y="4" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+            Cambiar vista
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="switcher-panel" id="switcherPanel">
+            <div class="switcher-search"><input type="text" id="switcherSearch" placeholder="Buscar local..."></div>
+            <div class="switcher-list" id="switcherList"></div>
+            <div class="switcher-compare-link" id="switcherCompareLink">📊 Comparar todos los locales</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <div class="view-tabs" id="viewTabs" style="display:none;">
+      <button class="view-tab active" id="tabResumen">Resumen</button>
+      <button class="view-tab" id="tabComparar">Comparar locales</button>
+    </div>
+
+    <!-- ============ VISTA: RESUMEN ============ -->
+    <div id="vistaResumen">
+      <div class="page-head">
+        <p id="ultimaActualizacion">Estado de tus traslados y facturación.</p>
+        <select class="periodo-select" id="periodoSelect">
+          <option value="30">Últimos 30 días</option>
+          <option value="mes">Este mes</option>
+          <option value="90">Últimos 3 meses</option>
+          <option value="all">Todo el histórico</option>
+        </select>
+      </div>
+
+      <div class="kpi-band">
+        <div class="kpi-hero">
+          <div>
+            <div class="kpi-hero-label">Facturación del mes</div>
+            <div class="kpi-hero-value" id="kpiFacturacionMes">—</div>
+          </div>
+          <div class="kpi-hero-sub" id="kpiTendenciaMes"></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:var(--teal-dim);color:var(--teal-deep);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l2-5a2 2 0 012-1h10a2 2 0 012 1l2 5"/><path d="M3 12v5h18v-5"/><circle cx="7.5" cy="17" r="1.5"/><circle cx="16.5" cy="17" r="1.5"/></svg>
+          </div>
+          <div class="kpi-card-label">Traslados este mes</div>
+          <div class="kpi-card-value" id="kpiTrasladosMes">—</div>
+          <div class="kpi-card-sub" id="kpiTrasladosMesSub"></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:var(--coral-dim);color:var(--coral);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+          </div>
+          <div class="kpi-card-label">En curso ahora</div>
+          <div class="kpi-card-value" id="kpiEnCurso">—</div>
+          <div class="kpi-card-sub" id="kpiEnCursoSub"></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:var(--ok-dim);color:var(--ok);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h5"/></svg>
+          </div>
+          <div class="kpi-card-label">Facturas pendientes</div>
+          <div class="kpi-card-value" id="kpiFacturasPendientes">—</div>
+          <div class="kpi-card-sub" id="kpiFacturasPendientesSub"></div>
+        </div>
+      </div>
+
+      <div class="content-grid">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Traslados</h2>
+            <div class="filtros">
+              <button class="filtro-chip active" data-filtro-estado="todos">Todos</button>
+              <button class="filtro-chip" data-filtro-estado="curso">En curso</button>
+              <button class="filtro-chip" data-filtro-estado="completado">Completados</button>
+              <select class="filtro-select" id="filtroLocalTraslados"><option value="">Todos los locales</option></select>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>Patente</th><th>Local</th><th>Tipo</th><th>Estado</th><th>Fecha</th></tr></thead>
+            <tbody id="tablaTraslados"><tr><td colspan="5" class="vacio-tabla">Cargando...</td></tr></tbody>
+          </table>
+          <div class="paginacion">
+            <span id="paginacionInfo">—</span>
+            <div style="display:flex;gap:6px;">
+              <button id="btnPagAnterior" disabled>← Anterior</button>
+              <button id="btnPagSiguiente" disabled>Siguiente →</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="side-stack">
+          <div class="panel">
+            <div class="panel-head"><h2>Facturación reciente</h2></div>
+            <div id="listaFacturas"><div class="vacio-tabla">Cargando...</div></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h2>Últimos 6 meses</h2></div>
+            <div class="chart-bars" id="chartFacturacion"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ VISTA: COMPARAR LOCALES ============ -->
+    <div id="vistaComparar">
+      <div class="page-head">
+        <div>
+          <h1 style="font-size:20px;">Comparativa entre locales</h1>
+          <p id="compararSubtitulo">—</p>
+        </div>
+        <select class="periodo-select" id="periodoCompararSelect">
+          <option value="30">Últimos 30 días</option>
+          <option value="mes">Este mes</option>
+          <option value="90">Últimos 3 meses</option>
+        </select>
+      </div>
+      <div class="panel">
+        <div class="compare-table-wrap">
+          <table class="compare">
+            <thead><tr><th>Local</th><th>Traslados (etapas)</th><th>% participación</th><th>Facturación</th><th>Tendencia</th></tr></thead>
+            <tbody id="tablaComparar"><tr><td colspan="5" class="vacio-tabla">Cargando...</td></tr></tbody>
+          </table>
+        </div>
+        <p class="compare-note">"Traslados" cuenta etapas (retiro y entrega por separado). "Tendencia" compara el volumen de etapas del período actual contra el período anterior de igual duración.</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://gcivybtcccaslyzkzgri.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_IVjRfzdWhEO3yb5LkUz7pw_5IA-CxLW';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const $ = (id) => document.getElementById(id);
+
+const PALETA = ['#4DD0C4','#E8542F','#F2B84B','#7C6AE8','#3B9EDB','#00A896','#D66BA0','#8C9E5E','#C9A34E','#5E7570'];
+const ROL_LABEL = { propietario: 'Propietario', encargado_pago: 'Encargado de pago', jefe_taller: 'Jefe de taller' };
+const ESTADO_LABEL = { agendado:'Agendado', asignado:'Chofer asignado', en_camino:'En camino', llegado:'Chofer llegó', control_fotografico:'Registrando fotos', completado:'Completado', cancelado:'Cancelado' };
+const TIPO_LABEL = { retiro:'Retiro', entrega:'Entrega', ambos:'Retiro + Entrega' };
+
+let contexto = null;          // { rol, cliente_facturacion_id, cliente_razon_social, cliente_rut, taller_id, nombre_persona }
+let misTalleres = [];         // lista de talleres visibles según el rol
+let tallerSeleccionado = null; // null = "todos los locales"
+let paginaActual = 0;
+const FILAS_POR_PAGINA = 8;
+let filtroEstado = 'todos';
+
+function colorPorTaller(tallerId){
+  const idx = misTalleres.findIndex(t => t.id === tallerId);
+  return PALETA[idx >= 0 ? idx % PALETA.length : 0];
+}
+
+// ---------- Login OTP ----------
+$('loginBtn').addEventListener('click', async ()=>{
+  const email = $('loginEmail').value.trim();
+  const msg = $('loginMsg'); msg.className = 'login-msg';
+  if(!email || !email.includes('@')){ msg.textContent = '⚠ Ingresa un correo válido.'; msg.classList.add('err'); return; }
+  const btn = $('loginBtn'); btn.disabled = true; btn.textContent = 'Enviando...';
+  const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+  btn.disabled = false; btn.textContent = 'Enviarme un código de acceso';
+  if(error){
+    msg.textContent = '⚠ No se pudo enviar el código: ' + error.message;
+    msg.classList.add('err');
+  } else {
+    msg.textContent = '✓ Código enviado — revisa tu correo.';
+    msg.classList.add('ok');
+    $('otpBlock').style.display = 'block';
+  }
+});
+
+$('verifyCodeBtn').addEventListener('click', async ()=>{
+  const email = $('loginEmail').value.trim();
+  const code = $('loginCode').value.trim();
+  const msg = $('loginMsg'); msg.className = 'login-msg';
+  if(!code || code.length !== 8){ msg.textContent = '⚠ Ingresa el código de 8 dígitos completo.'; msg.classList.add('err'); return; }
+  const btn = $('verifyCodeBtn'); btn.disabled = true; btn.textContent = 'Verificando...';
+  const { error } = await sb.auth.verifyOtp({ email, token: code, type: 'email' });
+  btn.disabled = false; btn.textContent = 'Confirmar código';
+  if(error){ msg.textContent = '⚠ Ese código ya venció o no es válido.'; msg.classList.add('err'); }
+});
+
+$('logoutBtn').addEventListener('click', async ()=>{ await sb.auth.signOut(); location.reload(); });
+
+sb.auth.getSession().then(async ({data})=>{
+  if(!data.session){ showLogin(); return; }
+  await iniciarPortal();
+});
+sb.auth.onAuthStateChange((event, session)=>{
+  if(event === 'SIGNED_IN') iniciarPortal();
+});
+
+function showLogin(){
+  $('loginWrap').style.display = 'block';
+  $('appShell').style.display = 'none';
+  $('userChip').style.display = 'none';
+}
+
+async function iniciarPortal(){
+  const { data, error } = await sb.rpc('portal_contexto');
+  if(error || !data || !data.length){
+    await sb.auth.signOut();
+    showLogin();
+    const msg = $('loginMsg'); msg.className = 'login-msg err';
+    msg.textContent = '⚠ Tu correo no tiene acceso al portal. Escríbenos a movikarcl@gmail.com si crees que esto es un error.';
+    return;
+  }
+  contexto = data[0];
+
+  $('loginWrap').style.display = 'none';
+  $('appShell').style.display = 'block';
+  $('userChip').style.display = 'flex';
+  $('userNombre').textContent = contexto.nombre_persona || 'Usuario';
+  $('userRolBadge').textContent = ROL_LABEL[contexto.rol] || contexto.rol;
+  $('userAvatar').textContent = (contexto.nombre_persona || 'U').trim()[0].toUpperCase();
+
+  // Talleres visibles según el rol
+  if(contexto.rol === 'jefe_taller'){
+    const { data: t } = await sb.from('talleres').select('id, nombre_taller, comuna').eq('id', contexto.taller_id);
+    misTalleres = t || [];
+    tallerSeleccionado = contexto.taller_id;
+  } else {
+    const { data: t } = await sb.from('talleres').select('id, nombre_taller, comuna').eq('cliente_facturacion_id', contexto.cliente_facturacion_id).order('nombre_taller');
+    misTalleres = t || [];
+    tallerSeleccionado = null; // "todos los locales" por defecto
+  }
+
+  $('contextRut').textContent = `${contexto.cliente_razon_social} · RUT ${contexto.cliente_rut} · ${misTalleres.length} local${misTalleres.length !== 1 ? 'es' : ''}`;
+
+  const mostrarSwitcher = contexto.rol !== 'jefe_taller' && misTalleres.length > 1;
+  $('tallerSwitcherWrap').style.display = mostrarSwitcher ? 'block' : 'none';
+  $('viewTabs').style.display = mostrarSwitcher ? 'flex' : 'none';
+
+  renderSwitcherList();
+  actualizarContextoVisual();
+  poblarFiltroLocal();
+  await cargarTodo();
+}
+
+function actualizarContextoVisual(){
+  if(tallerSeleccionado){
+    const t = misTalleres.find(x => x.id === tallerSeleccionado);
+    $('contextDot').style.background = colorPorTaller(tallerSeleccionado);
+    $('contextNombre').textContent = t ? t.nombre_taller : 'Local';
+    $('contextSub').textContent = t && t.comuna ? t.comuna : '';
+  } else {
+    $('contextDot').style.background = PALETA[0];
+    $('contextNombre').textContent = 'Todos los locales';
+    $('contextSub').textContent = 'Vista consolidada — cambia de local o compara su desempeño con el selector.';
+  }
+}
+
+function renderSwitcherList(){
+  const list = $('switcherList');
+  const items = [`<div class="switcher-item switcher-all ${tallerSeleccionado === null ? 'selected' : ''}" data-taller="">Todos los locales (${misTalleres.length})</div>`];
+  misTalleres.forEach((t,i)=>{
+    items.push(`<div class="switcher-item ${tallerSeleccionado === t.id ? 'selected' : ''}" data-taller="${t.id}"><span class="taller-dot" style="background:${PALETA[i % PALETA.length]};"></span>${t.nombre_taller}</div>`);
+  });
+  list.innerHTML = items.join('');
+  list.querySelectorAll('.switcher-item').forEach(el=>{
+    el.addEventListener('click', async ()=>{
+      tallerSeleccionado = el.dataset.taller || null;
+      $('switcherPanel').classList.remove('open');
+      actualizarContextoVisual();
+      renderSwitcherList();
+      paginaActual = 0;
+      await cargarTodo();
+    });
+  });
+}
+
+$('switcherBtn').addEventListener('click', ()=> $('switcherPanel').classList.toggle('open'));
+$('switcherSearch').addEventListener('input', (e)=>{
+  const q = e.target.value.trim().toLowerCase();
+  $('switcherList').querySelectorAll('.switcher-item:not(.switcher-all)').forEach(el=>{
+    el.style.display = el.textContent.toLowerCase().includes(q) ? 'flex' : 'none';
+  });
+});
+document.addEventListener('click', (e)=>{
+  if(!$('tallerSwitcherWrap').contains(e.target)) $('switcherPanel').classList.remove('open');
+});
+$('switcherCompareLink').addEventListener('click', ()=>{ $('switcherPanel').classList.remove('open'); mostrarVista('comparar'); });
+$('tabResumen').addEventListener('click', ()=> mostrarVista('resumen'));
+$('tabComparar').addEventListener('click', ()=> mostrarVista('comparar'));
+
+function mostrarVista(v){
+  if(v === 'comparar'){
+    $('vistaResumen').style.display = 'none'; $('vistaComparar').style.display = 'block';
+    $('tabResumen').classList.remove('active'); $('tabComparar').classList.add('active');
+    cargarComparativa();
+  } else {
+    $('vistaResumen').style.display = 'block'; $('vistaComparar').style.display = 'none';
+    $('tabComparar').classList.remove('active'); $('tabResumen').classList.add('active');
+  }
+}
+
+function poblarFiltroLocal(){
+  const sel = $('filtroLocalTraslados');
+  sel.innerHTML = '<option value="">Todos los locales</option>' + misTalleres.map(t => `<option value="${t.id}">${t.nombre_taller}</option>`).join('');
+}
+
+function tallerIdsActivos(){
+  if(tallerSeleccionado) return [tallerSeleccionado];
+  return misTalleres.map(t => t.id);
+}
+
+function fmtMonto(n){ return '$' + Math.round(n || 0).toLocaleString('es-CL'); }
+function fmtFechaHora(iso){ if(!iso) return '—'; return new Date(iso).toLocaleString('es-CL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}); }
+
+// ---------- Carga principal (KPIs + tabla + facturación + gráfico) ----------
+async function cargarTodo(){
+  await Promise.all([cargarKpisYTabla(), cargarFacturacion()]);
+}
+
+async function cargarKpisYTabla(){
+  const ids = tallerIdsActivos();
+  if(!ids.length){ $('tablaTraslados').innerHTML = '<tr><td colspan="5" class="vacio-tabla">Sin locales para mostrar.</td></tr>'; return; }
+
+  const inicioMes = new Date(); inicioMes.setDate(1); inicioMes.setHours(0,0,0,0);
+
+  const { data: traslados, error } = await sb
+    .from('traslados')
+    .select('id, patente, tipo, created_at, estado_retiro, estado_entrega, monto_cobro_retiro, monto_cobro_entrega, taller_id')
+    .in('taller_id', ids)
+    .order('created_at', { ascending: false });
+
+  if(error){ $('tablaTraslados').innerHTML = `<tr><td colspan="5" class="vacio-tabla">No se pudo cargar: ${error.message}</td></tr>`; return; }
+
+  const lista = traslados || [];
+
+  // KPIs
+  const delMes = lista.filter(t => new Date(t.created_at) >= inicioMes);
+  const facturacionMes = delMes.reduce((acc,t)=> acc + (t.monto_cobro_retiro||0) + (t.monto_cobro_entrega||0), 0);
+  const enCurso = lista.filter(esActivo);
+  const retirosEnCurso = enCurso.filter(t => t.estado_retiro && t.estado_retiro !== 'completado' && t.estado_retiro !== 'cancelado').length;
+  const entregasEnCurso = enCurso.filter(t => t.estado_entrega && t.estado_entrega !== 'completado' && t.estado_entrega !== 'cancelado').length;
+
+  $('kpiFacturacionMes').textContent = fmtMonto(facturacionMes);
+  $('kpiTrasladosMes').textContent = delMes.length;
+  $('kpiTrasladosMesSub').textContent = tallerSeleccionado ? '' : `${misTalleres.length} local${misTalleres.length !== 1 ? 'es' : ''}`;
+  $('kpiEnCurso').textContent = enCurso.length;
+  $('kpiEnCursoSub').textContent = `${retirosEnCurso} retiros · ${entregasEnCurso} entregas`;
+  $('kpiTendenciaMes').textContent = '';
+
+  // Tabla con filtro + paginación
+  window._trasladosCache = lista;
+  renderTablaTraslados();
+}
+
+function esActivo(t){
+  const estados = [t.estado_retiro, t.estado_entrega].filter(Boolean);
+  return estados.some(e => e !== 'completado' && e !== 'cancelado');
+}
+function esCompletado(t){
+  const estados = [t.estado_retiro, t.estado_entrega].filter(Boolean);
+  return estados.length > 0 && estados.every(e => e === 'completado');
+}
+
+function renderTablaTraslados(){
+  let lista = window._trasladosCache || [];
+  const localFiltro = $('filtroLocalTraslados').value;
+  if(localFiltro) lista = lista.filter(t => t.taller_id === localFiltro);
+  if(filtroEstado === 'curso') lista = lista.filter(esActivo);
+  else if(filtroEstado === 'completado') lista = lista.filter(esCompletado);
+
+  const total = lista.length;
+  const inicio = paginaActual * FILAS_POR_PAGINA;
+  const pagina = lista.slice(inicio, inicio + FILAS_POR_PAGINA);
+
+  const tbody = $('tablaTraslados');
+  if(!pagina.length){ tbody.innerHTML = '<tr><td colspan="5" class="vacio-tabla">No hay traslados en esta vista.</td></tr>'; }
+  else {
+    tbody.innerHTML = pagina.map(t => {
+      const taller = misTalleres.find(x => x.id === t.taller_id);
+      const estadoPrincipal = t.estado_retiro && t.estado_retiro !== 'completado' && t.estado_retiro !== 'cancelado' ? t.estado_retiro
+        : (t.estado_entrega && t.estado_entrega !== 'completado' && t.estado_entrega !== 'cancelado' ? t.estado_entrega
+        : (esCompletado(t) ? 'completado' : (t.estado_retiro || t.estado_entrega || '—')));
+      return `<tr>
+        <td class="patente">${t.patente || '—'}</td>
+        <td class="taller-tag"><span class="taller-dot" style="background:${colorPorTaller(t.taller_id)};"></span>${taller ? taller.nombre_taller : '—'}</td>
+        <td>${TIPO_LABEL[t.tipo] || t.tipo || '—'}</td>
+        <td><span class="estado-pill ${estadoPrincipal}">${ESTADO_LABEL[estadoPrincipal] || estadoPrincipal}</span></td>
+        <td>${fmtFechaHora(t.created_at)}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  $('paginacionInfo').textContent = total ? `Mostrando ${Math.min(inicio+1,total)}–${Math.min(inicio+FILAS_POR_PAGINA,total)} de ${total}` : 'Sin resultados';
+  $('btnPagAnterior').disabled = paginaActual === 0;
+  $('btnPagSiguiente').disabled = inicio + FILAS_POR_PAGINA >= total;
+}
+
+$('filtroLocalTraslados').addEventListener('change', ()=>{ paginaActual = 0; renderTablaTraslados(); });
+document.querySelectorAll('[data-filtro-estado]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    filtroEstado = btn.dataset.filtroEstado;
+    document.querySelectorAll('[data-filtro-estado]').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    paginaActual = 0;
+    renderTablaTraslados();
+  });
+});
+$('btnPagAnterior').addEventListener('click', ()=>{ if(paginaActual>0){ paginaActual--; renderTablaTraslados(); } });
+$('btnPagSiguiente').addEventListener('click', ()=>{ paginaActual++; renderTablaTraslados(); });
+
+// ---------- Facturación + gráfico ----------
+async function cargarFacturacion(){
+  const { data, error } = await sb
+    .from('facturas')
+    .select('id, monto_total, estado, periodo_desde, periodo_hasta, created_at')
+    .eq('cliente_facturacion_id', contexto.cliente_facturacion_id)
+    .order('created_at', { ascending: false })
+    .limit(6);
+
+  if(error){ $('listaFacturas').innerHTML = `<div class="vacio-tabla">No se pudo cargar: ${error.message}</div>`; return; }
+
+  const facturas = data || [];
+  const pendiente = facturas.filter(f => f.estado === 'emitida').reduce((a,f)=>a+(f.monto_total||0),0);
+  const cantPendiente = facturas.filter(f => f.estado === 'emitida').length;
+  $('kpiFacturasPendientes').textContent = fmtMonto(pendiente);
+  $('kpiFacturasPendientesSub').textContent = `${cantPendiente} factura${cantPendiente !== 1 ? 's' : ''} emitida${cantPendiente !== 1 ? 's' : ''}`;
+
+  $('listaFacturas').innerHTML = facturas.length ? facturas.slice(0,4).map(f => `
+    <div class="factura-row">
+      <div class="factura-info"><b>${new Date(f.periodo_desde || f.created_at).toLocaleDateString('es-CL',{month:'long', year:'numeric'})}</b><span>${f.periodo_desde ? new Date(f.periodo_desde).toLocaleDateString('es-CL') + ' – ' + new Date(f.periodo_hasta).toLocaleDateString('es-CL') : ''}</span></div>
+      <div class="factura-monto">${fmtMonto(f.monto_total)}<span class="factura-estado ${f.estado}">${f.estado === 'pagada' ? 'Pagada' : f.estado === 'emitida' ? 'Emitida' : f.estado === 'vencida' ? 'Vencida' : 'Borrador'}</span></div>
+    </div>`).join('') : '<div class="vacio-tabla">Sin facturas todavía.</div>';
+
+  // Gráfico: últimos 6 meses de monto_total (histórico simple)
+  const ultimos6 = [...facturas].reverse().slice(-6);
+  const max = Math.max(1, ...ultimos6.map(f => f.monto_total || 0));
+  $('chartFacturacion').innerHTML = ultimos6.length ? ultimos6.map((f,i) => {
+    const pct = Math.max(4, Math.round((f.monto_total||0) / max * 100));
+    const esActual = i === ultimos6.length - 1;
+    const label = new Date(f.periodo_desde || f.created_at).toLocaleDateString('es-CL',{month:'short'});
+    return `<div class="bar-col"><div class="bar ${esActual ? 'current' : ''}" style="height:${pct}%"></div><span class="bar-label">${label}</span></div>`;
+  }).join('') : '<div class="vacio-tabla">Sin historial suficiente todavía.</div>';
+}
+
+// ---------- Comparativa entre locales ----------
+async function cargarComparativa(){
+  $('compararSubtitulo').textContent = `${contexto.cliente_razon_social} — ${misTalleres.length} locales.`;
+  const tbody = $('tablaComparar');
+  tbody.innerHTML = '<tr><td colspan="5" class="vacio-tabla">Cargando...</td></tr>';
+
+  const periodo = $('periodoCompararSelect').value;
+  const { actualDesde, actualHasta, anteriorDesde, anteriorHasta } = rangosPeriodo(periodo);
+
+  const ids = misTalleres.map(t => t.id);
+  if(!ids.length){ tbody.innerHTML = '<tr><td colspan="5" class="vacio-tabla">Sin locales para comparar.</td></tr>'; return; }
+
+  const [{ data: actuales }, { data: anteriores }] = await Promise.all([
+    sb.from('traslados').select('taller_id, estado_retiro, estado_entrega, monto_cobro_retiro, monto_cobro_entrega, created_at').in('taller_id', ids).gte('created_at', actualDesde).lt('created_at', actualHasta),
+    sb.from('traslados').select('taller_id, estado_retiro, estado_entrega').in('taller_id', ids).gte('created_at', anteriorDesde).lt('created_at', anteriorHasta),
+  ]);
+
+  function contarEtapas(lista, tallerId){
+    return (lista||[]).filter(t=>t.taller_id===tallerId).reduce((acc,t)=> acc + (t.estado_retiro?1:0) + (t.estado_entrega?1:0), 0);
+  }
+  function sumarFacturacion(lista, tallerId){
+    return (lista||[]).filter(t=>t.taller_id===tallerId).reduce((acc,t)=> acc + (t.monto_cobro_retiro||0) + (t.monto_cobro_entrega||0), 0);
+  }
+
+  const filas = misTalleres.map((t,i) => {
+    const etapasActual = contarEtapas(actuales, t.id);
+    const etapasAnterior = contarEtapas(anteriores, t.id);
+    const facturacion = sumarFacturacion(actuales, t.id);
+    return { taller: t, color: PALETA[i % PALETA.length], etapas: etapasActual, etapasAnterior, facturacion };
+  }).sort((a,b) => b.etapas - a.etapas);
+
+  const totalEtapas = filas.reduce((a,f)=>a+f.etapas,0) || 1;
+  const maxEtapas = Math.max(1, ...filas.map(f=>f.etapas));
+
+  tbody.innerHTML = filas.map(f => {
+    const pct = Math.round(f.etapas / totalEtapas * 100);
+    const barPct = Math.round(f.etapas / maxEtapas * 100);
+    let tendenciaHtml;
+    if(f.etapasAnterior === 0 && f.etapas === 0) tendenciaHtml = `<span class="tendencia flat">→ 0%</span>`;
+    else if(f.etapasAnterior === 0) tendenciaHtml = `<span class="tendencia up">▲ nuevo</span>`;
+    else {
+      const variacion = Math.round((f.etapas - f.etapasAnterior) / f.etapasAnterior * 100);
+      const clase = variacion > 0 ? 'up' : (variacion < 0 ? 'down' : 'flat');
+      const flecha = variacion > 0 ? '▲' : (variacion < 0 ? '▼' : '→');
+      tendenciaHtml = `<span class="tendencia ${clase}">${flecha} ${Math.abs(variacion)}%</span>`;
+    }
+    return `<tr>
+      <td class="compare-taller-cell"><span class="taller-dot" style="background:${f.color};"></span>${f.taller.nombre_taller}</td>
+      <td class="compare-bar-cell"><div class="compare-bar-track"><div class="compare-bar-fill" style="width:${barPct}%;"></div></div><span class="compare-value">${f.etapas}</span></td>
+      <td><span class="compare-value">${pct}%</span></td>
+      <td><span class="compare-value">${fmtMonto(f.facturacion)}</span></td>
+      <td>${tendenciaHtml}</td>
+    </tr>`;
+  }).join('');
+}
+
+function rangosPeriodo(periodo){
+  const ahora = new Date();
+  let dias = 30;
+  if(periodo === '90') dias = 90;
+  if(periodo === 'mes'){
+    const inicio = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
+    const anteriorInicio = new Date(ahora.getFullYear(), ahora.getMonth()-1, 1);
+    return { actualDesde: inicio.toISOString(), actualHasta: ahora.toISOString(), anteriorDesde: anteriorInicio.toISOString(), anteriorHasta: inicio.toISOString() };
+  }
+  const actualDesde = new Date(ahora.getTime() - dias*86400000);
+  const anteriorDesde = new Date(ahora.getTime() - dias*2*86400000);
+  return { actualDesde: actualDesde.toISOString(), actualHasta: ahora.toISOString(), anteriorDesde: anteriorDesde.toISOString(), anteriorHasta: actualDesde.toISOString() };
+}
+
+$('periodoCompararSelect').addEventListener('change', cargarComparativa);
+$('periodoSelect').addEventListener('change', cargarTodo);
+</script>
+</body>
+</html>
