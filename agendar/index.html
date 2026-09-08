@@ -151,7 +151,7 @@
   .field-row:last-child{margin-bottom:0;}
   .two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
   @media (max-width:560px){.two-col{grid-template-columns:1fr;}}
-  .three-col{display:grid;grid-template-columns:1fr 1.3fr 1.3fr;gap:12px;}
+  .three-col{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:12px;}
   @media (max-width:560px){.three-col{grid-template-columns:1fr;}}
   .error-msg{font-size:11px;color:var(--coral);margin-top:5px;display:none;}
   .error-msg.show{display:block;}
@@ -212,14 +212,15 @@
 
   .btn-row{display:flex;gap:10px;margin-top:20px;align-items:center;}
   .add-btn{
-    flex:1;background:var(--ink);color:var(--bg);
-    border:none;border-radius:7px;padding:12px;font-weight:600;font-size:13.5px;
-    cursor:pointer;transition:.15s;font-family:'Space Grotesk',sans-serif;
+    flex:1;background:none;color:var(--ink);border:1.5px solid var(--line);
+    border-radius:7px;padding:11px;font-weight:600;font-size:13px;
+    cursor:pointer;transition:.15s;font-family:'Inter',sans-serif;
     display:flex;align-items:center;justify-content:center;gap:8px;
   }
-  .add-btn:hover{background:var(--teal-deep);}
+  .add-btn:hover{border-color:var(--teal);color:var(--teal-deep);background:var(--teal-dim);}
   .add-btn:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
-  .add-btn.pulse-ok{background:var(--ok);}
+  .add-btn.pulse-ok{background:var(--ok-dim);border-color:var(--ok);color:var(--ok);}
+  .btn-row-caption{font-size:11px;color:var(--ink-dim);margin:6px 0 0;text-align:center;}
   .cancel-edit-btn{
     display:none;background:none;border:1px solid var(--line);color:var(--ink-dim);
     border-radius:7px;padding:12px 14px;font-weight:600;font-size:12.5px;cursor:pointer;white-space:nowrap;
@@ -250,14 +251,15 @@
   .tray-remove:hover{color:var(--coral);background:var(--coral-dim);}
   .tray-edit:focus-visible,.tray-remove:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
   .confirm-all-btn{
-    width:100%;margin-top:14px;background:var(--teal);color:#fff;border:none;
-    border-radius:7px;padding:12px;font-weight:700;font-size:13.5px;font-family:'Space Grotesk',sans-serif;
+    width:100%;margin-top:14px;background:var(--coral);color:#fff;border:none;
+    border-radius:9px;padding:16px;font-weight:700;font-size:15.5px;font-family:'Space Grotesk',sans-serif;
     cursor:pointer;transition:background .15s;display:flex;align-items:center;justify-content:center;gap:9px;
+    box-shadow:0 4px 14px rgba(232,84,47,.25);
   }
-  .confirm-all-btn:hover{background:var(--teal-deep);}
+  .confirm-all-btn:hover{background:#c94324;}
   .confirm-all-btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
-  .confirm-all-btn:disabled{opacity:.35;cursor:default;}
-  .confirm-all-btn:disabled:hover{background:var(--teal);}
+  .confirm-all-btn:disabled{opacity:.35;cursor:default;box-shadow:none;}
+  .confirm-all-btn:disabled:hover{background:var(--coral);}
   .confirm-all-btn.success{background:var(--ok);}
   .btn-spinner{
     width:15px;height:15px;border-radius:50%;border:2px solid rgba(255,255,255,.4);
@@ -449,7 +451,7 @@
       </div>
       <div class="datetime-block hidden" id="datetimeBlock">
         <label for="fechaPrincipal">Fecha y hora</label>
-        <input type="datetime-local" id="fechaPrincipal">
+        <input type="datetime-local" id="fechaPrincipal" step="1800">
         <div class="error-msg" id="errorFechaPrincipal">Elige fecha y hora, o cambia a "Ahora".</div>
       </div>
     </div>
@@ -463,7 +465,7 @@
       </div>
       <div class="datetime-block hidden" id="entregaDatetimeBlock">
         <label for="fechaEntrega">Fecha y hora de entrega</label>
-        <input type="datetime-local" id="fechaEntrega">
+        <input type="datetime-local" id="fechaEntrega" step="1800">
         <div class="error-msg" id="errorFechaEntrega">Elige fecha y hora, o marca "coordinar después".</div>
       </div>
     </div>
@@ -555,10 +557,11 @@
     <div class="btn-row">
       <button class="add-btn" id="addBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0;"><path d="M12 5v14M5 12h14"/></svg>
-        <span id="addBtnText">Agregar a Traslados</span>
+        <span id="addBtnText">Agregar a la lista</span>
       </button>
       <button type="button" class="cancel-edit-btn" id="cancelEditBtn">Cancelar edición</button>
     </div>
+    <p class="btn-row-caption">Esto solo agrega el auto a la lista de abajo — todavía no se agenda nada.</p>
 
     <div class="tray">
       <div class="tray-head">
@@ -567,7 +570,7 @@
       </div>
       <div id="trayList"><div class="tray-empty">Agrega traslados arriba — puedes cargar varios antes de enviarlos todos juntos.</div></div>
       <button class="confirm-all-btn" id="confirmAllBtn" disabled>
-        <span id="confirmBtnText">Confirmar y agendar</span>
+        <span id="confirmBtnText">✓ Confirmar y agendar todo</span>
       </button>
     </div>
 
@@ -1039,7 +1042,7 @@ function startEdit(i){
 
 function cancelEdit(){
   editingIndex = null;
-  document.getElementById('addBtnText').textContent = 'Agregar a Traslados';
+  document.getElementById('addBtnText').textContent = 'Agregar a la lista';
   document.getElementById('cancelEditBtn').classList.remove('show');
   document.getElementById('editingBanner').classList.remove('show');
   document.getElementById('patente').value = '';
@@ -1062,6 +1065,18 @@ function cancelEdit(){
 }
 
 document.getElementById('cancelEditBtn').addEventListener('click', cancelEdit);
+
+function resetSeleccionesFormulario(){
+  // Tras confirmar y agendar todo, el formulario vuelve a su estado inicial
+  // (Retiro / Ahora) — no debe heredar las selecciones del lote anterior.
+  tipoCtrl.select(0);
+  whenCtrl.select(0);
+  document.getElementById('entregaPendiente').checked = true;
+  entregaPendienteFlag = true;
+  document.getElementById('entregaDatetimeBlock').classList.add('hidden');
+  document.getElementById('entregaBlock').style.display = 'none';
+  document.getElementById('datetimeBlock').classList.add('hidden');
+}
 
 document.getElementById('addBtn').addEventListener('click', ()=>{
   const patente = document.getElementById('patente').value.trim().toUpperCase();
@@ -1120,7 +1135,7 @@ document.getElementById('addBtn').addEventListener('click', ()=>{
   document.getElementById('repeatAddr').style.display = 'inline';
 
   editingIndex = null;
-  document.getElementById('addBtnText').textContent = 'Agregar a Traslados';
+  document.getElementById('addBtnText').textContent = 'Agregar a la lista';
   document.getElementById('cancelEditBtn').classList.remove('show');
   document.getElementById('editingBanner').classList.remove('show');
 
@@ -1130,7 +1145,7 @@ document.getElementById('addBtn').addEventListener('click', ()=>{
   document.getElementById('addBtnText').textContent = '✓ Agregado';
   setTimeout(()=>{
     addBtn.classList.remove('pulse-ok');
-    document.getElementById('addBtnText').textContent = 'Agregar a Traslados';
+    document.getElementById('addBtnText').textContent = 'Agregar a la lista';
   }, 700);
 
   renderTray();
@@ -1191,7 +1206,7 @@ document.getElementById('confirmAllBtn').addEventListener('click', async ()=>{
 
   if(error){
     btn.disabled = false;
-    btn.innerHTML = '<span id="confirmBtnText">Confirmar y agendar</span>';
+    btn.innerHTML = '<span id="confirmBtnText">✓ Confirmar y agendar todo</span>';
     document.getElementById('errorText').textContent = 'No se pudo guardar: ' + error.message;
     errorBanner.style.display = 'flex';
     return;
@@ -1208,6 +1223,7 @@ document.getElementById('confirmAllBtn').addEventListener('click', async ()=>{
   const n = guardados.length;
   queue = [];
   renderTray();
+  resetSeleccionesFormulario();
 
   const banner = document.getElementById('successBanner');
   document.getElementById('successText').textContent = n === 1
@@ -1225,7 +1241,7 @@ document.getElementById('confirmAllBtn').addEventListener('click', async ()=>{
   setTimeout(()=>{
     btn.classList.remove('success');
     btn.disabled = true;
-    btn.innerHTML = '<span id="confirmBtnText">Confirmar y agendar</span>';
+    btn.innerHTML = '<span id="confirmBtnText">✓ Confirmar y agendar todo</span>';
   }, 1400);
 });
 
