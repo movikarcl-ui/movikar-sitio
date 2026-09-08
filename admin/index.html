@@ -254,23 +254,23 @@
 
           <fieldset>
             <legend>Contactos del taller</legend>
-            <div class="contacto-label">Propietario <span class="opcional">(opcional)</span></div>
-            <div class="grid-3">
-              <input id="t-prop-nombre" placeholder="Nombre" />
-              <input id="t-prop-correo" type="email" placeholder="Correo" />
-              <input id="t-prop-telefono" placeholder="Teléfono" />
-            </div>
             <div class="contacto-label">Encargado del taller</div>
             <div class="grid-3">
               <input id="t-enc-nombre" placeholder="Nombre" />
               <input id="t-enc-correo" type="email" placeholder="Correo" />
               <input id="t-enc-telefono" placeholder="Teléfono" />
             </div>
-            <div class="contacto-label">Encargado de pago</div>
+            <div class="contacto-label">Encargado de pago <span class="opcional">(a nivel de RUT — compartido entre locales)</span></div>
             <div class="grid-3">
               <input id="t-pago-nombre" placeholder="Nombre" />
               <input id="t-pago-correo" type="email" placeholder="Correo" />
               <input id="t-pago-telefono" placeholder="Teléfono" />
+            </div>
+            <div class="contacto-label">Propietario <span class="opcional">(a nivel de RUT — compartido entre locales, opcional)</span></div>
+            <div class="grid-3">
+              <input id="t-prop-nombre" placeholder="Nombre" />
+              <input id="t-prop-correo" type="email" placeholder="Correo" />
+              <input id="t-prop-telefono" placeholder="Teléfono" />
             </div>
           </fieldset>
 
@@ -912,15 +912,15 @@
     $("t-numero").value = t.numero || "";
     $("t-comuna").value = t.comuna || "";
     $("t-depto").value = t.depto_casa || "";
-    $("t-prop-nombre").value = t.propietario_nombre || "";
-    $("t-prop-correo").value = t.propietario_correo || "";
-    $("t-prop-telefono").value = t.propietario_telefono || "";
     $("t-enc-nombre").value = t.encargado_nombre || "";
     $("t-enc-correo").value = t.encargado_correo || "";
     $("t-enc-telefono").value = t.encargado_telefono || "";
 
     const cliente = cacheClientesPorId[t.cliente_facturacion_id];
     if (cliente) {
+      $("t-prop-nombre").value = cliente.propietario_nombre || "";
+      $("t-prop-correo").value = cliente.propietario_correo || "";
+      $("t-prop-telefono").value = cliente.propietario_telefono || "";
       $("t-ciclo").value = cliente.ciclo_facturacion || "30_dias";
       $("t-ciclo-dias-wrap").style.display = cliente.ciclo_facturacion === "personalizado" ? "block" : "none";
       $("t-ciclo-dias").value = cliente.ciclo_facturacion_dias || "";
@@ -957,9 +957,6 @@
       numero: $("t-numero").value.trim(),
       comuna: $("t-comuna").value.trim(),
       depto_casa: $("t-depto").value.trim() || null,
-      propietario_nombre: $("t-prop-nombre").value.trim() || null,
-      propietario_correo: $("t-prop-correo").value.trim() || null,
-      propietario_telefono: $("t-prop-telefono").value.trim() || null,
       encargado_nombre: $("t-enc-nombre").value.trim() || null,
       encargado_correo: $("t-enc-correo").value.trim() || null,
       encargado_telefono: $("t-enc-telefono").value.trim() || null,
@@ -968,6 +965,9 @@
     const datosCliente = {
       ciclo_facturacion: ciclo,
       ciclo_facturacion_dias: ciclo === "personalizado" ? (parseInt($("t-ciclo-dias").value, 10) || null) : null,
+      propietario_nombre: $("t-prop-nombre").value.trim() || null,
+      propietario_correo: $("t-prop-correo").value.trim() || null,
+      propietario_telefono: $("t-prop-telefono").value.trim() || null,
       encargado_pago_nombre: $("t-pago-nombre").value.trim() || null,
       encargado_pago_correo: $("t-pago-correo").value.trim() || null,
       encargado_pago_telefono: $("t-pago-telefono").value.trim() || null,
@@ -1015,7 +1015,7 @@
       taller: {
         ...datosTaller,
         ...datosCliente,
-        propietario: { nombre: datosTaller.propietario_nombre, correo: datosTaller.propietario_correo, telefono: datosTaller.propietario_telefono },
+        propietario: { nombre: datosCliente.propietario_nombre, correo: datosCliente.propietario_correo, telefono: datosCliente.propietario_telefono },
         encargado: { nombre: datosTaller.encargado_nombre, correo: datosTaller.encargado_correo, telefono: datosTaller.encargado_telefono },
         encargado_pago: { nombre: datosCliente.encargado_pago_nombre, correo: datosCliente.encargado_pago_correo, telefono: datosCliente.encargado_pago_telefono },
       },
