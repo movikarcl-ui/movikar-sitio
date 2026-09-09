@@ -539,6 +539,31 @@
   }
   activarValidacionRut("t-rut", "t-rut-mensaje");
 
+  // ---------- Validación de teléfono chileno ----------
+  function limpiarTelefono(v) { return (v || "").replace(/[^0-9+]/g, ""); }
+  function telefonoEsValido(v) {
+    const limpio = limpiarTelefono(v).replace(/^\+/, "");
+    return /^569\d{8}$/.test(limpio) || /^9\d{8}$/.test(limpio);
+  }
+  function formatoGuardadoTelefono(v) {
+    const limpio = limpiarTelefono(v).replace(/^\+/, "");
+    if (/^9\d{8}$/.test(limpio)) return "+56" + limpio;
+    if (/^569\d{8}$/.test(limpio)) return "+" + limpio;
+    return (v || "").trim();
+  }
+  function activarValidacionTelefono(inputId) {
+    const input = $(inputId);
+    if (!input) return;
+    input.addEventListener("input", () => {
+      const limpio = limpiarTelefono(input.value);
+      input.style.borderColor = limpio.length < 8 ? "" : (telefonoEsValido(input.value) ? "var(--ok)" : "var(--coral)");
+    });
+    input.addEventListener("blur", () => {
+      if (telefonoEsValido(input.value)) input.value = formatoGuardadoTelefono(input.value);
+    });
+  }
+  ["t-enc-telefono","t-pago-telefono","t-prop-telefono","t-p-telefono","t-u-telefono","t-u2-telefono","t-u3-telefono"].forEach(activarValidacionTelefono);
+
   async function invocarAdmin(payload) {
     const { data, error } = await sb.functions.invoke("admin-crear-taller", { body: payload });
     if (error) {
@@ -985,9 +1010,17 @@
     if (!datosTaller.encargado_nombre || !datosTaller.encargado_correo || !datosTaller.encargado_telefono) {
       return mostrarError("taller-error", "Completa nombre, correo y teléfono del Encargado del taller.");
     }
+    if (!telefonoEsValido(datosTaller.encargado_telefono)) {
+      return mostrarError("taller-error", "El teléfono del Encargado del taller no es válido (formato: +56912345678).");
+    }
+    datosTaller.encargado_telefono = formatoGuardadoTelefono(datosTaller.encargado_telefono);
     if (!datosCliente.encargado_pago_nombre || !datosCliente.encargado_pago_correo || !datosCliente.encargado_pago_telefono) {
       return mostrarError("taller-error", "Completa nombre, correo y teléfono del Encargado de pago.");
     }
+    if (!telefonoEsValido(datosCliente.encargado_pago_telefono)) {
+      return mostrarError("taller-error", "El teléfono del Encargado de pago no es válido (formato: +56912345678).");
+    }
+    datosCliente.encargado_pago_telefono = formatoGuardadoTelefono(datosCliente.encargado_pago_telefono);
 
     const btn = $("btn-crear-taller");
 
@@ -1047,6 +1080,10 @@
     if (!payload.usuario.nombre || !payload.usuario.correo || !payload.usuario.telefono) {
       return mostrarError("taller-error", "Completa nombre, correo y teléfono del primer usuario.");
     }
+    if (!telefonoEsValido(payload.usuario.telefono)) {
+      return mostrarError("taller-error", "El teléfono del primer usuario no es válido (formato: +56912345678).");
+    }
+    payload.usuario.telefono = formatoGuardadoTelefono(payload.usuario.telefono);
     if (!mismo && (!payload.principal.nombre || !payload.principal.correo || !payload.principal.telefono)) {
       return mostrarError("taller-error", "Completa nombre, correo y teléfono del contacto principal, o marca que es la misma persona que el Usuario 1.");
     }
@@ -1426,7 +1463,7 @@
     if (!data.length) { tbody.innerHTML = `<tr><td colspan="7" class="vacio">No hay choferes registrados todavía.</td></tr>`; return; }
     tbody.innerHTML = data.map((c) => {
       const pend = pendientesPorChofer[c.id] || { monto: 0, etapas: 0 };
-      const tieneDocumentos = c.doc_licencia || c.doc_cedula_frente || c.doc_cedula_dorso || c.doc_foto_perfil || c.doc_certificado_antecedentes;
+      const tieneDocumentos = c.doc_licencia || c.doc_cedula_frente || c.doc_cedula_dorso || c.doc_foto_perfil || c.doc_certificado_antecedentes || c.doc_hoja_vida;
       return `
       <tr>
         <td><strong>${c.nombre}</strong></td>
@@ -1473,6 +1510,7 @@
     doc_cedula_dorso: "Cédula — dorso",
     doc_foto_perfil: "Foto de perfil",
     doc_certificado_antecedentes: "Certificado de antecedentes",
+    doc_hoja_vida: "Hoja de vida del conductor",
   };
 
   async function toggleDocumentosChofer(choferId) {
