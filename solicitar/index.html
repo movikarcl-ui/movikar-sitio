@@ -243,6 +243,31 @@
   }
   activarValidacionRut("rut_taller", "rut_taller-mensaje");
 
+  // ---------- Validación de teléfono chileno ----------
+  function limpiarTelefono(v) { return (v || "").replace(/[^0-9+]/g, ""); }
+  function telefonoEsValido(v) {
+    const limpio = limpiarTelefono(v).replace(/^\+/, "");
+    return /^569\d{8}$/.test(limpio) || /^9\d{8}$/.test(limpio);
+  }
+  function formatoGuardadoTelefono(v) {
+    const limpio = limpiarTelefono(v).replace(/^\+/, "");
+    if (/^9\d{8}$/.test(limpio)) return "+56" + limpio;
+    if (/^569\d{8}$/.test(limpio)) return "+" + limpio;
+    return (v || "").trim();
+  }
+  function activarValidacionTelefono(inputId) {
+    const input = $(inputId);
+    if (!input) return;
+    input.addEventListener("input", () => {
+      const limpio = limpiarTelefono(input.value);
+      input.style.borderColor = limpio.length < 8 ? "" : (telefonoEsValido(input.value) ? "var(--ok)" : "var(--coral)");
+    });
+    input.addEventListener("blur", () => {
+      if (telefonoEsValido(input.value)) input.value = formatoGuardadoTelefono(input.value);
+    });
+  }
+  ["prop_telefono","enc_telefono","pago_telefono","principal_telefono","usuario_telefono","usuario2_telefono","usuario3_telefono"].forEach(activarValidacionTelefono);
+
   const camposUsuario = ["usuario_nombre", "usuario_correo", "usuario_telefono"];
 
   function sincronizarUsuarioDesdePrincipal() {
@@ -278,6 +303,17 @@
       return;
     }
     $("rut_taller").value = formatoGuardadoRut($("rut_taller").value);
+
+    for (const [id, etiqueta] of [["enc_telefono","Encargado del taller"], ["pago_telefono","Encargado de pago"], ["principal_telefono","Contacto principal"], ["usuario_telefono","Usuario 1"]]) {
+      const val = $(id).value.trim();
+      if (val && !telefonoEsValido(val)) {
+        $("form-error").textContent = `El teléfono de ${etiqueta} no es válido. Usa el formato +56912345678.`;
+        $("form-error").style.display = "block";
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+      if (val) $(id).value = formatoGuardadoTelefono(val);
+    }
 
     if (!$("acepta_terminos").checked) {
       $("form-error").textContent = "Debes aceptar los Términos y Condiciones para continuar.";
