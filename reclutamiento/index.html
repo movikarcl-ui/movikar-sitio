@@ -88,7 +88,9 @@
         <input id="nombre" required />
         <div class="grid-2">
           <div><label for="correo">Correo</label><input id="correo" type="email" required /></div>
-          <div><label for="telefono">Teléfono</label><input id="telefono" required /></div>
+          <div><label for="telefono">Teléfono</label><input id="telefono" placeholder="+56912345678" required />
+            <div class="rut-mensaje" id="telefono-mensaje">Teléfono inválido — usa formato +56912345678.</div>
+          </div>
         </div>
         <div class="grid-2">
           <div>
@@ -125,6 +127,10 @@
         <label for="doc_certificado_antecedentes">Certificado de antecedentes</label>
         <input id="doc_certificado_antecedentes" type="file" accept="image/*,application/pdf" required />
         <div class="archivo-nombre" id="nombre_doc_certificado_antecedentes"></div>
+
+        <label for="doc_hoja_vida">Hoja de vida del conductor (PDF)</label>
+        <input id="doc_hoja_vida" type="file" accept="application/pdf" required />
+        <div class="archivo-nombre" id="nombre_doc_hoja_vida"></div>
       </fieldset>
 
       <div class="terminos-box">
@@ -194,8 +200,36 @@
   }
   activarValidacionRut("rut", "rut-mensaje");
 
+  // ---------- Validación de teléfono chileno ----------
+  function limpiarTelefono(v) { return (v || "").replace(/[^0-9+]/g, ""); }
+  function telefonoEsValido(v) {
+    const limpio = limpiarTelefono(v).replace(/^\+/, "");
+    return /^569\d{8}$/.test(limpio) || /^9\d{8}$/.test(limpio);
+  }
+  function formatoGuardadoTelefono(v) {
+    const limpio = limpiarTelefono(v).replace(/^\+/, "");
+    if (/^9\d{8}$/.test(limpio)) return "+56" + limpio;
+    if (/^569\d{8}$/.test(limpio)) return "+" + limpio;
+    return v.trim();
+  }
+  function activarValidacionTelefono(inputId, mensajeId) {
+    const input = document.getElementById(inputId);
+    const mensaje = mensajeId ? document.getElementById(mensajeId) : null;
+    input.addEventListener("input", () => {
+      const limpio = limpiarTelefono(input.value);
+      if (limpio.length < 8) { input.style.borderColor = ""; if (mensaje) mensaje.style.display = "none"; return; }
+      const ok = telefonoEsValido(input.value);
+      input.style.borderColor = ok ? "var(--ok)" : "var(--coral)";
+      if (mensaje) mensaje.style.display = ok ? "none" : "block";
+    });
+    input.addEventListener("blur", () => {
+      if (telefonoEsValido(input.value)) input.value = formatoGuardadoTelefono(input.value);
+    });
+  }
+  activarValidacionTelefono("telefono", "telefono-mensaje");
+
   const MAX_BYTES = 8 * 1024 * 1024;
-  const DOCUMENTOS = ["doc_licencia", "doc_cedula_frente", "doc_cedula_dorso", "doc_foto_perfil", "doc_certificado_antecedentes"];
+  const DOCUMENTOS = ["doc_licencia", "doc_cedula_frente", "doc_cedula_dorso", "doc_foto_perfil", "doc_certificado_antecedentes", "doc_hoja_vida"];
 
   DOCUMENTOS.forEach((id) => {
     $(id).addEventListener("change", () => {
@@ -226,6 +260,11 @@
       return mostrarError("El RUT ingresado no es válido. Revisa el dígito verificador.");
     }
     $("rut").value = formatoGuardadoRut($("rut").value);
+
+    if (!telefonoEsValido($("telefono").value)) {
+      return mostrarError("El teléfono no es válido. Usa el formato +56912345678.");
+    }
+    $("telefono").value = formatoGuardadoTelefono($("telefono").value);
 
     if (!$("acepta_terminos").checked) {
       return mostrarError("Debes aceptar los Términos y Condiciones para continuar.");
