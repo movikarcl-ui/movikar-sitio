@@ -841,6 +841,26 @@ document.getElementById('repeatAddr').addEventListener('click', ()=>{
 function showError(id){ document.getElementById(id).classList.add('show'); }
 function clearError(id){ document.getElementById(id).classList.remove('show'); }
 
+// ---------- Validación de teléfono chileno ----------
+function limpiarTelefono(v){ return (v || '').replace(/[^0-9+]/g, ''); }
+function telefonoEsValido(v){
+  const limpio = limpiarTelefono(v).replace(/^\+/, '');
+  return /^569\d{8}$/.test(limpio) || /^9\d{8}$/.test(limpio);
+}
+function formatoGuardadoTelefono(v){
+  const limpio = limpiarTelefono(v).replace(/^\+/, '');
+  if(/^9\d{8}$/.test(limpio)) return '+56' + limpio;
+  if(/^569\d{8}$/.test(limpio)) return '+' + limpio;
+  return (v || '').trim();
+}
+document.getElementById('clienteTelefono').addEventListener('input', (e)=>{
+  const limpio = limpiarTelefono(e.target.value);
+  e.target.style.borderColor = limpio.length < 8 ? '' : (telefonoEsValido(e.target.value) ? 'var(--ok)' : 'var(--coral)');
+});
+document.getElementById('clienteTelefono').addEventListener('blur', (e)=>{
+  if(telefonoEsValido(e.target.value)) e.target.value = formatoGuardadoTelefono(e.target.value);
+});
+
 // ---------- Autocompletar desde un traslado anterior del mismo taller (por patente) ----------
 function debounce(fn, delay){
   let t;
@@ -1087,7 +1107,7 @@ document.getElementById('addBtn').addEventListener('click', ()=>{
   const comuna = document.getElementById('comuna').value.trim();
   const deptoCasa = document.getElementById('deptoCasa').value.trim();
   const clienteNombre = document.getElementById('clienteNombre').value.trim();
-  const clienteTelefono = document.getElementById('clienteTelefono').value.trim();
+  let clienteTelefono = document.getElementById('clienteTelefono').value.trim();
   const notas = document.getElementById('notas').value.trim();
 
   let valid = true;
@@ -1102,10 +1122,13 @@ document.getElementById('addBtn').addEventListener('click', ()=>{
   if(!comuna){ showError('errorComuna'); document.getElementById('comuna').classList.add('field-error'); valid = false; }
   if(!clienteNombre){ showError('errorClienteNombre'); document.getElementById('clienteNombre').classList.add('field-error'); valid = false; }
   if(!clienteTelefono){ showError('errorClienteTelefono'); document.getElementById('clienteTelefono').classList.add('field-error'); valid = false; }
+  else if(!telefonoEsValido(clienteTelefono)){ document.getElementById('errorClienteTelefono').textContent = 'Teléfono inválido — usa formato +56912345678.'; showError('errorClienteTelefono'); document.getElementById('clienteTelefono').classList.add('field-error'); valid = false; }
   if(selectedWhen === 'programar' && !document.getElementById('fechaPrincipal').value){ showError('errorFechaPrincipal'); valid = false; }
   if(selectedTipo === 'ambos' && !entregaPendienteFlag && !document.getElementById('fechaEntrega').value){ showError('errorFechaEntrega'); valid = false; }
 
   if(!valid) return;
+
+  clienteTelefono = formatoGuardadoTelefono(clienteTelefono);
 
   const fechaPrincipalValue = selectedWhen === 'ahora'
     ? new Date().toISOString()
