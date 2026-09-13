@@ -564,8 +564,8 @@
   }
   ["t-enc-telefono","t-pago-telefono","t-prop-telefono","t-p-telefono","t-u-telefono","t-u2-telefono","t-u3-telefono"].forEach(activarValidacionTelefono);
 
-  async function invocarAdmin(payload) {
-    const { data, error } = await sb.functions.invoke("admin-crear-taller", { body: payload });
+  async function invocarEdgeFunction(nombreFuncion, payload) {
+    const { data, error } = await sb.functions.invoke(nombreFuncion, { body: payload });
     if (error) {
       try {
         if (error.context && typeof error.context.json === "function") {
@@ -577,6 +577,9 @@
     }
     if (data && data.error) return { error: data.error };
     return { data };
+  }
+  async function invocarAdmin(payload) {
+    return invocarEdgeFunction("admin-crear-taller", payload);
   }
 
   // ---------- Login OTP ----------
@@ -883,11 +886,24 @@
         if (!t) return;
         const yaHabilitado = t.habilitado;
         if (!yaHabilitado && !clienteTieneTarifaCompleta(t.cliente_facturacion_id)) {
-          alert("Este cliente de facturación todavía no tiene tarifa cargada para retiro y entrega. Carga la tarifa antes de habilitar el taller (pantalla Tarifas — próximamente; mientras tanto, contacta al equipo técnico).");
+          alert("Este cliente de facturación todavía no tiene tarifa cargada para retiro y entrega. Ve a la pestaña Tarifas y carga el precio de retiro y entrega para este cliente antes de habilitar el taller.");
           return;
         }
-        const { error } = await sb.from("talleres").update({ habilitado: !yaHabilitado }).eq("id", t.id);
-        if (error) { alert("No se pudo actualizar: " + error.message); return; }
+        btn.disabled = true;
+        if (yaHabilitado) {
+          const { error } = await sb.from("talleres").update({ habilitado: false }).eq("id", t.id);
+          btn.disabled = false;
+          if (error) { alert("No se pudo actualizar: " + error.message); return; }
+        } else {
+          const res = await invocarEdgeFunction("notificar-taller-habilitado", { taller_id: t.id });
+          btn.disabled = false;
+          if (res.error) { alert("No se pudo habilitar: " + res.error); return; }
+          const correos = (res.data && res.data.correos) || {};
+          const fallidos = Object.entries(correos).filter(([, v]) => v && v.enviado === false);
+          if (fallidos.length) {
+            alert("Taller habilitado. Algunos correos de aviso no se enviaron: " + fallidos.map(([k]) => k).join(", "));
+          }
+        }
         cargarTalleres();
       });
     });
@@ -1485,6 +1501,17 @@
 
     tbody.querySelectorAll(".estado-select").forEach((sel) => {
       sel.addEventListener("change", async () => {
+        if (sel.value === "aprobado") {
+          sel.disabled = true;
+          const res = await invocarEdgeFunction("notificar-chofer-aprobado", { chofer_id: sel.dataset.id });
+          sel.disabled = false;
+          if (res.error) { alert("No se pudo aprobar: " + res.error); sel.value = "pendiente"; return; }
+          if (res.data && res.data.correo && res.data.correo.enviado === false) {
+            alert("Chofer aprobado. El correo de aviso no se pudo enviar: " + (res.data.correo.motivo || ""));
+          }
+          cargarChoferes();
+          return;
+        }
         const { error } = await sb.from("choferes").update({ estado: sel.value }).eq("id", sel.dataset.id);
         if (error) alert("No se pudo actualizar: " + error.message);
       });
@@ -1552,8 +1579,11 @@
     celda.querySelectorAll("[data-aprobar-chofer]").forEach((btn) => {
       btn.addEventListener("click", async () => {
         btn.disabled = true;
-        const { error } = await sb.from("choferes").update({ estado: "aprobado" }).eq("id", choferId);
-        if (error) { alert("No se pudo aprobar: " + error.message); btn.disabled = false; return; }
+        const res = await invocarEdgeFunction("notificar-chofer-aprobado", { chofer_id: choferId });
+        if (res.error) { alert("No se pudo aprobar: " + res.error); btn.disabled = false; return; }
+        if (res.data && res.data.correo && res.data.correo.enviado === false) {
+          alert("Chofer aprobado. El correo de aviso no se pudo enviar: " + (res.data.correo.motivo || ""));
+        }
         cargarChoferes();
       });
     });
