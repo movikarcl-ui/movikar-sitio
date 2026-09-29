@@ -94,6 +94,24 @@
   .badge.control_fotografico{background:var(--amber-dim);color:var(--amber);}
   .badge.completado{background:var(--ok-dim);color:var(--ok);}
   .badge.cancelado{background:var(--coral-dim);color:var(--coral);}
+  .badge.solicitud{background:var(--amber-dim);color:var(--amber);}
+
+  .card-creador{font-size:11.5px;color:var(--ink-dim);margin-bottom:8px;}
+  .btn-cancelar-etapa{background:none;border:1px solid var(--coral);color:var(--coral);border-radius:7px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;margin-left:8px;font-family:'Inter',sans-serif;}
+  .btn-cancelar-etapa:hover{background:var(--coral-dim);}
+  .card-cancel-info{font-size:12px;color:var(--coral);margin-top:8px;}
+
+  .modal-fondo{position:fixed;inset:0;background:rgba(22,48,44,.45);display:flex;align-items:center;justify-content:center;z-index:999;padding:20px;}
+  .modal-caja{background:var(--bg);border-radius:16px;padding:24px;max-width:420px;width:100%;max-height:88vh;overflow-y:auto;}
+  .modal-caja h3{font-family:'Space Grotesk',sans-serif;font-size:17px;margin:0 0 6px;}
+  .modal-caja p.sub{font-size:13px;color:var(--ink-dim);margin:0 0 14px;line-height:1.4;}
+  .modal-caja label{margin-top:10px;}
+  .modal-caja select,.modal-caja input[type=datetime-local]{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:9px 11px;font-family:'Inter',sans-serif;font-size:13.5px;color:var(--ink);}
+  .modal-check{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:13px;}
+  .modal-cerrar{float:right;background:none;border:none;color:var(--ink-dim);font-size:16px;cursor:pointer;}
+  .modal-btn{width:100%;margin-top:16px;background:var(--coral);color:#fff;border:none;border-radius:7px;padding:11px;font-weight:600;font-size:13.5px;cursor:pointer;font-family:'Space Grotesk',sans-serif;}
+  .modal-btn:disabled{opacity:.5;}
+  .modal-err{font-size:12.5px;color:var(--coral);margin-top:8px;display:none;}
 
   .card-notas{font-size:12px;color:var(--ink-dim);font-style:italic;margin-top:10px;padding-top:10px;border-top:1px solid var(--line);}
 
@@ -197,6 +215,17 @@ const ESTADO_LABEL = {
   completado: 'Completado', cancelado: 'Cancelado'
 };
 const TIPO_LABEL = {retiro:'Retiro', entrega:'Entrega', ambos:'Retiro + Entrega'};
+const MOTIVO_LABEL = {
+  cliente_taller: 'Cliente/taller canceló',
+  incidente_mecanico: 'Incidente mecánico',
+  incidente_chofer: 'Incidente del chofer',
+  no_imputable_chofer: 'No imputable al chofer',
+  personalizado: 'Motivo personalizado',
+};
+const SOLICITUD_LABEL = {
+  incidente_chofer: 'Chofer solicitó: no pudo completar el traslado',
+  no_imputable_chofer: 'Chofer solicitó: algo ajeno a él impidió el traslado',
+};
 
 async function resolverTallerId(authUserId){
   const { data, error } = await sb
@@ -319,7 +348,7 @@ function wazeLink(t){
 async function loadTraslados(){
   const container = document.getElementById('listContainer');
   container.innerHTML = '<div class="loading-state">Cargando traslados...</div>';
-  const { data, error } = await sb.from('traslados').select('*').eq('taller_id', currentTallerId).order('created_at', { ascending: false });
+  const { data, error } = await sb.from('traslados').select('*, creador:creado_por_usuario_id(nombre)').eq('taller_id', currentTallerId).order('created_at', { ascending: false });
   if(error){
     container.innerHTML = `<div class="empty-state"><p>No se pudo cargar el historial: ${error.message}</p></div>`;
     return;
@@ -358,11 +387,18 @@ function renderList(){
 
   container.innerHTML = filtered.map(t => {
     let stages = '';
+    let cancelInfo = '';
     if(t.estado_retiro){
-      stages += `<div class="stage"><div><div class="stage-label">Retiro</div><span class="badge ${t.estado_retiro}">${ESTADO_LABEL[t.estado_retiro]}</span></div></div>`;
+      const puedeCancelar = !['completado','cancelado'].includes(t.estado_retiro) && !t.solicitud_cancelacion_retiro;
+      stages += `<div class="stage"><div><div class="stage-label">Retiro</div><span class="badge ${t.estado_retiro}">${ESTADO_LABEL[t.estado_retiro]}</span>${t.solicitud_cancelacion_retiro ? `<span class="badge solicitud">solicitud pendiente</span>` : ''}</div>${puedeCancelar ? `<button class="btn-cancelar-etapa" data-cancelar="${t.id}" data-etapa="retiro">Cancelar</button>` : ''}</div>`;
+      if(t.estado_retiro === 'cancelado') cancelInfo += `<div class="card-cancel-info">Retiro cancelado — ${MOTIVO_LABEL[t.motivo_cancelacion_retiro] || t.motivo_cancelacion_retiro}${t.notas_cancelacion_retiro ? `: "${t.notas_cancelacion_retiro}"` : ''}</div>`;
+      else if(t.solicitud_cancelacion_retiro) cancelInfo += `<div class="card-cancel-info">${SOLICITUD_LABEL[t.solicitud_cancelacion_retiro]}${t.notas_cancelacion_retiro ? `: "${t.notas_cancelacion_retiro}"` : ''} — a la espera de que MoviKar lo confirme.</div>`;
     }
     if(t.estado_entrega){
-      stages += `<div class="stage"><div><div class="stage-label">Entrega</div><span class="badge ${t.estado_entrega}">${ESTADO_LABEL[t.estado_entrega]}</span></div></div>`;
+      const puedeCancelar = !['completado','cancelado'].includes(t.estado_entrega) && !t.solicitud_cancelacion_entrega;
+      stages += `<div class="stage"><div><div class="stage-label">Entrega</div><span class="badge ${t.estado_entrega}">${ESTADO_LABEL[t.estado_entrega]}</span>${t.solicitud_cancelacion_entrega ? `<span class="badge solicitud">solicitud pendiente</span>` : ''}</div>${puedeCancelar ? `<button class="btn-cancelar-etapa" data-cancelar="${t.id}" data-etapa="entrega">Cancelar</button>` : ''}</div>`;
+      if(t.estado_entrega === 'cancelado') cancelInfo += `<div class="card-cancel-info">Entrega cancelada — ${MOTIVO_LABEL[t.motivo_cancelacion_entrega] || t.motivo_cancelacion_entrega}${t.notas_cancelacion_entrega ? `: "${t.notas_cancelacion_entrega}"` : ''}</div>`;
+      else if(t.solicitud_cancelacion_entrega) cancelInfo += `<div class="card-cancel-info">${SOLICITUD_LABEL[t.solicitud_cancelacion_entrega]}${t.notas_cancelacion_entrega ? `: "${t.notas_cancelacion_entrega}"` : ''} — a la espera de que MoviKar lo confirme.</div>`;
     }
     return `
       <div class="card">
@@ -372,11 +408,77 @@ function renderList(){
         </div>
         <div class="card-direccion">${fullAddress(t)} · <a href="${wazeLink(t)}" target="_blank" rel="noopener">Ver en Waze ↗</a></div>
         ${(t.cliente_nombre || t.cliente_telefono) ? `<div class="card-cliente">Cliente: <b>${t.cliente_nombre || '—'}</b>${t.cliente_telefono ? ' · ' + t.cliente_telefono : ''}</div>` : ''}
+        ${t.creador ? `<div class="card-creador">Agendado por: <b>${t.creador.nombre}</b></div>` : ''}
         <div class="stage-row">${stages}</div>
+        ${cancelInfo}
         ${t.notas ? `<div class="card-notas">"${t.notas}"</div>` : ''}
       </div>
     `;
   }).join('');
+
+  container.querySelectorAll('[data-cancelar]').forEach(btn => {
+    btn.addEventListener('click', () => abrirModalCancelar(btn.dataset.cancelar, btn.dataset.etapa));
+  });
+}
+
+function abrirModalCancelar(trasladoId, etapa){
+  const fondo = document.createElement('div');
+  fondo.className = 'modal-fondo';
+  fondo.innerHTML = `
+    <div class="modal-caja">
+      <button class="modal-cerrar">✕</button>
+      <h3>Cancelar ${etapa === 'retiro' ? 'retiro' : 'entrega'}</h3>
+      <p class="sub">Si cancelas dentro de los primeros 30 minutos de agendado, no se cobra nada. Después de eso, aplica un % de la tarifa.</p>
+      <label>Motivo</label>
+      <select id="cancel-motivo">
+        <option value="cliente_taller">Cliente/taller cancela</option>
+        <option value="incidente_mecanico">Incidente mecánico</option>
+      </select>
+      <div class="modal-check">
+        <input type="checkbox" id="cancel-reagendar">
+        <label style="margin:0;" for="cancel-reagendar">Reagendar este traslado para otro momento</label>
+      </div>
+      <div id="cancel-fecha-wrap" style="display:none;">
+        <label>Nueva fecha y hora</label>
+        <input type="datetime-local" id="cancel-fecha">
+      </div>
+      <div class="modal-err" id="cancel-err"></div>
+      <button class="modal-btn" id="cancel-confirmar">Cancelar traslado</button>
+    </div>`;
+  document.body.appendChild(fondo);
+  fondo.querySelector('.modal-cerrar').addEventListener('click', () => fondo.remove());
+  fondo.addEventListener('click', (e) => { if(e.target === fondo) fondo.remove(); });
+  fondo.querySelector('#cancel-reagendar').addEventListener('change', (e) => {
+    fondo.querySelector('#cancel-fecha-wrap').style.display = e.target.checked ? 'block' : 'none';
+  });
+  fondo.querySelector('#cancel-confirmar').addEventListener('click', async () => {
+    const motivo = fondo.querySelector('#cancel-motivo').value;
+    const reagendar = fondo.querySelector('#cancel-reagendar').checked;
+    const fechaVal = fondo.querySelector('#cancel-fecha').value;
+    const errEl = fondo.querySelector('#cancel-err');
+    if(reagendar && !fechaVal){
+      errEl.textContent = 'Elige la nueva fecha y hora.';
+      errEl.style.display = 'block';
+      return;
+    }
+    const btn = fondo.querySelector('#cancel-confirmar');
+    btn.disabled = true; btn.textContent = 'Cancelando...';
+    const { error } = await sb.rpc('cancelar_etapa', {
+      p_traslado_id: trasladoId,
+      p_etapa: etapa,
+      p_motivo: motivo,
+      p_reagendar: reagendar,
+      p_nueva_fecha: reagendar ? new Date(fechaVal).toISOString() : null,
+    });
+    if(error){
+      errEl.textContent = 'No se pudo cancelar: ' + error.message;
+      errEl.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Cancelar traslado';
+      return;
+    }
+    fondo.remove();
+    loadTraslados();
+  });
 }
 
 document.getElementById('filterRow').addEventListener('click', (e)=>{
