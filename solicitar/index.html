@@ -114,7 +114,7 @@
           <input id="enc_telefono" placeholder="Teléfono" required />
         </div>
 
-        <label>Encargado de pago</label>
+        <label>Encargado financiero</label>
         <div class="grid-3">
           <input id="pago_nombre" placeholder="Nombre" required />
           <input id="pago_correo" type="email" placeholder="Correo" required />
@@ -191,6 +191,7 @@
     <div class="icono">✓</div>
     <h1>Solicitud enviada</h1>
     <p>Vamos a revisarla y te contactamos al correo que dejaste para activar tu acceso.</p>
+    <a href="/" style="display:inline-block; margin-top:22px; padding:12px 22px; border-radius:10px; background:var(--ink,#16302C); color:#fff; text-decoration:none; font-weight:600; font-size:0.9rem;">Volver al inicio</a>
   </div>
 </main>
 
@@ -304,7 +305,7 @@
     }
     $("rut_taller").value = formatoGuardadoRut($("rut_taller").value);
 
-    for (const [id, etiqueta] of [["enc_telefono","Encargado del taller"], ["pago_telefono","Encargado de pago"], ["principal_telefono","Contacto principal"], ["usuario_telefono","Usuario 1"]]) {
+    for (const [id, etiqueta] of [["enc_telefono","Encargado del taller"], ["pago_telefono","Encargado financiero"], ["principal_telefono","Contacto principal"], ["usuario_telefono","Usuario 1"]]) {
       const val = $(id).value.trim();
       if (val && !telefonoEsValido(val)) {
         $("form-error").textContent = `El teléfono de ${etiqueta} no es válido. Usa el formato +56912345678.`;
