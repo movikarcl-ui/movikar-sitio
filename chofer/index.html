@@ -55,6 +55,17 @@
 
   label{display:block;font-size:12px;color:var(--ink-dim);margin:0 0 6px;font-weight:500;}
   input[type=text]{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 13px;color:var(--ink);font-size:14px;margin-bottom:14px;}
+
+  .btn-link-problema{width:100%;background:none;border:none;color:var(--ink-dim);font-size:12.5px;text-decoration:underline;text-underline-offset:2px;padding:10px 0 0;cursor:pointer;font-family:inherit;}
+  select, textarea{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 13px;color:var(--ink);font-size:14px;margin-bottom:14px;font-family:inherit;}
+  textarea{resize:vertical;min-height:70px;}
+  .modal-fondo{position:fixed;inset:0;background:rgba(22,48,44,.45);display:flex;align-items:center;justify-content:center;z-index:999;padding:20px;}
+  .modal-caja{background:var(--bg,#fff);border-radius:16px;padding:22px;max-width:360px;width:100%;max-height:88vh;overflow-y:auto;}
+  .modal-caja h3{font-size:1.05rem;margin:0 0 6px;}
+  .modal-cerrar{float:right;background:none;border:none;color:var(--ink-dim);font-size:1.1rem;cursor:pointer;}
+  .modal-opcion{width:100%;text-align:left;background:var(--surface-2,#EDF3F1);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:8px;font-size:13.5px;cursor:pointer;font-family:inherit;}
+  .modal-opcion.activa{border-color:var(--teal-deep);background:var(--teal-dim);}
+  .modal-err{color:#B3261E;font-size:12.5px;margin:-6px 0 10px;display:none;}
   input:focus{outline:2px solid var(--teal);outline-offset:1px;border-color:var(--teal);}
   .btn{width:100%;background:var(--ink);color:#fff;border:none;border-radius:10px;padding:13px;font-weight:600;font-size:14px;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:.15s;}
   .btn:hover{background:var(--teal-deep);transform:translateY(-1px);}
@@ -226,7 +237,10 @@
     <div class="chofer-chip">
       <div class="chofer-id">
         <div class="avatar" id="avatarInicial">C</div>
-        <span id="choferNombre">—</span>
+        <div style="display:flex; flex-direction:column; line-height:1.25;">
+          <span id="choferNombre">—</span>
+          <span id="choferSesion" style="font-size:11px; color:var(--ink-dim);"></span>
+        </div>
       </div>
       <button class="logout-link" id="btnLogout">cerrar sesión</button>
     </div>
@@ -504,6 +518,7 @@ async function iniciarApp(){
 
   const telefono = localStorage.getItem('movikar_chofer_telefono') || 'Chofer';
   document.getElementById('choferNombre').textContent = telefono;
+  document.getElementById('choferSesion').textContent = 'Sesión activa: ' + telefono;
   document.getElementById('avatarInicial').textContent = telefono.replace(/[^A-Za-z]/g,'')[0]?.toUpperCase() || 'C';
 
   if(chofer?.nombre){
@@ -613,6 +628,16 @@ async function cargarTrasladoActivo(){
   const esUltimo = idx === -1 || idx === ORDEN_ESTADOS.length - 1;
   const direccion = `${activo.calle} ${activo.numero}${activo.depto_casa ? ', '+activo.depto_casa : ''}, ${activo.comuna}`;
   const wazeUrl = `https://waze.com/ul?q=${encodeURIComponent(direccion)}&navigate=yes`;
+  const mapsUrl = (dir) => `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dir)}`;
+
+  let infoTaller = null;
+  try{
+    const { data: rt } = await sb.rpc('chofer_info_taller_traslado', { p_traslado_id: activo.id, p_chofer_id: choferId });
+    infoTaller = rt && rt[0] ? rt[0] : null;
+  }catch(e){ /* si falla, mostramos solo la dirección del cliente */ }
+  const direccionTaller = infoTaller
+    ? `${infoTaller.calle} ${infoTaller.numero}${infoTaller.depto_casa ? ', '+infoTaller.depto_casa : ''}, ${infoTaller.comuna}`
+    : null;
 
   if(estadoActual === 'control_fotografico'){
     const claveEtapa = `${activo.id}-${etapa}`;
@@ -639,6 +664,7 @@ async function cargarTrasladoActivo(){
       <span class="estado-badge">${etapa === 'retiro' ? 'Retiro' : 'Entrega'} · Control fotográfico</span>
       <div class="traslado-row"><b>${activo.patente}</b> ${[activo.marca, activo.modelo].filter(Boolean).join(' ')}</div>
       <p style="color:var(--dim,#5E7570); font-size:13px; margin:10px 0 12px;">Toca cada punto del auto para sacar esa foto. Puedes hacerlo en el orden que quieras.</p>
+      <button class="btn-link-problema" id="btnProblemaFotos">¿Problema con este traslado?</button>
 
       <svg id="diagramaAuto" viewBox="0 0 300 500" style="width:100%; max-width:260px; display:block; margin:0 auto 14px;">
         <rect x="60" y="40" width="180" height="420" rx="55" fill="var(--bg,#fff)" stroke="var(--line,#DCE6E3)" stroke-width="2"></rect>
@@ -751,6 +777,8 @@ async function cargarTrasladoActivo(){
       slotActivo = null;
     });
 
+    document.getElementById('btnProblemaFotos').addEventListener('click', () => abrirModalSolicitarCancelacion(activo.id, etapa));
+
     document.getElementById('btnCompletarFotos').addEventListener('click', async () => {
       const btnCompletar = document.getElementById('btnCompletarFotos');
       btnCompletar.disabled = true;
@@ -811,16 +839,49 @@ async function cargarTrasladoActivo(){
 
   fotosClaveActual = null;
 
+  const BOTON_AVANCE = {
+    asignado: 'Voy en camino',
+    en_camino: 'Llegué a la dirección',
+    llegado: 'Comenzar control fotográfico',
+  };
+  const textoBoton = esUltimo ? 'Traslado completado' : (BOTON_AVANCE[estadoActual] || 'Avanzar a: ' + (ESTADO_LABEL[ORDEN_ESTADOS[idx+1]] || ''));
+
+  const bloqueLugar = (rol, titulo, dir, lineas) => `
+    <div style="border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:10px; ${rol === 'origen' ? 'background:var(--teal-dim);' : ''}">
+      <div style="font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-dim); margin-bottom:4px;">${titulo}</div>
+      ${lineas}
+      <div style="font-size:13.5px; margin:4px 0 8px;">${dir}</div>
+      <div style="display:flex; gap:14px; font-size:13px;">
+        <a href="${mapsUrl(dir)}" target="_blank" rel="noopener" style="color:var(--teal-deep); font-weight:600;">Google Maps ↗</a>
+        <a href="https://waze.com/ul?q=${encodeURIComponent(dir)}&navigate=yes" target="_blank" rel="noopener" style="color:var(--teal-deep); font-weight:600;">Waze ↗</a>
+      </div>
+    </div>`;
+
+  const lineasCliente = `
+    <div style="font-size:14px; font-weight:600;">${activo.cliente_nombre || 'Cliente'}</div>
+    ${activo.cliente_telefono ? `<div style="font-size:13px; margin-top:2px;"><a href="tel:${activo.cliente_telefono}" style="color:var(--teal-deep); font-weight:600;">📞 ${activo.cliente_telefono}</a></div>` : ''}`;
+  const lineasTaller = `<div style="font-size:14px; font-weight:600;">${infoTaller ? infoTaller.nombre_taller : 'Taller'}</div>`;
+
+  const bloqueCliente = (rol, titulo) => bloqueLugar(rol, titulo, direccion, lineasCliente);
+  const bloqueTaller = (rol, titulo) => direccionTaller ? bloqueLugar(rol, titulo, direccionTaller, lineasTaller) : '';
+
+  const bloquesRuta = etapa === 'retiro'
+    ? bloqueCliente('origen', 'Retirar en (cliente)') + bloqueTaller('destino', 'Llevar a (taller)')
+    : bloqueTaller('origen', 'Retirar en (taller)') + bloqueCliente('destino', 'Entregar en (cliente)');
+
   cont.innerHTML = `
     ${renderStepper(estadoActual)}
     <span class="estado-badge">${etapa === 'retiro' ? 'Retiro' : 'Entrega'} · ${ESTADO_LABEL[estadoActual] || estadoActual}</span>
     <div class="traslado-row"><b>${activo.patente}</b> ${[activo.marca, activo.modelo].filter(Boolean).join(' ')}</div>
-    <div class="traslado-row">${direccion} · <a href="${wazeUrl}" target="_blank" rel="noopener" style="color:var(--teal-deep);">Ver en Waze ↗</a></div>
-    <div class="traslado-dim">Cliente: ${activo.cliente_nombre} · ${activo.cliente_telefono}</div>
+    ${bloquesRuta}
     <button class="btn" style="margin-top:16px;" id="btnAvanzar" ${esUltimo ? 'disabled' : ''}>
-      ${esUltimo ? 'Traslado completado' : 'Avanzar a: ' + (ESTADO_LABEL[ORDEN_ESTADOS[idx+1]] || '')}
+      ${textoBoton}
     </button>
+    ${!esUltimo ? `<button class="btn-link-problema" id="btnProblema">¿Problema con este traslado?</button>` : ''}
   `;
+
+  const btnProblema = document.getElementById('btnProblema');
+  if(btnProblema) btnProblema.addEventListener('click', () => abrirModalSolicitarCancelacion(activo.id, etapa));
 
   const btn = document.getElementById('btnAvanzar');
   if(btn && !esUltimo){
@@ -895,6 +956,52 @@ function iniciarAlarma(){
 function detenerAlarma(){
   clearInterval(beepInterval); beepInterval = null;
   clearInterval(countdownInterval); countdownInterval = null;
+}
+
+// --- Solicitar cancelación ---
+function abrirModalSolicitarCancelacion(trasladoId, etapa){
+  let motivoElegido = null;
+  const fondo = document.createElement('div');
+  fondo.className = 'modal-fondo';
+  fondo.innerHTML = `
+    <div class="modal-caja">
+      <button class="modal-cerrar" id="cancelChoferCerrar">✕</button>
+      <h3>¿Qué pasó?</h3>
+      <p style="font-size:13px;color:var(--ink-dim);margin:0 0 14px;">Esto queda pendiente hasta que MoviKar lo confirme.</p>
+      <button class="modal-opcion" data-motivo="incidente_chofer">🔧 No pude completar el traslado</button>
+      <button class="modal-opcion" data-motivo="no_imputable_chofer">🚫 No pude retirar/entregar por algo ajeno a mí</button>
+      <label for="cancelChoferComentario" style="margin-top:8px;">Cuéntanos qué pasó</label>
+      <textarea id="cancelChoferComentario" placeholder="Ej: se pinchó una rueda a 2 cuadras del taller"></textarea>
+      <div class="modal-err" id="cancelChoferErr"></div>
+      <button class="btn" id="cancelChoferEnviar">Enviar solicitud</button>
+    </div>`;
+  document.body.appendChild(fondo);
+  fondo.querySelector('#cancelChoferCerrar').addEventListener('click', () => fondo.remove());
+  fondo.addEventListener('click', (e) => { if(e.target === fondo) fondo.remove(); });
+  fondo.querySelectorAll('.modal-opcion').forEach((op) => {
+    op.addEventListener('click', () => {
+      fondo.querySelectorAll('.modal-opcion').forEach((o) => o.classList.remove('activa'));
+      op.classList.add('activa');
+      motivoElegido = op.dataset.motivo;
+    });
+  });
+  fondo.querySelector('#cancelChoferEnviar').addEventListener('click', async () => {
+    const comentario = fondo.querySelector('#cancelChoferComentario').value.trim();
+    const errEl = fondo.querySelector('#cancelChoferErr');
+    if(!motivoElegido){ errEl.textContent = 'Elige una opción.'; errEl.style.display = 'block'; return; }
+    if(!comentario){ errEl.textContent = 'Cuéntanos qué pasó.'; errEl.style.display = 'block'; return; }
+    const btn = fondo.querySelector('#cancelChoferEnviar');
+    btn.disabled = true; btn.textContent = 'Enviando...';
+    try{
+      const resp = await invocar('chofer-actualizar', { modo:'solicitar_cancelacion', chofer_id: choferId, traslado_id: trasladoId, etapa, motivo: motivoElegido, comentario });
+      if(resp && resp.ok === false){ errEl.textContent = resp.motivo || 'No se pudo enviar.'; errEl.style.display = 'block'; btn.disabled = false; btn.textContent = 'Enviar solicitud'; return; }
+      fondo.remove();
+      await cargarTrasladoActivo();
+    }catch(e){
+      errEl.textContent = 'No se pudo enviar. Intenta de nuevo.'; errEl.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Enviar solicitud';
+    }
+  });
 }
 
 function actualizarCountdown(){
