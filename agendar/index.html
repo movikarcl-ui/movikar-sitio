@@ -60,6 +60,21 @@
     padding-bottom:1px;white-space:nowrap;
   }
   .nav-link:focus-visible{outline:2px solid var(--teal);outline-offset:3px;}
+  .nav-link.nav-destacado{
+    border:1.5px solid var(--teal);background:var(--teal-dim);color:var(--teal-deep);font-weight:600;
+    padding:8px 14px;border-radius:22px;font-size:13px;transition:.15s;
+  }
+  .nav-link.nav-destacado:hover{background:var(--teal);color:#fff;}
+  .campo-bloqueado{background:var(--surface-2);color:var(--ink-dim);cursor:not-allowed;}
+  .exito-fondo{position:fixed;inset:0;background:rgba(22,48,44,.5);display:flex;align-items:center;justify-content:center;z-index:999;padding:20px;}
+  .exito-caja{background:#fff;border-radius:18px;padding:28px 24px;max-width:400px;width:100%;text-align:center;box-shadow:0 12px 40px rgba(22,48,44,.25);}
+  .exito-check{width:64px;height:64px;border-radius:50%;background:var(--ok);color:#fff;font-size:34px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}
+  .exito-caja h2{margin:0 0 6px;font-family:'Space Grotesk',sans-serif;font-size:1.25rem;}
+  .exito-caja p{margin:0 0 14px;font-size:13.5px;color:var(--ink-dim);}
+  .exito-lista{text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-bottom:16px;max-height:140px;overflow-y:auto;font-size:13px;}
+  .exito-btn{display:block;width:100%;border-radius:10px;padding:13px;font-weight:600;font-size:14px;cursor:pointer;font-family:'Space Grotesk',sans-serif;text-decoration:none;box-sizing:border-box;}
+  .exito-btn.primario{background:var(--ink);color:#fff;border:none;margin-bottom:8px;}
+  .exito-btn.secundario{background:none;color:var(--teal-deep);border:1.5px solid var(--teal);}
   .taller-chip{
     display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--ink-dim);
     background:var(--surface);border:1px solid var(--line);padding:7px 14px 7px 7px;border-radius:24px;
@@ -338,7 +353,7 @@
     </div>
   </div>
   <div class="header-right">
-    <a class="nav-link" href="/agendar/historial/">Historial y programados ↗</a>
+    <a class="nav-link nav-destacado" href="/agendar/historial/">📋 Historial y programados</a>
     <div class="taller-chip" id="tallerChip" style="display:none;">
       <div class="chip-avatar" id="chipAvatar">T</div>
       <div class="chip-info">
@@ -493,11 +508,11 @@
         </div>
         <div>
           <label for="marca">Marca</label>
-          <input type="text" id="marca" placeholder="Ej: Chevrolet">
+          <input type="text" id="marca" class="campo-bloqueado" readonly tabindex="-1" placeholder="Se completa con Buscar">
         </div>
         <div>
           <label for="modelo">Modelo</label>
-          <input type="text" id="modelo" placeholder="Ej: Sail">
+          <input type="text" id="modelo" class="campo-bloqueado" readonly tabindex="-1" placeholder="Se completa con Buscar">
         </div>
       </div>
     </div>
@@ -589,11 +604,12 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
 let currentTallerId = null;
+let currentUsuarioId = null;
 
 async function resolverTallerId(authUserId){
   const { data, error } = await sb
     .from('taller_usuarios')
-    .select('taller_id, puede_agendar, estado, nombre, cargo')
+    .select('id, taller_id, puede_agendar, estado, nombre, cargo')
     .eq('auth_user_id', authUserId)
     .eq('estado', 'activo')
     .maybeSingle();
@@ -613,6 +629,7 @@ async function showApp(user){
     return;
   }
   currentTallerId = tu.taller_id;
+  currentUsuarioId = tu.id;
   document.getElementById('loginWrap').style.display = 'none';
   document.getElementById('appShell').style.display = 'block';
   document.getElementById('tallerChip').style.display = 'flex';
@@ -913,6 +930,13 @@ document.getElementById('btnUsarMatch').addEventListener('click', ()=>{
 
 document.getElementById('btnCerrarMatch').addEventListener('click', ocultarMatchHint);
 
+// Marca y modelo son de solo lectura: se completan únicamente con el botón Buscar.
+document.getElementById('patente').addEventListener('input', ()=>{
+  document.getElementById('marca').value = '';
+  document.getElementById('modelo').value = '';
+  mostrarPatenteMsg('', '');
+});
+
 // ---------- Consulta de patente vía Boostr (Edge Function consultar-patente) ----------
 function mostrarPatenteMsg(texto, tipo){
   const el = document.getElementById('patenteMsg');
@@ -1204,6 +1228,7 @@ document.getElementById('confirmAllBtn').addEventListener('click', async ()=>{
 
   const rows = queue.map(t => ({
     taller_id: currentTallerId,
+    creado_por_usuario_id: currentUsuarioId,
     tipo: t.tipo,
     when_mode: t.whenMode,
     fecha_principal: t.fechaPrincipal ? new Date(t.fechaPrincipal).toISOString() : null,
@@ -1259,7 +1284,7 @@ document.getElementById('confirmAllBtn').addEventListener('click', async ()=>{
     </div>
   `).join('');
   banner.style.display = 'flex';
-  banner.scrollIntoView({ behavior:'smooth', block:'center' });
+  mostrarExitoAgendado(guardados);
 
   setTimeout(()=>{
     btn.classList.remove('success');
@@ -1267,6 +1292,25 @@ document.getElementById('confirmAllBtn').addEventListener('click', async ()=>{
     btn.innerHTML = '<span id="confirmBtnText">✓ Confirmar y agendar todo</span>';
   }, 1400);
 });
+
+function mostrarExitoAgendado(guardados){
+  const n = guardados.length;
+  const fondo = document.createElement('div');
+  fondo.className = 'exito-fondo';
+  fondo.innerHTML = `
+    <div class="exito-caja" role="dialog" aria-modal="true">
+      <div class="exito-check">✓</div>
+      <h2>${n === 1 ? '¡Traslado agendado!' : '¡' + n + ' traslados agendados!'}</h2>
+      <p>Ya quedó registrado y estamos buscando chofer. Puedes revisar su estado en el historial.</p>
+      <div class="exito-lista">${guardados.map(t => `<div>${TIPO_LABEL[t.tipo]} · <b>${t.patente}</b> <span style="color:var(--ink-dim);">— ${t.comuna}</span></div>`).join('')}</div>
+      <a class="exito-btn primario" href="/agendar/historial/">Ver en historial</a>
+      <button type="button" class="exito-btn secundario" id="exitoOtro">Agendar otro traslado</button>
+    </div>`;
+  document.body.appendChild(fondo);
+  const cerrar = () => fondo.remove();
+  fondo.querySelector('#exitoOtro').addEventListener('click', cerrar);
+  fondo.addEventListener('click', (e)=>{ if(e.target === fondo) cerrar(); });
+}
 
 renderTray();
 </script>
