@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Trabajemos juntos - MoviKar</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Trabajemos juntos - MoviKar" />
+<meta property="og:description" content="Cuéntanos de tu taller y te contactamos para conversar cómo podemos trasladar los autos de tus clientes." />
+<meta property="og:image" content="https://movikar.vercel.app/og-image.png" />
+<meta property="og:url" content="https://movikar.vercel.app/contacto" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --bg: #FFFFFF; --surface: #F6F9F8; --surface-2: #EDF3F1;
+    --ink: #16302C; --dim: #5E7570; --line: #DCE6E3;
+    --turquesa: #009688; --turquesa-claro: #E3F5F2; --turquesa-profundo: #00695E;
+    --coral: #E8542F; --coral-claro: #FFEEE7; --ok: #1F8F5C; --ok-claro: #E6F6EC;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--surface); color: var(--ink); font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+  h1 { font-family: 'Space Grotesk', sans-serif; margin: 0; }
+  main { max-width: 460px; margin: 0 auto; padding: 40px 20px 80px; }
+  .intro { margin-bottom: 24px; }
+  .intro p.eyebrow { color: var(--turquesa-profundo); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; margin: 0 0 6px; }
+  .intro h1 { font-size: 1.5rem; margin-bottom: 8px; }
+  .intro p { color: var(--dim); font-size: 0.92rem; line-height: 1.5; margin: 0; }
+
+  form { background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 22px; }
+  label { display: block; font-size: 0.82rem; color: var(--dim); margin-bottom: 4px; font-weight: 500; }
+  input, select {
+    width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 8px;
+    background: var(--bg); color: var(--ink); font-family: 'Inter'; font-size: 0.92rem; margin-bottom: 14px;
+  }
+  input:focus, select:focus { outline: 2px solid var(--turquesa); outline-offset: 1px; border-color: var(--turquesa); }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+  @media (max-width: 460px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  button.primario { width: 100%; background: var(--turquesa); color: white; border: none; border-radius: 8px; padding: 13px; font-family: 'Inter'; font-weight: 600; font-size: 0.95rem; cursor: pointer; }
+  button.primario:hover { background: var(--turquesa-profundo); }
+  button.primario:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .error { color: var(--coral); background: var(--coral-claro); border-radius: 8px; padding: 10px 12px; font-size: 0.85rem; margin-bottom: 16px; display: none; }
+  .nota { font-size: 0.76rem; color: var(--dim); text-align: center; margin: 12px 0 0; }
+
+  #vista-exito { display:none; text-align:center; padding: 60px 20px; }
+  #vista-exito .icono { width: 60px; height: 60px; border-radius: 50%; background: var(--ok-claro); color: var(--ok); font-size: 1.8rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; }
+  #vista-exito h1 { font-size: 1.3rem; margin-bottom: 8px; }
+  #vista-exito p { color: var(--dim); font-size: 0.92rem; }
+  #vista-exito a { display: inline-block; margin-top: 20px; padding: 12px 22px; border-radius: 10px; background: var(--ink); color: #fff; text-decoration: none; font-weight: 600; font-size: 0.9rem; }
+</style>
+</head>
+<body>
+<main>
+  <div id="vista-form">
+    <div class="intro">
+      <p class="eyebrow">MoviKar para talleres</p>
+      <h1>Cuéntanos de tu taller</h1>
+      <p>Te contactamos para conversar cómo podemos trasladar los autos de tus clientes.</p>
+    </div>
+
+    <div class="error" id="form-error"></div>
+
+    <form id="form-interes">
+      <label for="nombre_taller">Nombre del taller</label>
+      <input type="text" id="nombre_taller" placeholder="Ej: Taller Los Aromos" required />
+
+      <label for="comuna">Comuna</label>
+      <input type="text" id="comuna" placeholder="Ej: Ñuñoa" required />
+
+      <div class="grid-2">
+        <div>
+          <label for="contacto_nombre">Tu nombre</label>
+          <input type="text" id="contacto_nombre" required />
+        </div>
+        <div>
+          <label for="contacto_cargo">Cargo <span style="font-weight:400;">(opcional)</span></label>
+          <input type="text" id="contacto_cargo" placeholder="Ej: Dueño" />
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <label for="contacto_telefono">Teléfono</label>
+          <input type="text" id="contacto_telefono" placeholder="+56912345678" required />
+        </div>
+        <div>
+          <label for="contacto_correo">Correo</label>
+          <input type="email" id="contacto_correo" required />
+        </div>
+      </div>
+
+      <label for="traslados_estimados_mes">Traslados que estimas al mes</label>
+      <select id="traslados_estimados_mes" required>
+        <option value="">Selecciona...</option>
+        <option value="1 a 10">1 a 10</option>
+        <option value="11 a 30">11 a 30</option>
+        <option value="31 a 60">31 a 60</option>
+        <option value="Más de 60">Más de 60</option>
+      </select>
+
+      <button type="submit" class="primario" id="btn-enviar">Quiero que me contacten</button>
+      <p class="nota">Sin compromiso. Nos ponemos en contacto por correo o teléfono.</p>
+    </form>
+  </div>
+
+  <div id="vista-exito">
+    <div class="icono">✓</div>
+    <h1>¡Listo, recibimos tus datos!</h1>
+    <p>Te vamos a contactar pronto para conversar sobre tu taller.</p>
+    <a href="/">Volver al inicio</a>
+  </div>
+</main>
+
+<script>
+const SUPABASE_URL = 'https://gcivybtcccaslyzkzgri.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_IVjRfzdWhEO3yb5LkUz7pw_5IA-CxLW';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+function mostrarError(msg){
+  const el = document.getElementById('form-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+document.getElementById('form-interes').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  document.getElementById('form-error').style.display = 'none';
+  const btn = document.getElementById('btn-enviar');
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  const payload = {
+    nombre_taller: document.getElementById('nombre_taller').value.trim(),
+    comuna: document.getElementById('comuna').value.trim(),
+    contacto_nombre: document.getElementById('contacto_nombre').value.trim(),
+    contacto_cargo: document.getElementById('contacto_cargo').value.trim(),
+    contacto_telefono: document.getElementById('contacto_telefono').value.trim(),
+    contacto_correo: document.getElementById('contacto_correo').value.trim(),
+    traslados_estimados_mes: document.getElementById('traslados_estimados_mes').value,
+  };
+
+  try {
+    const { data, error } = await sb.functions.invoke('registrar-interesado-taller', { body: payload });
+    if (error) {
+      let detalle = null;
+      try { if (error.context && typeof error.context.json === 'function') detalle = (await error.context.json()).error; } catch(_) {}
+      throw new Error(detalle || error.message || 'No se pudo enviar. Intenta de nuevo.');
+    }
+    if (data && data.error) throw new Error(data.error);
+
+    document.getElementById('vista-form').style.display = 'none';
+    document.getElementById('vista-exito').style.display = 'block';
+  } catch (err) {
+    mostrarError(err.message || 'No se pudo enviar. Intenta de nuevo.');
+    btn.disabled = false;
+    btn.textContent = 'Quiero que me contacten';
+  }
+});
+</script>
+</body>
+</html>
