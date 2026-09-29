@@ -166,7 +166,7 @@
     </div>
     <div class="nav-links">
       <a class="nav-cta ghost" href="/agendar/">Ya soy taller · Ingresar</a>
-      <a class="nav-cta" data-contact-cta href="mailto:movikarcl@gmail.com?subject=Quiero%20sumar%20mi%20taller%20a%20MoviKar">Sumar mi taller</a>
+      <a class="nav-cta" href="/contacto/">Sumar mi taller</a>
     </div>
   </div>
 </nav>
@@ -178,7 +178,7 @@
       <h1>Ofrece retiro y entrega a domicilio <span class="accent">sin armar tu propia flota</span> de choferes</h1>
       <p class="lead">Tus clientes ya buscan talleres que retiren y entreguen su auto. Nosotros coordinamos al chofer, cubrimos el traslado con seguro, y le hacemos seguimiento — tú agendas en menos de un minuto y sigues enfocado en reparar autos.</p>
       <div class="cta-row">
-        <a class="btn-primary" data-contact-cta href="mailto:movikarcl@gmail.com?subject=Quiero%20sumar%20mi%20taller%20a%20MoviKar">Sumar mi taller</a>
+        <a class="btn-primary" href="/contacto/">Sumar mi taller</a>
         <a class="btn-secondary" href="#como-funciona">Ver cómo funciona</a>
       </div>
     </div>
@@ -329,14 +329,6 @@
   const waLink = hasWhatsApp
     ? `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hola, quiero sumar mi taller a MoviKar')}`
     : null;
-
-  if (hasWhatsApp) {
-    document.querySelectorAll('[data-contact-cta]').forEach(el => {
-      el.href = waLink;
-      el.setAttribute('target', '_blank');
-      el.setAttribute('rel', 'noopener');
-    });
-  }
 
   const fab = document.createElement('a');
   fab.href = hasWhatsApp ? waLink : 'mailto:movikarcl@gmail.com?subject=Quiero%20sumar%20mi%20taller%20a%20MoviKar';
