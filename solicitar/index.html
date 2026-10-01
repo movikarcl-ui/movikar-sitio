@@ -200,6 +200,17 @@
   const SUPABASE_KEY = "sb_publishable_IVjRfzdWhEO3yb5LkUz7pw_5IA-CxLW";
   const { createClient } = supabase;
   const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const prospectoToken = new URLSearchParams(location.search).get("p");
+  if (prospectoToken && UUID_RE.test(prospectoToken)) {
+    sb.rpc("datos_prospecto_alta", { p_token: prospectoToken }).then(({ data }) => {
+      const d = data && data[0]; if (!d) return;
+      const set = (id, v) => { const el = document.getElementById(id); if (el && v && !el.value) el.value = v; };
+      set("nombre_taller", d.nombre_taller); set("comuna", d.comuna);
+      set("usuario_nombre", d.contacto_nombre); set("usuario_cargo", d.contacto_cargo);
+      set("usuario_correo", d.contacto_correo); set("usuario_telefono", d.contacto_telefono);
+    });
+  }
   const $ = (id) => document.getElementById(id);
 
   // ---------- Validación de RUT chileno (módulo 11) ----------
@@ -325,6 +336,7 @@
     const mismoQueUsuario1 = $("mismo_que_usuario1").checked;
 
     const payload = {
+      prospecto_token: prospectoToken && UUID_RE.test(prospectoToken) ? prospectoToken : null,
       nombre_taller: $("nombre_taller").value.trim(),
       rut_taller: $("rut_taller").value.trim(),
       calle: $("calle").value.trim(),
