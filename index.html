@@ -127,6 +127,23 @@
   .step h3{font-family:'Space Grotesk',sans-serif;font-size:15.5px;margin:0 0 8px;}
   .step p{font-size:13px;color:var(--ink-dim);line-height:1.5;margin:0;}
 
+  .seguro-callout{display:flex;gap:18px;align-items:center;margin:34px auto 0;max-width:760px;background:var(--ink);color:#fff;border-radius:18px;padding:22px 26px;border-left:6px solid var(--teal);}
+  .seguro-callout b{font-family:'Space Grotesk',sans-serif;font-size:19px;display:block;margin-bottom:4px;}
+  .seguro-callout p{margin:0;color:#B9C9C5;font-size:14px;line-height:1.55;}
+  .seguro-icon{flex:0 0 54px;height:54px;border-radius:14px;background:var(--teal);display:flex;align-items:center;justify-content:center;}
+  .seguro-icon svg{width:30px;height:30px;color:#fff;}
+  @media (max-width:560px){.seguro-callout{flex-direction:column;align-items:flex-start;}}
+  .flow{display:flex;align-items:stretch;justify-content:center;gap:6px;}
+  .fstep{flex:1 1 0;background:var(--bg);border:1.5px solid var(--line);border-radius:16px;padding:18px 12px 16px;text-align:center;position:relative;min-width:0;}
+  .fnum{position:absolute;top:-12px;left:50%;transform:translateX(-50%);width:26px;height:26px;border-radius:50%;background:var(--teal);color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;}
+  .ficon{width:52px;height:52px;margin:6px auto 10px;border-radius:14px;background:var(--teal-dim);color:var(--teal-deep);display:flex;align-items:center;justify-content:center;}
+  .ficon svg{width:28px;height:28px;}
+  .fstep h3{font-family:'Space Grotesk',sans-serif;font-size:15px;margin:0 0 6px;}
+  .fstep p{font-size:12.5px;color:var(--ink-dim);line-height:1.45;margin:0;}
+  .farrow{flex:0 0 22px;display:flex;align-items:center;justify-content:center;color:var(--teal);}
+  .farrow svg{width:20px;height:20px;}
+  .flow-nota{text-align:center;color:var(--teal-deep);font-weight:600;font-size:14px;margin:26px 0 0;}
+  @media (max-width:900px){.flow{flex-direction:column;align-items:stretch;gap:4px;max-width:420px;margin:0 auto;}.farrow{flex:0 0 22px;transform:rotate(90deg);}.fstep{padding-top:22px;}}
   .cta-band{background:var(--ink);border-radius:24px;padding:clamp(32px,6vw,52px);text-align:center;}
   .cta-band h2{font-family:'Space Grotesk',sans-serif;color:#fff;font-size:clamp(22px,3.4vw,30px);margin:0 0 12px;letter-spacing:-0.01em;}
   .cta-band p{color:#B9C9C5;font-size:14.5px;margin:0 0 10px;max-width:460px;margin-left:auto;margin-right:auto;line-height:1.55;}
@@ -210,7 +227,7 @@
     <div class="section-head">
       <p class="eyebrow">Por qué ahora</p>
       <h2>Cada auto que no trasladas es un cliente que puede irse a otro taller</h2>
-      <p>El retiro y entrega ya no es un lujo — es lo que el cliente espera. La pregunta es si lo armas tú solo o con respaldo.</p>
+      <p>El cliente no debería elegir otro taller por no tener cómo llevar su auto.</p>
     </div>
     <div class="pair-rows">
       <div>
@@ -260,7 +277,7 @@
             <div class="pair-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></div>
             <div class="pair-body">
               <span class="pair-tag">Sin MoviKar</span>
-              <p>Si el auto se raya en el camino, el reclamo del cliente cae sobre ti, sin respaldo.</p>
+              <p>Un rayón, un golpe, un choque en el camino… y el reclamo cae sobre ti. Pagas la reparación y pierdes al cliente.</p>
             </div>
           </div>
           <div class="pair-arrow"><div class="pair-arrow-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div></div>
@@ -268,10 +285,17 @@
             <div class="pair-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></div>
             <div class="pair-body">
               <span class="pair-tag">Con MoviKar</span>
-              <p>Cada traslado va cubierto por seguro, con registro fotográfico del auto al retiro y a la entrega.</p>
+              <p>Cada traslado va asegurado y con fotos del auto al retiro y a la entrega. Si algo pasa, estás respaldado y nadie discute en qué estado quedó.</p>
             </div>
           </div>
         </div>
+      </div>
+    </div>
+    <div class="seguro-callout">
+      <div class="seguro-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6l8-3z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></div>
+      <div>
+        <b>Seguro incluido en cada traslado</b>
+        <p>Tú entregas el auto a un chofer verificado, y el traslado va cubierto de principio a fin. Sin letra chica que explicarle a tu cliente.</p>
       </div>
     </div>
   </div>
@@ -281,25 +305,20 @@
   <div class="wrap">
     <div class="section-head">
       <p class="eyebrow">Cómo funciona</p>
-      <h2>Tres pasos, sin curva de aprendizaje</h2>
+      <h2>Del taller al cliente y de vuelta, en 5 pasos</h2>
     </div>
-    <div class="steps">
-      <div class="step">
-        <div class="step-num">01</div>
-        <h3>Agenda el traslado</h3>
-        <p>Retiro, entrega o ambos. Ahora mismo o programado — y puedes cargar varios autos antes de confirmar.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">02</div>
-        <h3>Nosotros coordinamos</h3>
-        <p>Asignamos un chofer verificado y activamos el seguro del traslado. Tú no vuelves a llamar a nadie.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">03</div>
-        <h3>Sigues cada paso</h3>
-        <p>Estado en línea desde el retiro hasta la entrega, con registro fotográfico y confirmación final.</p>
-      </div>
+    <div class="flow">
+      <div class="fstep"><div class="fnum">1</div><div class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2.5"/><path d="M8 8h8M8 12h8M8 16h4"/></svg></div><h3>Agendas</h3><p>En menos de 1 minuto: retiro, entrega o ambos.</p></div>
+      <div class="farrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+      <div class="fstep"><div class="fnum">2</div><div class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg></div><h3>Asignamos chofer</h3><p>Verificado y con el traslado asegurado.</p></div>
+      <div class="farrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+      <div class="fstep"><div class="fnum">3</div><div class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15v-3l2-5h10l3 4h3v4"/><circle cx="7.5" cy="16.5" r="1.8"/><circle cx="16.5" cy="16.5" r="1.8"/></svg></div><h3>Retira y fotografía</h3><p>Llega a la hora, revisa el auto y lo registra con fotos.</p></div>
+      <div class="farrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+      <div class="fstep"><div class="fnum">4</div><div class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4 2.6-2.6z"/></svg></div><h3>Tú reparas</h3><p>El auto llega a tu taller. Tú haces lo que sabes hacer.</p></div>
+      <div class="farrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+      <div class="fstep"><div class="fnum">5</div><div class="ficon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg></div><h3>Entrega confirmada</h3><p>Vuelve a tu cliente con fotos y confirmación. Todo en línea.</p></div>
     </div>
+    <p class="flow-nota">Sigues cada paso en línea, sin llamar a nadie.</p>
   </div>
 </section>
 
@@ -309,7 +328,8 @@
       <h2>Empieza a ofrecer retiro y entrega hoy</h2>
       <p>Sin instalación ni curva de aprendizaje — agenda tu primer traslado cuando quieras.</p>
       <span class="risk-reversal">Sin mínimos de traslados. Sin contrato de permanencia.</span>
-      <a class="btn-primary" data-contact-cta href="mailto:movikarcl@gmail.com?subject=Quiero%20sumar%20mi%20taller%20a%20MoviKar">Escribir a MoviKar</a>
+      <a class="btn-primary" href="/contacto/">Sumar mi taller</a>
+      <p style="margin:14px 0 0;font-size:13px;">¿Prefieres hablar con alguien? <a data-contact-cta href="mailto:movikarcl@gmail.com?subject=Quiero%20sumar%20mi%20taller%20a%20MoviKar" style="color:#fff;font-weight:600;">Escríbenos</a></p>
     </div>
   </div>
 </section>
@@ -343,6 +363,7 @@
     fab.appendChild(badge);
   }
   document.body.appendChild(fab);
+  document.querySelectorAll('[data-contact-cta]').forEach((a) => { if (hasWhatsApp) { a.href = waLink; a.target = '_blank'; a.rel = 'noopener'; } });
 </script>
 
 </body>
