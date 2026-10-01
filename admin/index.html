@@ -58,6 +58,7 @@
   .tabs .grupo button { background: transparent; border-color: transparent; }
   .tabs .grupo button.activo { background: var(--bg); border-color: var(--turquesa); }
   .chips { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+  .tab-ico { width:15px; height:15px; vertical-align:-3px; margin-right:5px; }
   .chip { background:var(--bg); border:1px solid var(--line); color:var(--dim); border-radius:999px; padding:6px 12px; font-size:.8rem; cursor:pointer; font-family:'Inter'; }
   .chip.activo { background:var(--turquesa); border-color:var(--turquesa); color:#fff; }
   .chip.rojo:not(.activo) { color:var(--coral); }
@@ -82,6 +83,8 @@
   details.card-form > summary::after { content: "+"; font-size: 1.3rem; color: var(--turquesa); }
   details.card-form[open] > summary::after { content: "–"; }
   .card-form-body { padding: 0 22px 22px; }
+  .card-form-body fieldset { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px 6px; margin: 0 0 14px; }
+  .card-form-body fieldset legend { padding: 0 6px; font-weight: 600; }
   .subtitulo { font-size: 0.82rem; color: var(--dim); margin: -8px 0 16px; }
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
   .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0 14px; }
@@ -189,32 +192,49 @@
   </header>
   <main>
     <div class="tabs">
-      <button class="tab-btn activo" data-tab="inicio">Inicio</button>
+      <button class="tab-btn activo" data-tab="inicio"><svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Inicio</button>
       <span class="grupo g-cap">
-        <button class="tab-btn" data-tab="interesados">Prospectos <span class="contador" id="contador-interesados" style="display:none;">0</span></button>
-        <button class="tab-btn" data-tab="solicitudes">Altas Taller <span class="contador" id="contador-solicitudes" style="display:none;">0</span></button>
-        <button class="tab-btn" data-tab="talleres">Talleres</button>
-        <button class="tab-btn" data-tab="tarifas">Tarifas</button>
+        <button class="tab-btn" data-tab="interesados"><svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg>Prospectos <span class="contador" id="contador-interesados" style="display:none;">0</span></button>
+        <button class="tab-btn" data-tab="solicitudes"><svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h6M9 17h6"/></svg>Altas Taller <span class="contador" id="contador-solicitudes" style="display:none;">0</span></button>
+        <button class="tab-btn" data-tab="talleres"><svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V9l9-5 9 5v12M9 21v-6h6v6"/></svg>Talleres</button>
+        <button class="tab-btn" data-tab="tarifas"><svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 6.5c0-1.9-2.2-3-5-3s-5 1.1-5 3 2.2 2.8 5 3.5 5 1.6 5 3.5-2.2 3-5 3-5-1.1-5-3"/></svg>Tarifas</button>
       </span>
       <span class="grupo g-op">
-        <button class="tab-btn" data-tab="traslados">Traslados</button>
-        <button class="tab-btn" data-tab="choferes">Choferes <span class="contador" id="contador-choferes" style="display:none;">0</span></button>
+        <button class="tab-btn" data-tab="traslados"><svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15v-3l2-5h10l3 4h3v4M7.5 17.5a1.8 1.8 0 1 0 0 .1M16.5 17.5a1.8 1.8 0 1 0 0 .1"/></svg>Traslados</button>
+        <button class="tab-btn" data-tab="choferes"><svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/></svg>Choferes <span class="contador" id="contador-choferes" style="display:none;">0</span></button>
       </span>
-      <span class="grupo g-fin"><button class="tab-btn" data-tab="facturacion">Facturación</button></span>
+      <span class="grupo g-fin"><button class="tab-btn" data-tab="facturacion"><svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2zM9 8h6M9 12h6"/></svg>Facturación</button></span>
     </div>
 
     <!-- ============ INICIO / DASHBOARD ============ -->
     <section class="panel activo" id="panel-inicio">
       <div id="atencion-box"></div>
-      <div class="dash-grupo-titulo">Operación</div>
+      <div class="dash-grupo-titulo">Hoy en MoviKar</div>
       <div class="dash-grid">
-        <div class="dash-card">
-          <div class="dash-num" id="dash-talleres">—</div>
-          <div class="dash-label">Talleres activos</div>
-        </div>
         <div class="dash-card dash-card-click" id="dash-card-prospectos">
           <div class="dash-num" id="dash-prospectos">—</div>
           <div class="dash-label">Prospectos sin gestionar</div>
+        </div>
+        <div class="dash-card dash-card-click" id="dash-card-trasl-hoy">
+          <div class="dash-num" id="dash-trasl-hoy">—</div>
+          <div class="dash-label">Traslados de hoy</div>
+        </div>
+        <div class="dash-card dash-card-click" id="dash-card-choferes-activos">
+          <div class="dash-num" id="dash-choferes-activos">—</div>
+          <div class="dash-label">Choferes activos ahora</div>
+        </div>
+        <div class="dash-card dash-card-click" id="dash-card-por-cobrar">
+          <div class="dash-num" id="dash-por-cobrar">—</div>
+          <div class="dash-label">Por cobrar</div>
+        </div>
+      </div>
+
+      <details style="margin:18px 0;">
+        <summary style="cursor:pointer;color:var(--dim);font-size:.85rem;">Más métricas</summary>
+        <div class="dash-grid" style="margin-top:12px;">
+        <div class="dash-card">
+          <div class="dash-num" id="dash-talleres">—</div>
+          <div class="dash-label">Talleres activos</div>
         </div>
         <div class="dash-card dash-card-click" id="dash-card-solicitudes">
           <div class="dash-num" id="dash-solicitudes">—</div>
@@ -240,7 +260,8 @@
           <div class="dash-num" id="dash-usuarios">—</div>
           <div class="dash-label">Usuarios activos / cupo total</div>
         </div>
-      </div>
+        </div>
+      </details>
 
       <div class="dash-grupo-titulo">Facturación</div>
       <div class="dash-grid">
@@ -260,16 +281,10 @@
       </div>
       <div id="dash-recientes-wrap" style="margin-top:28px;">
         <h3 style="font-size:0.95rem; margin-bottom:12px;">Últimos talleres dados de alta</h3>
-        <div class="chips" id="chips-interesados"></div>
-      <div class="filtros-row">
-        <input type="text" id="filtro-interesados" placeholder="Buscar por taller, comuna o contacto..." />
-        <select id="orden-interesados">
-          <option value="ingreso">Ordenar: fecha de ingreso</option>
-          <option value="nombre">Nombre (A-Z)</option>
-          <option value="traslados">Más traslados al mes</option>
-        </select>
-      </div>
-      <div class="cards-grid" id="lista-interesados"></div>
+        <table>
+          <thead><tr><th>Taller</th><th>Comuna</th><th>Usuarios</th></tr></thead>
+          <tbody id="dash-tabla-recientes"></tbody>
+        </table>
       </div>
     </section>
 
@@ -283,7 +298,7 @@
           <div id="taller-ok" class="ok-msg" style="display:none;"></div>
           <div id="taller-aviso-compartido" class="aviso-compartido" style="display:none;"></div>
 
-          <fieldset style="border-top:none; padding-top:0;">
+          <fieldset>
             <legend>Taller</legend>
             <label for="t-nombre">Nombre del taller</label>
             <input id="t-nombre" type="text" placeholder="Ej: Pompeyo Carrasco La Cisterna" />
@@ -326,10 +341,10 @@
             <legend>Contacto principal</legend>
             <p class="subtitulo" style="margin-top:-4px;">Responsable del taller, con acceso de solo lectura al historial.</p>
             <div style="display:flex; align-items:flex-start; gap:8px; margin-bottom:12px;">
-              <input type="checkbox" id="t-mismo-usuario1" checked style="width:auto; margin-top:3px;" />
-              <label for="t-mismo-usuario1" style="margin:0; color:var(--ink); font-weight:400;">El contacto principal es la misma persona que el primer usuario (login) de abajo.</label>
+              <input type="checkbox" id="t-mismo-usuario1" style="width:auto; margin-top:3px;" />
+              <label for="t-mismo-usuario1" style="margin:0; color:var(--ink); font-weight:400;">Esta persona también será quien tenga acceso para agendar (Usuario 1).</label>
             </div>
-            <div id="t-principal-campos" style="display:none;">
+            <div id="t-principal-campos" style="display:block;">
               <label for="t-p-nombre">Nombre</label>
               <input id="t-p-nombre" type="text" />
               <div class="grid-2">
@@ -408,6 +423,7 @@
         </div>
       </details>
 
+      <div class="chips" id="chips-talleres"></div>
       <div class="filtros-row">
         <input type="text" id="filtro-talleres" placeholder="Buscar por nombre, RUT o comuna..." />
         <select id="orden-talleres">
@@ -416,10 +432,7 @@
           <option value="usuarios">Más usuarios primero</option>
         </select>
       </div>
-      <table>
-        <thead><tr><th>Taller</th><th>Dirección</th><th>Usuarios (máx. 3)</th><th>Estado</th><th></th></tr></thead>
-        <tbody id="tabla-talleres"></tbody>
-      </table>
+      <div class="cards-grid" id="lista-talleres"></div>
     </section>
 
     <!-- ============ TRASLADOS ============ -->
@@ -480,10 +493,8 @@
 
       <h3 style="font-size:0.95rem; margin-bottom:12px;">Tarifa de cobro por cliente</h3>
       <p class="subtitulo" style="margin-bottom:16px;">Cada cliente de facturación (RUT) tiene su propio precio negociado — se aplica a todos sus talleres por igual.</p>
-      <table>
-        <thead><tr><th>Cliente</th><th>Retiro ($)</th><th>Entrega ($)</th><th></th></tr></thead>
-        <tbody id="tabla-tarifas-clientes"></tbody>
-      </table>
+      <div class="chips" id="chips-tarifas"></div>
+      <div class="cards-grid" id="lista-tarifas"></div>
     </section>
 
     <!-- ============ FACTURACIÓN ============ -->
@@ -527,6 +538,11 @@
           <span><i style="background:#97C459;"></i>Pagado</span>
         </div>
       </div>
+
+      <h3 style="font-size:0.95rem; margin-bottom:4px;">Estado por cliente</h3>
+      <p class="subtitulo" style="margin-bottom:12px;">Una tarjeta por RUT: qué debe, qué falta facturar y qué está vencido.</p>
+      <div class="chips" id="chips-cobros"></div>
+      <div class="cards-grid" id="lista-cobros" style="margin-bottom:28px;"></div>
 
       <h3 style="font-size:0.95rem; margin-bottom:4px;">Pendiente de facturar por cliente</h3>
       <p class="subtitulo" style="margin-bottom:16px;">Etapas completadas y en estado "pendiente" de cobro, agrupadas por cliente de facturación (RUT). Al generar la factura se incluyen automáticamente todas las etapas pendientes de ese cliente.</p>
@@ -602,11 +618,17 @@
 
     <!-- ============ CHOFERES ============ -->
     <section class="panel" id="panel-interesados">
-      <p class="subtitulo" style="margin-bottom:16px;">Talleres que llenaron el formulario comercial de la landing.</p>
-      <table>
-        <thead><tr><th>Taller</th><th>Comuna</th><th>Contacto</th><th>Traslados/mes</th><th>Estado</th><th>Fecha</th></tr></thead>
-        <tbody id="tabla-interesados"></tbody>
-      </table>
+      <p class="subtitulo" style="margin-bottom:16px;">Talleres que llenaron el formulario comercial de la landing. Gestiónalos hasta enviarles el enlace de alta.</p>
+        <div class="chips" id="chips-interesados"></div>
+      <div class="filtros-row">
+        <input type="text" id="filtro-interesados" placeholder="Buscar por taller, comuna o contacto..." />
+        <select id="orden-interesados">
+          <option value="ingreso">Ordenar: fecha de ingreso</option>
+          <option value="nombre">Nombre (A-Z)</option>
+          <option value="traslados">Más traslados al mes</option>
+        </select>
+      </div>
+      <div class="cards-grid" id="lista-interesados"></div>
     </section>
 
     <section class="panel" id="panel-choferes">
@@ -635,6 +657,7 @@
   const SUPABASE_URL = "https://gcivybtcccaslyzkzgri.supabase.co";
   const SUPABASE_KEY = "sb_publishable_IVjRfzdWhEO3yb5LkUz7pw_5IA-CxLW";
   const { createClient } = supabase;
+  var ordenInvertido = {};
   const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
   const $ = (id) => document.getElementById(id);
   let correoEnCurso = "";
@@ -853,6 +876,9 @@
     $("dash-choferes-aprobados").textContent = cacheChoferes.filter((c) => c.estado === "aprobado").length;
     $("dash-traslados-totales").textContent = cacheTraslados.length;
     $("dash-traslados-activos").textContent = cacheTraslados.filter(trasladoEsActivo).length;
+    const hoyStr = new Date().toDateString();
+    $("dash-trasl-hoy").textContent = cacheTraslados.filter((t) => t.fecha_principal && new Date(t.fecha_principal).toDateString() === hoyStr).length;
+    $("dash-choferes-activos").textContent = cacheChoferes.filter((c) => c.estado === "aprobado" && c.disponible).length;
 
     const recientes = [...cacheTalleres]
       .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
@@ -875,6 +901,8 @@
     const { data: facturasTotal } = await sb.from("facturas").select("monto_total").neq("estado", "borrador");
     const sumaMes = (facturasMes || []).reduce((a, f) => a + (f.monto_total || 0), 0);
     const sumaTotal = (facturasTotal || []).reduce((a, f) => a + (f.monto_total || 0), 0);
+    const { data: abiertas } = await sb.from("facturas").select("monto_total").in("estado", ["emitida", "vencida"]);
+    $("dash-por-cobrar").textContent = fmtMonto((abiertas || []).reduce((a, f) => a + (f.monto_total || 0), 0));
     $("dash-facturacion-mes").textContent = fmtMonto(sumaMes);
     $("dash-facturacion-total").textContent = fmtMonto(sumaTotal);
   }
@@ -882,6 +910,9 @@
   $("dash-btn-solicitudes").addEventListener("click", () => irATab("solicitudes"));
   $("dash-card-solicitudes").addEventListener("click", () => irATab("solicitudes"));
   $("dash-card-prospectos").addEventListener("click", () => irATab("interesados"));
+  $("dash-card-trasl-hoy").addEventListener("click", () => { filtroTrasladoActivo = "hoy"; irATab("traslados"); sincronizarChipsTraslado(); renderTraslados(); });
+  $("dash-card-choferes-activos").addEventListener("click", () => irATab("choferes"));
+  $("dash-card-por-cobrar").addEventListener("click", () => irATab("facturacion"));
   $("dash-card-choferes").addEventListener("click", () => irATab("choferes"));
   $("dash-card-traslados-totales").addEventListener("click", () => { filtroTrasladoActivo = "todos"; irATab("traslados"); sincronizarChipsTraslado(); renderTraslados(); });
   $("dash-card-traslados-activos").addEventListener("click", () => { filtroTrasladoActivo = "activos"; irATab("traslados"); sincronizarChipsTraslado(); renderTraslados(); });
@@ -911,9 +942,8 @@
   }
 
   async function cargarTalleres() {
-    const tbody = $("tabla-talleres");
     const { data: talleres, error } = await sb.from("talleres").select("*");
-    if (error) { tbody.innerHTML = `<tr><td colspan="5" class="vacio">No se pudo cargar: ${error.message}</td></tr>`; return; }
+    if (error) { $("lista-talleres").innerHTML = `<p class="vacio">No se pudo cargar: ${error.message}</p>`; return; }
 
     const { data: usuarios } = await sb.from("taller_usuarios").select("*").order("nombre");
     const usuariosPorTaller = {};
@@ -945,84 +975,94 @@
     return !!(t && t.retiro && t.entrega);
   }
 
-  function renderTalleres() {
-    const tbody = $("tabla-talleres");
-    if (!cacheTalleres.length) { tbody.innerHTML = `<tr><td colspan="5" class="vacio">Todavía no hay talleres dados de alta.</td></tr>`; return; }
+  let chipTalleres = "habilitados";
+  function faltaParaHabilitar(t) {
+    const f = [];
+    const tar = cacheTarifasOkPorCliente[t.cliente_facturacion_id] || {};
+    if (!tar.retiro) f.push("tarifa de retiro");
+    if (!tar.entrega) f.push("tarifa de entrega");
+    if (!(cacheUsuariosPorTaller[t.id] || []).some((u) => u.estado === "activo" && u.puede_agendar)) f.push("un usuario que pueda agendar");
+    return f;
+  }
+  const FILTROS_TALLER = [
+    ["habilitados", "Habilitados", (t) => t.habilitado && t.estado !== "suspendido"],
+    ["incompletos", "Incompletos", (t) => !t.habilitado && t.estado !== "suspendido"],
+    ["suspendidos", "Suspendidos", (t) => t.estado === "suspendido"],
+    ["todos", "Todos", () => true],
+  ];
 
+  function renderTalleres() {
+    const chips = $("chips-talleres");
+    chips.innerHTML = FILTROS_TALLER.map(([v, l, fn]) => `<button class="chip ${chipTalleres === v ? "activo" : ""} ${v === "incompletos" ? "rojo" : ""}" data-chip="${v}">${l} ${cacheTalleres.filter(fn).length}</button>`).join("");
+    chips.querySelectorAll("[data-chip]").forEach((b) => b.addEventListener("click", () => { chipTalleres = b.dataset.chip; renderTalleres(); }));
+
+    const cont = $("lista-talleres");
+    if (!cacheTalleres.length) { cont.innerHTML = `<p class="vacio">Todavía no hay talleres dados de alta.</p>`; return; }
+
+    const fn = FILTROS_TALLER.find((x) => x[0] === chipTalleres)[2];
     const texto = $("filtro-talleres").value.trim();
     const orden = $("orden-talleres").value;
-    const lista = ordenarYFiltrar(cacheTalleres, texto, orden, (t) => (cacheUsuariosPorTaller[t.id] || []).length);
+    const lista = ordenarYFiltrar(cacheTalleres.filter(fn), texto, orden, (t) => (cacheUsuariosPorTaller[t.id] || []).length);
+    if (ordenInvertido["talleres"]) lista.reverse();
+    if (!lista.length) { cont.innerHTML = `<p class="vacio">No hay talleres en esta lista.</p>`; return; }
 
-    if (!lista.length) { tbody.innerHTML = `<tr><td colspan="5" class="vacio">Sin resultados para ese filtro.</td></tr>`; return; }
-
-    const grupos = [];
-    const indicePorCliente = {};
-    lista.forEach((t) => {
-      const cid = t.cliente_facturacion_id || "sin_cliente";
-      if (!(cid in indicePorCliente)) {
-        indicePorCliente[cid] = grupos.length;
-        grupos.push({ clienteId: cid, talleres: [] });
-      }
-      grupos[indicePorCliente[cid]].talleres.push(t);
-    });
-
-    tbody.innerHTML = grupos.map((g) => {
-      const cliente = cacheClientesPorId[g.clienteId];
-      const cicloTexto = cliente
-        ? (cliente.ciclo_facturacion === "personalizado" ? `cada ${cliente.ciclo_facturacion_dias || "?"} días` : cliente.ciclo_facturacion)
-        : "—";
-      const encabezado = cliente
-        ? `<tr class="fila-grupo"><td colspan="5">${cliente.razon_social} <span class="grupo-rut">RUT ${cliente.rut} · ciclo ${cicloTexto} · ${g.talleres.length} local${g.talleres.length !== 1 ? "es" : ""}</span></td></tr>`
-        : `<tr class="fila-grupo"><td colspan="5">Sin cliente de facturación asociado</td></tr>`;
-
-      const filas = g.talleres.map((t) => {
-        const us = cacheUsuariosPorTaller[t.id] || [];
-        const listaUsuarios = us.length
-          ? `<div class="usuarios-lista">${us.map((u) => `<div>${u.nombre}${u.cargo ? ` <span class="cargo">· ${u.cargo}</span>` : ""} <span class="badge ${u.estado}">${u.estado}</span>${u.es_principal ? ` <span class="badge principal">principal</span>` : ""}${u.puede_agendar === false ? ` <span class="badge pendiente">solo lectura</span>` : ""} <button class="link-accion" style="font-size:11px; padding:0;" data-editar-usuario="${u.id}" data-taller-usuario="${t.id}">editar</button><br><span class="mono">${u.correo}${u.telefono ? " · " + u.telefono : ""}</span></div>`).join("")}</div>`
-          : `<span class="vacio" style="padding:0;">Sin usuarios</span>`;
-        const limite = t.limite_usuarios ?? 3;
-        const alLimite = us.length >= limite;
-        const tieneTarifa = clienteTieneTarifaCompleta(g.clienteId);
-        const estadoBadge = t.habilitado
-          ? `<span class="badge habilitado">habilitado</span>`
-          : `<span class="badge deshabilitado">deshabilitado</span>`;
-        const tarifaAviso = tieneTarifa ? "" : `<div class="mono" style="color:var(--coral); margin-top:4px;">sin tarifa cargada</div>`;
-        const btnHabilitarLabel = t.habilitado ? "Deshabilitar" : "Habilitar";
-        return `
-          <tr class="fila-taller">
-            <td><strong>${t.nombre_taller}</strong><br><span class="mono" style="color:var(--dim);">${t.rut_taller || "sin RUT"}</span></td>
-            <td>${t.calle} ${t.numero}${t.depto_casa ? ", " + t.depto_casa : ""}, ${t.comuna}</td>
-            <td>${listaUsuarios}<div class="mono" style="color:var(--dim); margin-top:4px;">${us.length}/${limite}</div></td>
-            <td>${estadoBadge}${tarifaAviso}</td>
-            <td>
-              <button class="link-accion" data-editar="${t.id}">Editar</button>
-              <button class="link-accion" data-agregar="${t.id}" ${alLimite ? "disabled title='Límite alcanzado'" : ""}>+ Usuario</button>
-              <button class="link-accion" data-habilitar="${t.id}">${btnHabilitarLabel}</button>
-              <button class="link-accion rojo" data-eliminar="${t.id}">Eliminar</button>
-            </td>
-          </tr>`;
-      }).join("");
-
-      return encabezado + filas;
+    cont.innerHTML = lista.map((t) => {
+      const us = cacheUsuariosPorTaller[t.id] || [];
+      const limite = t.limite_usuarios ?? 3;
+      const alLimite = us.length >= limite;
+      const cliente = cacheClientesPorId[t.cliente_facturacion_id];
+      const suspendido = t.estado === "suspendido";
+      const falta = faltaParaHabilitar(t);
+      const etq = suspendido ? ["rojo", "Suspendido"] : t.habilitado ? ["ok", "Habilitado"] : ["rojo", "Incompleto"];
+      const aviso = (!t.habilitado && !suspendido)
+        ? `<div style="font-size:.8rem;color:var(--coral);margin:0 0 8px;">${falta.length ? "Falta: " + falta.join(", ") : "Listo para habilitar"}</div>` : "";
+      const botonEstado = suspendido
+        ? `<button class="prim" data-habilitar="${t.id}">Reactivar</button>`
+        : t.habilitado
+          ? `<button data-suspender="${t.id}">Suspender</button>`
+          : `<button class="prim" data-habilitar="${t.id}" ${falta.length ? "disabled title='Completa lo que falta'" : ""}>Habilitar</button>`;
+      const usuariosHtml = us.length
+        ? us.map((u) => `<div>${u.nombre}${u.cargo ? ` <span class="sub">· ${u.cargo}</span>` : ""} <span class="etq ${u.estado === "activo" ? "ok" : ""}">${u.estado}</span>${u.es_principal ? ` <span class="etq">principal</span>` : ""}<br><span class="sub">${u.correo}</span></div>`).join("")
+        : `<span class="sub">Sin usuarios</span>`;
+      return `<div class="card-d">
+        <div class="card-top"><div><h3>${t.nombre_taller}</h3><span class="sub">${t.calle} ${t.numero}${t.depto_casa ? ", " + t.depto_casa : ""}, ${t.comuna}</span></div><span class="etq ${etq[0]}">${etq[1]}</span></div>
+        <div class="grid2">
+          <div><small>Cliente de facturación</small>${cliente ? cliente.razon_social : "—"}</div>
+          <div><small>RUT</small>${t.rut_taller || (cliente ? cliente.rut : "—")}</div>
+          <div><small>Usuarios</small>${us.length}/${limite}</div>
+          <div><small>Ciclo</small>${cliente ? (cliente.ciclo_facturacion === "personalizado" ? `cada ${cliente.ciclo_facturacion_dias || "?"} días` : String(cliente.ciclo_facturacion).replace("_", " ")) : "—"}</div>
+        </div>
+        ${aviso}
+        <div class="acciones">
+          <button data-detalle-taller="${t.id}">Detalle</button>
+          <button data-editar="${t.id}">Editar</button>
+          <button data-agregar="${t.id}" ${alLimite ? "disabled title='Límite alcanzado'" : ""}>Usuarios +</button>
+          ${botonEstado}
+        </div>
+        <div style="margin-top:8px;"><button class="link-accion rojo" data-eliminar="${t.id}">Eliminar</button></div>
+        <div id="detalle-taller-${t.id}" style="display:none;margin-top:10px;font-size:.85rem;border-top:1px solid var(--line);padding-top:10px;">${usuariosHtml}</div>
+      </div>`;
     }).join("");
 
-    tbody.querySelectorAll("[data-editar]").forEach((btn) => {
+    cont.querySelectorAll("[data-detalle-taller]").forEach((btn) => {
+      btn.addEventListener("click", () => { const d = $("detalle-taller-" + btn.dataset.detalleTaller); d.style.display = d.style.display === "none" ? "block" : "none"; });
+    });
+    cont.querySelectorAll("[data-editar]").forEach((btn) => {
       btn.addEventListener("click", () => {
         const t = cacheTalleres.find((x) => x.id === btn.dataset.editar);
         if (t) cargarTallerParaEditar(t);
       });
     });
-
-    tbody.querySelectorAll("[data-eliminar]").forEach((btn) => {
+    cont.querySelectorAll("[data-eliminar]").forEach((btn) => {
       btn.addEventListener("click", async () => {
         if (!confirm("¿Eliminar este taller? Todos sus usuarios pierden el acceso de inmediato.")) return;
         const { error } = await sb.from("talleres").delete().eq("id", btn.dataset.eliminar);
         if (error) { alert("No se pudo eliminar: " + error.message); return; }
         cargarTalleres();
+        if (typeof cargarTarifas === "function") cargarTarifas();
       });
     });
-
-    tbody.querySelectorAll("[data-agregar]:not([disabled])").forEach((btn) => {
+    cont.querySelectorAll("[data-agregar]:not([disabled])").forEach((btn) => {
       btn.addEventListener("click", async () => {
         const nombre = prompt("Nombre de la persona:");
         if (!nombre) return;
@@ -1035,60 +1075,35 @@
         cargarTalleres();
       });
     });
-
-    tbody.querySelectorAll("[data-editar-usuario]").forEach((btn) => {
+    cont.querySelectorAll("[data-suspender]").forEach((btn) => {
       btn.addEventListener("click", async () => {
-        const usuarios = cacheUsuariosPorTaller[btn.dataset.tallerUsuario] || [];
-        const u = usuarios.find((x) => x.id === btn.dataset.editarUsuario);
-        if (!u) return;
-
-        const nombre = prompt("Nombre:", u.nombre);
-        if (nombre === null) return;
-        const cargo = prompt("Cargo (opcional):", u.cargo || "");
-        if (cargo === null) return;
-        const correo = prompt("Correo:", u.correo);
-        if (correo === null) return;
-        const telefono = prompt("Teléfono (opcional):", u.telefono || "");
-        if (telefono === null) return;
-
-        if (!nombre.trim() || !correo.trim()) { alert("Nombre y correo no pueden quedar vacíos."); return; }
-
-        const { error } = await sb.from("taller_usuarios").update({
-          nombre: nombre.trim(),
-          cargo: cargo.trim() || null,
-          correo: correo.trim(),
-          telefono: telefono.trim() || null,
-        }).eq("id", u.id);
-
-        if (error) { alert("No se pudo actualizar: " + error.message); return; }
+        if (!confirm("¿Suspender este taller? No podrá agendar traslados hasta que lo reactives. Sus traslados en curso no se tocan.")) return;
+        btn.disabled = true;
+        const { error } = await sb.from("talleres").update({ estado: "suspendido", habilitado: false }).eq("id", btn.dataset.suspender);
+        if (error) { alert("No se pudo suspender: " + error.message); btn.disabled = false; return; }
+        chipTalleres = "suspendidos";
         cargarTalleres();
       });
     });
-
-    tbody.querySelectorAll("[data-habilitar]").forEach((btn) => {
+    cont.querySelectorAll("[data-habilitar]:not([disabled])").forEach((btn) => {
       btn.addEventListener("click", async () => {
         const t = cacheTalleres.find((x) => x.id === btn.dataset.habilitar);
         if (!t) return;
-        const yaHabilitado = t.habilitado;
-        if (!yaHabilitado && !clienteTieneTarifaCompleta(t.cliente_facturacion_id)) {
-          alert("Este cliente de facturación todavía no tiene tarifa cargada para retiro y entrega. Ve a la pestaña Tarifas y carga el precio de retiro y entrega para este cliente antes de habilitar el taller.");
+        if (!clienteTieneTarifaCompleta(t.cliente_facturacion_id)) {
+          alert("Este cliente de facturación todavía no tiene tarifa de retiro y entrega. Ve a la pestaña Tarifas y cárgalas antes de habilitar el taller.");
           return;
         }
         btn.disabled = true;
-        if (yaHabilitado) {
-          const { error } = await sb.from("talleres").update({ habilitado: false }).eq("id", t.id);
-          btn.disabled = false;
-          if (error) { alert("No se pudo actualizar: " + error.message); return; }
-        } else {
-          const res = await invocarEdgeFunction("notificar-taller-habilitado", { taller_id: t.id });
-          btn.disabled = false;
-          if (res.error) { alert("No se pudo habilitar: " + res.error); return; }
-          const correos = (res.data && res.data.correos) || {};
-          const fallidos = Object.entries(correos).filter(([, v]) => v && v.enviado === false);
-          if (fallidos.length) {
-            alert("Taller habilitado. Algunos correos de aviso no se enviaron: " + fallidos.map(([k]) => k).join(", "));
-          }
+        if (t.estado === "suspendido") {
+          const { error: e0 } = await sb.from("talleres").update({ estado: "aprobado" }).eq("id", t.id);
+          if (e0) { alert("No se pudo reactivar: " + e0.message); btn.disabled = false; return; }
         }
+        const res = await invocarEdgeFunction("notificar-taller-habilitado", { taller_id: t.id });
+        if (res.error) { alert("No se pudo habilitar: " + res.error); btn.disabled = false; cargarTalleres(); return; }
+        const correos = (res.data && res.data.correos) || {};
+        const fallidos = Object.entries(correos).filter(([, v]) => v && v.enviado === false);
+        if (fallidos.length) alert("Taller habilitado. Algunos correos de aviso no se enviaron: " + fallidos.map(([k]) => k).join(", "));
+        chipTalleres = "habilitados";
         cargarTalleres();
       });
     });
@@ -1111,8 +1126,8 @@
     document.querySelector('#panel-talleres details.card-form summary').textContent = "Dar de alta un taller manualmente";
     $("btn-crear-taller").textContent = "Crear taller";
     $("btn-cancelar-taller").style.display = "none";
-    $("t-mismo-usuario1").checked = true;
-    $("t-principal-campos").style.display = "none";
+    $("t-mismo-usuario1").checked = false;
+    $("t-principal-campos").style.display = "block";
     ["t-nombre","t-rut","t-calle","t-numero","t-comuna","t-depto",
      "t-u-nombre","t-u-cargo","t-u-correo","t-u-telefono",
      "t-u2-nombre","t-u2-cargo","t-u2-correo","t-u2-telefono",
@@ -1335,28 +1350,67 @@
     renderTarifasClientes();
   }
 
-  function renderTarifasClientes() {
-    const tbody = $("tabla-tarifas-clientes");
-    if (!cacheClientesTarifas.length) { tbody.innerHTML = `<tr><td colspan="4" class="vacio">Todavía no hay clientes de facturación.</td></tr>`; return; }
+  let chipTarifas = "todas";
+  async function renderTarifasClientes() {
+    const cont = $("lista-tarifas");
+    const chips = $("chips-tarifas");
+    const completa = (c) => { const a = cacheTarifasClientePorId[c.id] || {}; return !!(a.retiro && a.entrega); };
+    const nInc = cacheClientesTarifas.filter((c) => !completa(c)).length;
+    chips.innerHTML = `<button class="chip ${chipTarifas === "todas" ? "activo" : ""}" data-chip="todas">Todas ${cacheClientesTarifas.length}</button><button class="chip rojo ${chipTarifas === "incompletas" ? "activo" : ""}" data-chip="incompletas">Solo incompletas ${nInc}</button>`;
+    chips.querySelectorAll("[data-chip]").forEach((b) => b.addEventListener("click", () => { chipTarifas = b.dataset.chip; renderTarifasClientes(); }));
 
-    tbody.innerHTML = cacheClientesTarifas.map((c) => {
+    const lista = cacheClientesTarifas.filter((c) => chipTarifas === "todas" || !completa(c));
+    if (!lista.length) { cont.innerHTML = `<p class="vacio">${cacheClientesTarifas.length ? "No hay tarifas incompletas." : "Todavía no hay clientes de facturación."}</p>`; return; }
+
+    const { data: talleresCli } = await sb.from("talleres").select("nombre_taller, cliente_facturacion_id");
+    const localesPorCliente = {};
+    (talleresCli || []).forEach((t) => { (localesPorCliente[t.cliente_facturacion_id] = localesPorCliente[t.cliente_facturacion_id] || []).push(t.nombre_taller); });
+
+    cont.innerHTML = lista.map((c) => {
       const actual = cacheTarifasClientePorId[c.id] || {};
-      return `
-        <tr>
-          <td><strong>${c.razon_social}</strong><br><span class="mono" style="color:var(--dim);">${c.rut}</span></td>
-          <td><input type="number" min="0" class="tarifa-retiro-input" data-cliente="${c.id}" value="${actual.retiro ?? ""}" style="margin-bottom:0;" placeholder="—"></td>
-          <td><input type="number" min="0" class="tarifa-entrega-input" data-cliente="${c.id}" value="${actual.entrega ?? ""}" style="margin-bottom:0;" placeholder="—"></td>
-          <td><button class="link-accion" data-guardar-tarifa="${c.id}">Guardar</button></td>
-        </tr>`;
+      const ok = completa(c);
+      const locales = localesPorCliente[c.id] || [];
+      return `<div class="card-d">
+        <div class="card-top"><div><h3>${c.razon_social}</h3><span class="sub">RUT ${c.rut} · ${locales.length} local${locales.length !== 1 ? "es" : ""}</span></div><span class="etq ${ok ? "ok" : "rojo"}">${ok ? "Activa" : "Incompleta"}</span></div>
+        <div class="grid2">
+          <div><label style="font-size:.7rem;color:var(--dim);">Retiro ($)</label><input type="number" min="0" class="tarifa-retiro-input" data-cliente="${c.id}" value="${actual.retiro ?? ""}" placeholder="—" style="margin:0;"></div>
+          <div><label style="font-size:.7rem;color:var(--dim);">Entrega ($)</label><input type="number" min="0" class="tarifa-entrega-input" data-cliente="${c.id}" value="${actual.entrega ?? ""}" placeholder="—" style="margin:0;"></div>
+        </div>
+        <div class="acciones">
+          <button class="prim" data-guardar-tarifa="${c.id}">Guardar</button>
+          <button data-ver-locales="${c.id}">Ver talleres</button>
+          <button data-historial-tarifa="${c.id}">Historial</button>
+        </div>
+        <div id="extra-tarifa-${c.id}" style="display:none;margin-top:10px;font-size:.85rem;border-top:1px solid var(--line);padding-top:10px;"></div>
+      </div>`;
     }).join("");
 
-    tbody.querySelectorAll("[data-guardar-tarifa]").forEach((btn) => {
+    cont.querySelectorAll("[data-ver-locales]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const box = $("extra-tarifa-" + btn.dataset.verLocales);
+        const l = localesPorCliente[btn.dataset.verLocales] || [];
+        box.innerHTML = l.length ? l.map((n) => `<div>• ${n}</div>`).join("") : `<span class="sub">Este cliente aún no tiene talleres.</span>`;
+        box.style.display = box.style.display === "none" || box.dataset.modo !== "locales" ? "block" : "none";
+        box.dataset.modo = "locales";
+      });
+    });
+    cont.querySelectorAll("[data-historial-tarifa]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = btn.dataset.historialTarifa;
+        const box = $("extra-tarifa-" + id);
+        if (box.style.display === "block" && box.dataset.modo === "historial") { box.style.display = "none"; return; }
+        box.dataset.modo = "historial"; box.style.display = "block"; box.innerHTML = `<span class="sub">Cargando...</span>`;
+        const { data } = await sb.from("tarifas_cliente").select("etapa, precio_cobro, activa, created_at, creada_por").eq("cliente_facturacion_id", id).order("created_at", { ascending: false });
+        box.innerHTML = (data || []).length
+          ? data.map((t) => `<div>${fmtFecha(t.created_at)} · ${t.etapa} · <b>${fmtMonto(t.precio_cobro)}</b> ${t.activa ? '<span class="etq ok">vigente</span>' : '<span class="etq">anterior</span>'}${t.creada_por ? ` <span class="sub">${t.creada_por}</span>` : ""}</div>`).join("")
+          : `<span class="sub">Sin historial.</span>`;
+      });
+    });
+    cont.querySelectorAll("[data-guardar-tarifa]").forEach((btn) => {
       btn.addEventListener("click", async () => {
         const cid = btn.dataset.guardarTarifa;
-        const retiroInput = tbody.querySelector(`.tarifa-retiro-input[data-cliente="${cid}"]`);
-        const entregaInput = tbody.querySelector(`.tarifa-entrega-input[data-cliente="${cid}"]`);
-        const retiro = parseInt(retiroInput.value, 10);
-        const entrega = parseInt(entregaInput.value, 10);
+        const retiro = parseInt(cont.querySelector(`.tarifa-retiro-input[data-cliente="${cid}"]`).value, 10);
+        const entrega = parseInt(cont.querySelector(`.tarifa-entrega-input[data-cliente="${cid}"]`).value, 10);
         if (!retiro || !entrega || retiro < 0 || entrega < 0) {
           alert("Ingresa un precio válido para retiro y entrega (ambos son requeridos para poder habilitar talleres de este cliente).");
           return;
@@ -1367,7 +1421,7 @@
         btn.disabled = false; btn.textContent = "Guardar";
         if (r1.error || r2.error) { alert("No se pudo guardar: " + ((r1.error || r2.error).message)); return; }
         await cargarTarifas();
-        await cargarTalleres(); // refresca badges de habilitado/tarifa en la pestaña Talleres
+        await cargarTalleres();
       });
     });
   }
@@ -1425,6 +1479,7 @@
     await cargarFacturas();
     await renderDashboardFacturacion();
     await actualizarMetricasFacturacion();
+    await renderCobrosClientes();
   }
 
   function renderFacturacionPendiente() {
@@ -1452,6 +1507,100 @@
         cargarFacturacion();
       });
     });
+  }
+
+
+  // ---------- Cobros: tarjeta por cliente (RUT) ----------
+  let chipCobros = "todos";
+  async function renderCobrosClientes() {
+    const cont = $("lista-cobros");
+    const { data: clientes } = await sb.from("clientes_facturacion").select("*").order("razon_social");
+    const { data: facts } = await sb.from("facturas").select("*").neq("estado", "borrador");
+    const { data: borr } = await sb.from("facturas").select("cliente_facturacion_id").eq("estado", "borrador");
+    const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+    const info = {};
+    (clientes || []).forEach((c) => { info[c.id] = { c, porFacturar: 0, etapas: 0, porCobrar: 0, vencido: 0, pagado: 0, emitidas: [], borradores: 0 }; });
+    (cacheFacturacionPendiente || []).forEach((x) => { if (info[x.cliente.id]) { info[x.cliente.id].porFacturar = x.monto; info[x.cliente.id].etapas = x.etapas; } });
+    (borr || []).forEach((b) => { if (info[b.cliente_facturacion_id]) info[b.cliente_facturacion_id].borradores += 1; });
+    (facts || []).forEach((f) => {
+      const i = info[f.cliente_facturacion_id]; if (!i) return;
+      const vence = f.fecha_vencimiento ? new Date(f.fecha_vencimiento) : null;
+      if (f.estado === "pagada") i.pagado += f.monto_total || 0;
+      else if (f.estado === "vencida" || (f.estado === "emitida" && vence && vence < hoy)) { i.vencido += f.monto_total || 0; i.emitidas.push(f); }
+      else if (f.estado === "emitida") { i.porCobrar += f.monto_total || 0; i.emitidas.push(f); }
+    });
+    const estadoDe = (i) => i.vencido > 0 ? "vencido" : (i.porCobrar > 0 || i.porFacturar > 0 || i.borradores > 0) ? "porcobrar" : "aldia";
+    const todos = Object.values(info);
+    const FIL = [["todos", "Todos", () => true], ["vencido", "Vencido", (i) => estadoDe(i) === "vencido"], ["porcobrar", "Por cobrar", (i) => estadoDe(i) === "porcobrar"], ["aldia", "Al día", (i) => estadoDe(i) === "aldia"]];
+    const chips = $("chips-cobros");
+    chips.innerHTML = FIL.map(([v, l, f]) => `<button class="chip ${chipCobros === v ? "activo" : ""} ${v === "vencido" ? "rojo" : ""}" data-chip="${v}">${l} ${todos.filter(f).length}</button>`).join("");
+    chips.querySelectorAll("[data-chip]").forEach((b) => b.addEventListener("click", () => { chipCobros = b.dataset.chip; renderCobrosClientes(); }));
+
+    const q = ($("fact-buscar").value || "").trim().toLowerCase();
+    const fn = FIL.find((x) => x[0] === chipCobros)[2];
+    const lista = todos.filter(fn).filter((i) => !q || i.c.razon_social.toLowerCase().includes(q) || (i.c.rut || "").toLowerCase().includes(q));
+    if (!lista.length) { cont.innerHTML = `<p class="vacio">No hay clientes en esta lista.</p>`; return; }
+
+    cont.innerHTML = lista.map((i) => {
+      const est = estadoDe(i);
+      const etq = est === "vencido" ? ["rojo", "Vencido"] : est === "porcobrar" ? ["", "Por cobrar"] : ["ok", "Al día"];
+      return `<div class="card-d">
+        <div class="card-top"><div><h3>${i.c.razon_social}</h3><span class="sub">RUT ${i.c.rut}</span></div><span class="etq ${etq[0]}">${etq[1]}</span></div>
+        <div class="grid2">
+          <div><small>Por facturar</small>${fmtMonto(i.porFacturar)}${i.etapas ? ` <span class="sub">(${i.etapas} etapas)</span>` : ""}</div>
+          <div><small>Facturado, sin pagar</small>${fmtMonto(i.porCobrar)}</div>
+          <div><small>Vencido</small><span style="${i.vencido ? "color:var(--coral);font-weight:600;" : ""}">${fmtMonto(i.vencido)}</span></div>
+          <div><small>Pagado (total)</small>${fmtMonto(i.pagado)}</div>
+        </div>
+        <div class="acciones">
+          <button data-cobro-detalle="${i.c.id}">Detalle</button>
+          ${i.etapas ? `<button class="prim" data-cobro-facturar="${i.c.id}">Facturar</button>` : ""}
+          ${i.emitidas.length ? `<button class="prim" data-cobro-pagar="${i.c.id}">Registrar pago</button>` : ""}
+          <button data-cobro-exportar="${i.c.id}">Exportar</button>
+        </div>
+        <div id="cobro-detalle-${i.c.id}" style="display:none;margin-top:10px;font-size:.85rem;border-top:1px solid var(--line);padding-top:10px;"></div>
+      </div>`;
+    }).join("");
+
+    cont.querySelectorAll("[data-cobro-detalle]").forEach((btn) => btn.addEventListener("click", async () => {
+      const id = btn.dataset.cobroDetalle; const box = $("cobro-detalle-" + id);
+      if (box.style.display === "block") { box.style.display = "none"; return; }
+      box.style.display = "block"; box.innerHTML = `<span class="sub">Cargando...</span>`;
+      const { data: trs } = await sb.from("traslados").select("patente, monto_cobro_retiro, monto_cobro_entrega, estado_pago_cliente_retiro, estado_pago_cliente_entrega, talleres!inner(nombre_taller, cliente_facturacion_id)").eq("talleres.cliente_facturacion_id", id).order("created_at", { ascending: false });
+      const filas = [];
+      (trs || []).forEach((t) => {
+        if (t.estado_pago_cliente_retiro && t.estado_pago_cliente_retiro !== "sin_tarifa") filas.push([t.patente, t.talleres.nombre_taller, "Retiro", t.monto_cobro_retiro, t.estado_pago_cliente_retiro]);
+        if (t.estado_pago_cliente_entrega && t.estado_pago_cliente_entrega !== "sin_tarifa") filas.push([t.patente, t.talleres.nombre_taller, "Entrega", t.monto_cobro_entrega, t.estado_pago_cliente_entrega]);
+      });
+      box.innerHTML = filas.length ? filas.map((f) => `<div style="display:flex;justify-content:space-between;gap:8px;"><span>${f[0]} · ${f[2]} <span class="sub">${f[1]}</span></span><span>${fmtMonto(f[3])} <span class="etq">${f[4]}</span></span></div>`).join("") : `<span class="sub">Sin etapas con cobro todavía.</span>`;
+    }));
+    cont.querySelectorAll("[data-cobro-facturar]").forEach((btn) => btn.addEventListener("click", async () => {
+      if (!confirm("¿Generar factura con todas las etapas pendientes de este cliente? Nace como borrador.")) return;
+      btn.disabled = true;
+      const { error } = await sb.rpc("generar_factura_cliente", { p_cliente_id: btn.dataset.cobroFacturar });
+      if (error) { alert("No se pudo generar: " + error.message); btn.disabled = false; return; }
+      cargarFacturacion();
+    }));
+    cont.querySelectorAll("[data-cobro-pagar]").forEach((btn) => btn.addEventListener("click", async () => {
+      const i = info[btn.dataset.cobroPagar];
+      const f = i.emitidas.sort((a, b) => new Date(a.fecha_emision || a.created_at) - new Date(b.fecha_emision || b.created_at))[0];
+      if (!confirm(`¿Registrar el pago de la factura ${f.numero_folio ? "folio " + f.numero_folio + " " : ""}por ${fmtMonto(f.monto_total)}? Marca como pagadas todas sus etapas.`)) return;
+      btn.disabled = true;
+      const { error } = await sb.rpc("marcar_factura_pagada", { p_factura_id: f.id });
+      if (error) { alert("No se pudo registrar: " + error.message); btn.disabled = false; return; }
+      cargarFacturacion();
+    }));
+    cont.querySelectorAll("[data-cobro-exportar]").forEach((btn) => btn.addEventListener("click", () => {
+      const i = info[btn.dataset.cobroExportar];
+      const propias = (facts || []).filter((f) => f.cliente_facturacion_id === i.c.id).map((f) => ({
+        Cliente: i.c.razon_social, RUT: i.c.rut, "N° folio": f.numero_folio || "", Estado: f.estado,
+        "Fecha emisión": fmtFecha(f.fecha_emision), "Fecha pago": fmtFecha(f.fecha_pago), Monto: f.monto_total || 0,
+      }));
+      if (!propias.length) { alert("Este cliente aún no tiene facturas emitidas para exportar."); return; }
+      const libro = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(libro, XLSX.utils.json_to_sheet(propias), "Facturas");
+      XLSX.writeFile(libro, "cobros-" + (i.c.rut || "cliente") + ".xlsx");
+    }));
   }
 
   async function cargarFacturas() {
@@ -1649,7 +1798,7 @@
 
   $("filtro-facturas-estado").addEventListener("change", cargarFacturas);
   $("fact-periodo").addEventListener("change", () => { cargarFacturas(); actualizarMetricasFacturacion(); });
-  $("fact-buscar").addEventListener("input", () => { renderFacturacionPendiente(); renderFacturas(); });
+  $("fact-buscar").addEventListener("input", () => { renderFacturacionPendiente(); renderFacturas(); renderCobrosClientes(); });
 
   $("fact-card-pendiente").addEventListener("click", async () => {
     const filas = cacheFacturacionPendiente.map((x) => `<tr><td>${x.cliente.razon_social}</td><td>${x.etapas}</td><td>${fmtMonto(x.monto)}</td></tr>`).join("");
@@ -1902,6 +2051,7 @@
       .sort((a, b) => orden === "disp" ? (b.disponible - a.disponible) : orden === "hoy" ? trasladosHoy(b) - trasladosHoy(a)
         : orden === "conexion" ? new Date(b.ultima_conexion || 0) - new Date(a.ultima_conexion || 0)
         : orden === "alta" ? new Date(b.created_at) - new Date(a.created_at) : (a.nombre || "").localeCompare(b.nombre || ""));
+    if (ordenInvertido["choferes"]) lista.reverse();
     if (!lista.length) { cont.innerHTML = `<p class="vacio">No hay choferes en esta lista.</p>`; return; }
 
     cont.innerHTML = lista.map((c) => {
@@ -1914,7 +2064,8 @@
         ? `<button data-ver-docs="${c.id}">Revisar</button><button class="prim" data-aprobar-chofer="${c.id}">Aprobar</button><button class="rojo" data-rechazar-chofer="${c.id}">Rechazar</button>`
         : `<button data-ver-detalle-chofer="${c.id}">Detalle</button><a href="${wa}" target="_blank" rel="noopener" style="text-decoration:none;"><button style="width:100%;">WhatsApp</button></a>`
           + (c.estado === "aprobado" ? `<button data-estado-chofer="inactivo" data-id="${c.id}">Desactivar</button>` : c.estado === "inactivo" ? `<button class="prim" data-estado-chofer="aprobado" data-id="${c.id}">Reactivar</button>` : "")
-          + (pend.etapas ? `<button class="prim" data-generar-pago="${c.id}">Generar pago</button>` : "");
+          + (pend.etapas ? `<button class="prim" data-generar-pago="${c.id}">Generar pago</button>` : "")
+          + `<button data-ver-pagos="${c.id}">Ver pagos</button>`;
       return `<div class="card-d">
         <div class="card-top"><div><h3>${c.nombre}</h3><span class="sub">${c.comuna || "—"}</span></div><span class="etq ${etq[0]}">${etq[1]}</span></div>
         <div class="grid2">
@@ -1936,6 +2087,12 @@
     const on = (sel, fn) => cont.querySelectorAll(sel).forEach((b) => b.addEventListener("click", () => fn(b)));
     on("[data-ver-detalle-chofer]", (b) => toggleDetalleChofer(b.dataset.verDetalleChofer));
     on("[data-ver-docs]", (b) => toggleDocumentosChofer(b.dataset.verDocs));
+    on("[data-ver-pagos]", (b) => {
+      const c = cacheChoferes.find((x) => x.id === b.dataset.verPagos);
+      irATab("facturacion");
+      const chip = document.querySelector('#chips-fact [data-fact="pagos"]'); if (chip) chip.click();
+      const q = $("pago-buscar"); if (q && c) { q.value = c.nombre; q.dispatchEvent(new Event("input")); }
+    });
     on("[data-eliminar-chofer]", (b) => eliminarChofer(b.dataset.eliminarChofer));
     on("[data-aprobar-chofer]", async (b) => {
       b.disabled = true; b.textContent = "Aprobando...";
@@ -2376,6 +2533,20 @@
       : f === "reasignado" ? t.reasignado_manualmente : f === "sinchofer" ? trasladoSinChofer(t)
       : f === "hoy" ? (t.fecha_principal && new Date(t.fecha_principal).toDateString() === hoy) : true);
     if (q) filtrados = filtrados.filter((t) => (t.patente || "").toLowerCase().includes(q) || ((t.talleres && t.talleres.nombre_taller) || "").toLowerCase().includes(q));
+    // contadores en los chips (sobre todos los traslados, sin el buscador)
+    const cuenta = {
+      hoy: cacheTraslados.filter((t) => t.fecha_principal && new Date(t.fecha_principal).toDateString() === hoy).length,
+      sinchofer: cacheTraslados.filter(trasladoSinChofer).length,
+      todos: cacheTraslados.length,
+      activos: cacheTraslados.filter(trasladoEsActivo).length,
+      completado: cacheTraslados.filter(trasladoEsCompletado).length,
+      cancelado: cacheTraslados.filter(trasladoEsCancelado).length,
+      reasignado: cacheTraslados.filter((t) => t.reasignado_manualmente).length,
+    };
+    document.querySelectorAll("#panel-traslados [data-filtro-traslado]").forEach((b) => {
+      const base = b.dataset.base || (b.dataset.base = b.textContent.trim());
+      b.textContent = base + " " + (cuenta[b.dataset.filtroTraslado] ?? 0);
+    });
     const orden = $("orden-traslados").value;
     const nom = (c) => (c ? c.nombre : "~");
     filtrados = [...filtrados].sort((a, b) =>
@@ -2384,6 +2555,7 @@
       : orden === "chofer" ? nom(a.chofer_retiro).localeCompare(nom(b.chofer_retiro))
       : orden === "estado" ? (trasladoSinChofer(b) - trasladoSinChofer(a)) || (trasladoEsActivo(b) - trasladoEsActivo(a))
       : new Date(a.fecha_principal || "2999-01-01") - new Date(b.fecha_principal || "2999-01-01"));
+    if (ordenInvertido["traslados"]) filtrados.reverse();
 
     if (!filtrados.length) { cont.innerHTML = `<p class="vacio">No hay traslados en esta vista.</p>`; return; }
 
@@ -2427,6 +2599,15 @@
     on("[data-reasignar]", (b) => abrirModalReasignar(b.dataset.reasignar, b.dataset.etapa));
     on("[data-ver-mapa]", (b) => abrirModalMapa(b.dataset.verMapa, b.dataset.etapa));
   }
+  // ---------- Flecha para invertir el orden (↑↓) en los "Ordenar por" ----------
+  [["orden-traslados", "traslados", () => renderTraslados()], ["orden-choferes", "choferes", () => renderChoferes()], ["orden-talleres", "talleres", () => renderTalleres()]].forEach(([id, clave, fn]) => {
+    const sel = $(id); if (!sel) return;
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "secundario"; b.title = "Invertir el orden"; b.textContent = "↑↓"; b.style.cssText = "padding:8px 12px;";
+    b.addEventListener("click", () => { ordenInvertido[clave] = !ordenInvertido[clave]; b.style.background = ordenInvertido[clave] ? "var(--turquesa-claro)" : ""; fn(); });
+    sel.insertAdjacentElement("afterend", b);
+  });
+
   $("filtro-traslados").addEventListener("input", renderTraslados);
   $("orden-traslados").addEventListener("change", renderTraslados);
 
