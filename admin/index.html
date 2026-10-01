@@ -53,6 +53,26 @@
   .toast-aviso b { display: block; margin-bottom: 2px; }
   .contador { background: var(--coral); color: white; font-size: 0.68rem; border-radius: 999px; padding: 1px 7px; font-family: 'JetBrains Mono'; }
 
+  .tabs .grupo { display:flex; gap:4px; padding:4px; border-radius:999px; flex-wrap:wrap; }
+  .g-cap { background: var(--turquesa-claro); } .g-op { background: var(--ok-claro); } .g-fin { background: #FFF4DC; }
+  .tabs .grupo button { background: transparent; border-color: transparent; }
+  .tabs .grupo button.activo { background: var(--bg); border-color: var(--turquesa); }
+  .chips { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+  .chip { background:var(--bg); border:1px solid var(--line); color:var(--dim); border-radius:999px; padding:6px 12px; font-size:.8rem; cursor:pointer; font-family:'Inter'; }
+  .chip.activo { background:var(--turquesa); border-color:var(--turquesa); color:#fff; }
+  .chip.rojo:not(.activo) { color:var(--coral); }
+  .cards-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px; }
+  .card-d { background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:14px; }
+  .card-d h3 { font-size:1rem; } .card-d .sub { color:var(--dim); font-size:.78rem; }
+  .card-top { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+  .etq { font-size:.7rem; padding:2px 8px; border-radius:999px; background:var(--surface-2); color:var(--dim); white-space:nowrap; }
+  .etq.rojo { background:var(--coral-claro); color:var(--coral); } .etq.ok { background:var(--ok-claro); color:var(--ok); }
+  .card-d .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px 12px; margin:12px 0; font-size:.85rem; word-break:break-word; }
+  .card-d .grid2 small { display:block; color:var(--dim); font-size:.7rem; }
+  .card-d .acciones { display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:6px; }
+  .card-d .acciones button { border:1px solid var(--line); background:var(--bg); border-radius:8px; padding:7px 4px; font-size:.78rem; cursor:pointer; font-family:'Inter'; }
+  .card-d .acciones button.prim { background:var(--turquesa); border-color:var(--turquesa); color:#fff; }
+  .card-d .acciones button.rojo { color:var(--coral); }
   section.panel { display: none; }
   section.panel.activo { display: block; }
 
@@ -170,26 +190,35 @@
   <main>
     <div class="tabs">
       <button class="tab-btn activo" data-tab="inicio">Inicio</button>
-      <button class="tab-btn" data-tab="talleres">Talleres</button>
-      <button class="tab-btn" data-tab="traslados">Traslados</button>
-      <button class="tab-btn" data-tab="tarifas">Tarifas</button>
-      <button class="tab-btn" data-tab="facturacion">Facturación</button>
-      <button class="tab-btn" data-tab="solicitudes">Solicitudes <span class="contador" id="contador-solicitudes" style="display:none;">0</span></button>
-      <button class="tab-btn" data-tab="choferes">Choferes <span class="contador" id="contador-choferes" style="display:none;">0</span></button>
-      <button class="tab-btn" data-tab="interesados">Interesados <span class="contador" id="contador-interesados" style="display:none;">0</span></button>
+      <span class="grupo g-cap">
+        <button class="tab-btn" data-tab="interesados">Prospectos <span class="contador" id="contador-interesados" style="display:none;">0</span></button>
+        <button class="tab-btn" data-tab="solicitudes">Altas Taller <span class="contador" id="contador-solicitudes" style="display:none;">0</span></button>
+        <button class="tab-btn" data-tab="talleres">Talleres</button>
+        <button class="tab-btn" data-tab="tarifas">Tarifas</button>
+      </span>
+      <span class="grupo g-op">
+        <button class="tab-btn" data-tab="traslados">Traslados</button>
+        <button class="tab-btn" data-tab="choferes">Choferes <span class="contador" id="contador-choferes" style="display:none;">0</span></button>
+      </span>
+      <span class="grupo g-fin"><button class="tab-btn" data-tab="facturacion">Facturación</button></span>
     </div>
 
     <!-- ============ INICIO / DASHBOARD ============ -->
     <section class="panel activo" id="panel-inicio">
+      <div id="atencion-box"></div>
       <div class="dash-grupo-titulo">Operación</div>
       <div class="dash-grid">
         <div class="dash-card">
           <div class="dash-num" id="dash-talleres">—</div>
           <div class="dash-label">Talleres activos</div>
         </div>
+        <div class="dash-card dash-card-click" id="dash-card-prospectos">
+          <div class="dash-num" id="dash-prospectos">—</div>
+          <div class="dash-label">Prospectos sin gestionar</div>
+        </div>
         <div class="dash-card dash-card-click" id="dash-card-solicitudes">
           <div class="dash-num" id="dash-solicitudes">—</div>
-          <div class="dash-label">Solicitudes pendientes</div>
+          <div class="dash-label">Altas por aprobar</div>
         </div>
         <div class="dash-card dash-card-click" id="dash-card-traslados-totales">
           <div class="dash-num" id="dash-traslados-totales">—</div>
@@ -231,10 +260,16 @@
       </div>
       <div id="dash-recientes-wrap" style="margin-top:28px;">
         <h3 style="font-size:0.95rem; margin-bottom:12px;">Últimos talleres dados de alta</h3>
-        <table>
-          <thead><tr><th>Taller</th><th>Comuna</th><th>Usuarios</th></tr></thead>
-          <tbody id="dash-tabla-recientes"></tbody>
-        </table>
+        <div class="chips" id="chips-interesados"></div>
+      <div class="filtros-row">
+        <input type="text" id="filtro-interesados" placeholder="Buscar por taller, comuna o contacto..." />
+        <select id="orden-interesados">
+          <option value="ingreso">Ordenar: fecha de ingreso</option>
+          <option value="nombre">Nombre (A-Z)</option>
+          <option value="traslados">Más traslados al mes</option>
+        </select>
+      </div>
+      <div class="cards-grid" id="lista-interesados"></div>
       </div>
     </section>
 
@@ -403,16 +438,25 @@
         <button class="secundario" id="trasl-exportar">Exportar Excel</button>
       </div>
       <div class="filtros-row">
-        <button class="filter-chip activo" data-filtro-traslado="todos">Todos</button>
+        <button class="filter-chip activo" data-filtro-traslado="hoy">Hoy</button>
+        <button class="filter-chip" data-filtro-traslado="sinchofer" style="color:var(--coral);">Sin chofer</button>
+        <button class="filter-chip" data-filtro-traslado="todos">Todos</button>
         <button class="filter-chip" data-filtro-traslado="activos">Activos</button>
         <button class="filter-chip" data-filtro-traslado="completado">Completados</button>
         <button class="filter-chip" data-filtro-traslado="cancelado">Cancelados</button>
         <button class="filter-chip" data-filtro-traslado="reasignado">Reasignados</button>
       </div>
-      <table>
-        <thead><tr><th>Patente</th><th>Taller</th><th>Tipo</th><th>Retiro</th><th>Chofer retiro</th><th>Entrega</th><th>Chofer entrega</th><th>Fecha</th><th></th></tr></thead>
-        <tbody id="tabla-traslados"></tbody>
-      </table>
+      <div class="filtros-row">
+        <input type="text" id="filtro-traslados" placeholder="Buscar por patente o taller..." />
+        <select id="orden-traslados">
+          <option value="hora">Ordenar: hora agendada</option>
+          <option value="reciente">Más recientes ingresados</option>
+          <option value="taller">Taller (A-Z)</option>
+          <option value="estado">Estado (requieren acción primero)</option>
+          <option value="chofer">Chofer (A-Z)</option>
+        </select>
+      </div>
+      <div class="cards-grid" id="lista-traslados"></div>
     </section>
 
     <!-- ============ TARIFAS ============ -->
@@ -444,6 +488,8 @@
 
     <!-- ============ FACTURACIÓN ============ -->
     <section class="panel" id="panel-facturacion">
+      <div class="chips" id="chips-fact"><button class="chip activo" data-fact="cobros">Cobros a talleres</button><button class="chip" data-fact="pagos">Pagos a choferes</button></div>
+      <div id="fact-cobros">
       <div class="fact-toolbar">
         <select id="fact-periodo">
           <option value="mes">Este mes</option>
@@ -503,44 +549,8 @@
         <thead><tr><th>Cliente</th><th>Período</th><th>Monto</th><th>Estado</th><th></th></tr></thead>
         <tbody id="tabla-facturas"></tbody>
       </table>
-    </section>
-
-    <!-- ============ SOLICITUDES ============ -->
-    <section class="panel" id="panel-solicitudes">
-      <p class="subtitulo" style="margin-bottom:16px;">Talleres que completaron el formulario de autoservicio y esperan aprobación.</p>
-      <div class="filtros-row">
-        <input type="text" id="filtro-solicitudes" placeholder="Buscar por nombre o comuna..." />
-        <select id="orden-solicitudes">
-          <option value="reciente">Más reciente primero</option>
-          <option value="nombre">Nombre (A-Z)</option>
-          <option value="usuarios">Más usuarios primero</option>
-        </select>
-      </div>
-      <table>
-        <thead><tr><th>Taller</th><th>Usuarios</th><th>Contactos</th><th>RUT</th><th></th></tr></thead>
-        <tbody id="tabla-solicitudes"></tbody>
-      </table>
-    </section>
-
-    <!-- ============ CHOFERES ============ -->
-    <section class="panel" id="panel-interesados">
-      <p class="subtitulo" style="margin-bottom:16px;">Talleres que llenaron el formulario comercial de la landing.</p>
-      <table>
-        <thead><tr><th>Taller</th><th>Comuna</th><th>Contacto</th><th>Traslados/mes</th><th>Estado</th><th>Fecha</th></tr></thead>
-        <tbody id="tabla-interesados"></tbody>
-      </table>
-    </section>
-
-    <section class="panel" id="panel-choferes">
-      <p class="subtitulo" style="margin-bottom:16px;">
-        Incluye altas manuales y postulaciones recibidas por <span class="mono">/reclutamiento</span>. Revisa los documentos antes de aprobar.
-      </p>
-      <table>
-        <thead><tr><th>Nombre</th><th>Teléfono</th><th>Correo</th><th>Estado</th><th>Documentos</th><th>Pendiente de pago</th><th></th></tr></thead>
-        <tbody id="tabla-choferes"></tbody>
-      </table>
-
-      <h3 style="font-size:0.95rem; margin:28px 0 4px;">Pagos a choferes</h3>
+    </div>
+      <div id="fact-pagos" style="display:none;"><h3 style="font-size:0.95rem; margin:28px 0 4px;">Pagos a choferes</h3>
       <div class="dash-grid" id="pago-metricas">
         <div class="dash-card dash-card-click" id="pago-card-pendiente">
           <div class="dash-num" id="pago-num-pendiente">—</div>
@@ -572,7 +582,51 @@
       <table>
         <thead><tr><th>Chofer</th><th>Período</th><th>Monto</th><th>Estado</th><th></th></tr></thead>
         <tbody id="tabla-pagos-chofer"></tbody>
+      </table></div>
+    </section>
+
+    <!-- ============ SOLICITUDES ============ -->
+    <section class="panel" id="panel-solicitudes">
+      <p class="subtitulo" style="margin-bottom:16px;">Talleres que completaron el formulario de autoservicio y esperan aprobación.</p>
+      <div class="filtros-row">
+        <input type="text" id="filtro-solicitudes" placeholder="Buscar por nombre o comuna..." />
+        <select id="orden-solicitudes">
+          <option value="reciente">Más reciente primero</option>
+          <option value="nombre">Nombre (A-Z)</option>
+          <option value="usuarios">Más usuarios primero</option>
+        </select>
+      </div>
+      <div class="chips" id="chips-solicitudes"></div>
+      <div class="cards-grid" id="lista-solicitudes"></div>
+    </section>
+
+    <!-- ============ CHOFERES ============ -->
+    <section class="panel" id="panel-interesados">
+      <p class="subtitulo" style="margin-bottom:16px;">Talleres que llenaron el formulario comercial de la landing.</p>
+      <table>
+        <thead><tr><th>Taller</th><th>Comuna</th><th>Contacto</th><th>Traslados/mes</th><th>Estado</th><th>Fecha</th></tr></thead>
+        <tbody id="tabla-interesados"></tbody>
       </table>
+    </section>
+
+    <section class="panel" id="panel-choferes">
+      <p class="subtitulo" style="margin-bottom:16px;">
+        Los pagos a choferes ahora están en Facturación. Incluye altas manuales y postulaciones recibidas por <span class="mono">/reclutamiento</span>. Revisa los documentos antes de aprobar.
+      </p>
+      <div class="chips" id="chips-choferes"></div>
+      <div class="filtros-row">
+        <input type="text" id="filtro-choferes" placeholder="Buscar por nombre o teléfono..." />
+        <select id="orden-choferes">
+          <option value="nombre">Ordenar: nombre (A-Z)</option>
+          <option value="disp">Disponibles primero</option>
+          <option value="hoy">Más traslados hoy</option>
+          <option value="conexion">Última conexión</option>
+          <option value="alta">Alta más reciente</option>
+        </select>
+      </div>
+      <div class="cards-grid" id="lista-choferes"></div>
+
+      
     </section>
   </main>
 </div>
@@ -782,6 +836,7 @@
     document.querySelectorAll(".panel").forEach((p) => p.classList.remove("activo"));
     document.querySelector(`.tab-btn[data-tab="${nombre}"]`).classList.add("activo");
     $("panel-" + nombre).classList.add("activo");
+    if (nombre === "choferes" && typeof renderChoferes === "function") renderChoferes();
   }
 
   function renderDashboard() {
@@ -811,6 +866,7 @@
             <td>${(cacheUsuariosPorTaller[t.id] || []).length}/${t.limite_usuarios ?? 3}</td>
           </tr>`).join("")
       : `<tr><td colspan="3" class="vacio">Todavía no hay talleres dados de alta.</td></tr>`;
+    if (typeof renderAtencion === "function") renderAtencion();
   }
 
   async function renderDashboardFacturacion() {
@@ -825,6 +881,7 @@
 
   $("dash-btn-solicitudes").addEventListener("click", () => irATab("solicitudes"));
   $("dash-card-solicitudes").addEventListener("click", () => irATab("solicitudes"));
+  $("dash-card-prospectos").addEventListener("click", () => irATab("interesados"));
   $("dash-card-choferes").addEventListener("click", () => irATab("choferes"));
   $("dash-card-traslados-totales").addEventListener("click", () => { filtroTrasladoActivo = "todos"; irATab("traslados"); sincronizarChipsTraslado(); renderTraslados(); });
   $("dash-card-traslados-activos").addEventListener("click", () => { filtroTrasladoActivo = "activos"; irATab("traslados"); sincronizarChipsTraslado(); renderTraslados(); });
@@ -1693,59 +1750,66 @@
 
   // ---------- Solicitudes ----------
   async function cargarSolicitudes() {
-    const { data, error } = await sb.from("solicitudes_talleres").select("*").eq("estado", "pendiente");
-    const tbody = $("tabla-solicitudes");
-    if (error) { tbody.innerHTML = `<tr><td colspan="5" class="vacio">No se pudo cargar: ${error.message}</td></tr>`; return; }
-
-    cacheSolicitudesPendientes = data || [];
+    const { data, error } = await sb.from("solicitudes_talleres").select("*");
+    if (error) { $("lista-solicitudes").innerHTML = `<p class="vacio">No se pudo cargar: ${error.message}</p>`; return; }
+    cacheSolicitudesTodas = data || [];
+    cacheSolicitudesPendientes = cacheSolicitudesTodas.filter((s) => s.estado === "pendiente");
     const contador = $("contador-solicitudes");
-    if (cacheSolicitudesPendientes.length) { contador.textContent = cacheSolicitudesPendientes.length; contador.style.display = "inline-block"; }
-    else { contador.style.display = "none"; }
-
+    contador.textContent = cacheSolicitudesPendientes.length;
+    contador.style.display = cacheSolicitudesPendientes.length ? "inline-block" : "none";
     renderSolicitudes();
     renderDashboard();
+    if (typeof renderInteresados === "function") renderInteresados();
   }
 
   function contarUsuariosSolicitud(s) {
     return 1 + (s.usuario2_nombre ? 1 : 0) + (s.usuario3_nombre ? 1 : 0);
   }
 
+  let cacheSolicitudesTodas = [];
+  let chipSolicitudes = "pendiente";
+  const FILTROS_ALTAS = [["pendiente", "Por aprobar"], ["aprobado", "Aprobadas"], ["rechazado", "Rechazadas"]];
+
   function renderSolicitudes() {
-    const tbody = $("tabla-solicitudes");
-    if (!cacheSolicitudesPendientes.length) { tbody.innerHTML = `<tr><td colspan="5" class="vacio">No hay solicitudes pendientes.</td></tr>`; return; }
+    const chips = $("chips-solicitudes");
+    chips.innerHTML = FILTROS_ALTAS.map(([v, l]) => `<button class="chip ${chipSolicitudes === v ? "activo" : ""} ${v === "pendiente" ? "rojo" : ""}" data-chip="${v}">${l} ${cacheSolicitudesTodas.filter((s) => s.estado === v).length}</button>`).join("");
+    chips.querySelectorAll("[data-chip]").forEach((b) => b.addEventListener("click", () => { chipSolicitudes = b.dataset.chip; renderSolicitudes(); }));
 
-    const texto = $("filtro-solicitudes").value.trim();
-    const orden = $("orden-solicitudes").value;
-    const data = ordenarYFiltrar(cacheSolicitudesPendientes, texto, orden, contarUsuariosSolicitud);
-    if (!data.length) { tbody.innerHTML = `<tr><td colspan="5" class="vacio">Sin resultados para ese filtro.</td></tr>`; return; }
+    const cont = $("lista-solicitudes");
+    const base = cacheSolicitudesTodas.filter((s) => s.estado === chipSolicitudes);
+    const data = ordenarYFiltrar(base, $("filtro-solicitudes").value.trim(), $("orden-solicitudes").value, contarUsuariosSolicitud);
+    if (!data.length) { cont.innerHTML = `<p class="vacio">No hay altas en esta lista.</p>`; return; }
 
-    tbody.innerHTML = data.map((s) => {
-      const contactos = `
-        <div class="contactos-mini">
-          ${s.propietario_nombre ? `<div><strong>Propietario:</strong> ${s.propietario_nombre} · ${s.propietario_correo || "—"} · ${s.propietario_telefono || "—"}</div>` : ""}
-          ${s.encargado_nombre ? `<div><strong>Encargado:</strong> ${s.encargado_nombre} · ${s.encargado_correo || "—"} · ${s.encargado_telefono || "—"}</div>` : ""}
-          ${s.encargado_pago_nombre ? `<div><strong>Pago:</strong> ${s.encargado_pago_nombre} · ${s.encargado_pago_correo || "—"} · ${s.encargado_pago_telefono || "—"}</div>` : ""}
-        </div>`;
-      const usuarios = `
-        <div class="usuarios-lista">
-          <div>U1: ${s.usuario_nombre}${s.usuario_cargo ? ` · ${s.usuario_cargo}` : ""}<br><span class="mono">${s.usuario_correo}</span></div>
-          ${s.usuario2_nombre ? `<div>U2: ${s.usuario2_nombre}${s.usuario2_cargo ? ` · ${s.usuario2_cargo}` : ""}<br><span class="mono">${s.usuario2_correo || "—"}</span></div>` : ""}
-          ${s.usuario3_nombre ? `<div>U3: ${s.usuario3_nombre}${s.usuario3_cargo ? ` · ${s.usuario3_cargo}` : ""}<br><span class="mono">${s.usuario3_correo || "—"}</span></div>` : ""}
-        </div>`;
-      return `
-        <tr>
-          <td><strong>${s.nombre_taller}</strong><br><span class="mono" style="color:var(--dim);">${s.calle} ${s.numero}, ${s.comuna}</span></td>
-          <td>${usuarios}</td>
-          <td>${contactos || "—"}</td>
-          <td class="mono">${s.rut_taller || "—"}</td>
-          <td>
-            <button class="link-accion" data-aprobar="${s.id}">Aprobar</button>
-            <button class="link-accion rojo" data-rechazar="${s.id}">Rechazar</button>
-          </td>
-        </tr>`;
+    cont.innerHTML = data.map((s) => {
+      const pend = s.estado === "pendiente";
+      const etq = pend ? ["rojo", "Por aprobar"] : s.estado === "aprobado" ? ["ok", "Aprobada"] : ["", "Rechazada"];
+      return `<div class="card-d">
+        <div class="card-top"><div><h3>${s.nombre_taller}</h3><span class="sub">${s.rut_taller || "Sin RUT"} · ${s.comuna}</span></div><span class="etq ${etq[0]}">${etq[1]}</span></div>
+        <div class="grid2">
+          <div><small>Contacto principal</small>${s.usuario_nombre}${s.usuario_cargo ? ", " + s.usuario_cargo : ""}</div>
+          <div><small>Teléfono</small>${s.usuario_telefono || "—"}</div>
+          <div><small>Correo</small>${s.usuario_correo}</div>
+          <div><small>Usuarios pedidos</small>${contarUsuariosSolicitud(s)} de 3</div>
+          <div><small>Ingreso</small>${fmtFechaHora(s.created_at)}</div>
+          <div><small>${s.estado === "rechazado" ? "Motivo" : "Términos aceptados"}</small>${s.estado === "rechazado" ? (s.motivo_rechazo || "—") : (s.acepta_terminos ? "Sí" : "No")}</div>
+        </div>
+        ${pend ? `<div class="acciones"><button data-revisar="${s.id}">Revisar</button><button class="prim" data-aprobar="${s.id}">Aprobar</button><button class="rojo" data-rechazar="${s.id}">Rechazar</button></div>` : ""}
+      </div>`;
     }).join("");
 
-    tbody.querySelectorAll("[data-aprobar]").forEach((btn) => {
+    cont.querySelectorAll("[data-revisar]").forEach((btn) => btn.addEventListener("click", () => {
+      const s = cacheSolicitudesTodas.find((x) => x.id === btn.dataset.revisar);
+      const l = [`${s.nombre_taller} (${s.rut_taller || "sin RUT"})`, `${s.calle} ${s.numero}, ${s.comuna}`, "",
+        `Usuario 1: ${s.usuario_nombre} · ${s.usuario_correo}`];
+      if (s.usuario2_nombre) l.push(`Usuario 2: ${s.usuario2_nombre} · ${s.usuario2_correo || "—"}`);
+      if (s.usuario3_nombre) l.push(`Usuario 3: ${s.usuario3_nombre} · ${s.usuario3_correo || "—"}`);
+      if (s.propietario_nombre) l.push("", `Propietario: ${s.propietario_nombre} · ${s.propietario_correo || "—"} · ${s.propietario_telefono || "—"}`);
+      if (s.encargado_nombre) l.push(`Encargado: ${s.encargado_nombre} · ${s.encargado_correo || "—"} · ${s.encargado_telefono || "—"}`);
+      if (s.encargado_pago_nombre) l.push(`Pago: ${s.encargado_pago_nombre} · ${s.encargado_pago_correo || "—"} · ${s.encargado_pago_telefono || "—"}`);
+      alert(l.join("\n"));
+    }));
+
+    cont.querySelectorAll("[data-aprobar]").forEach((btn) => {
       btn.addEventListener("click", async () => {
         btn.disabled = true; btn.textContent = "Aprobando...";
         const res = await invocarAdmin({ modo: "aprobar_solicitud", solicitud_id: btn.dataset.aprobar });
@@ -1759,10 +1823,11 @@
       });
     });
 
-    tbody.querySelectorAll("[data-rechazar]").forEach((btn) => {
+    cont.querySelectorAll("[data-rechazar]").forEach((btn) => {
       btn.addEventListener("click", async () => {
-        if (!confirm("¿Rechazar esta solicitud?")) return;
-        const { error } = await sb.from("solicitudes_talleres").update({ estado: "rechazado" }).eq("id", btn.dataset.rechazar);
+        const motivo = prompt("Motivo del rechazo (opcional):");
+        if (motivo === null) return;
+        const { error } = await sb.from("solicitudes_talleres").update({ estado: "rechazado", motivo_rechazo: motivo.trim() || null }).eq("id", btn.dataset.rechazar);
         if (error) { alert("No se pudo rechazar: " + error.message); return; }
         cargarSolicitudes();
       });
@@ -1803,83 +1868,109 @@
   }
 
   async function cargarChoferes() {
-    const tbody = $("tabla-choferes");
     const { data, error } = await sb.from("choferes").select("*").order("created_at", { ascending: false });
-    if (error) { tbody.innerHTML = `<tr><td colspan="7" class="vacio">No se pudo cargar: ${error.message}</td></tr>`; return; }
-    cacheChoferes = (data || []).slice().sort((a, b) => (b.estado === "pendiente") - (a.estado === "pendiente"));
+    if (error) { $("lista-choferes").innerHTML = `<p class="vacio">No se pudo cargar: ${error.message}</p>`; return; }
+    cacheChoferes = data || [];
     renderDashboard();
     await calcularPendientesChofer();
     await actualizarMetricasPagos();
-    if (!cacheChoferes.length) { tbody.innerHTML = `<tr><td colspan="7" class="vacio">No hay choferes registrados todavía.</td></tr>`; return; }
-    tbody.innerHTML = cacheChoferes.map((c) => {
-      const pend = pendientesPorChofer[c.id] || { monto: 0, etapas: 0 };
-      const tieneDocumentos = c.doc_licencia || c.doc_cedula_frente || c.doc_cedula_dorso || c.doc_foto_perfil || c.doc_certificado_antecedentes || c.doc_hoja_vida;
-      return `
-      <tr>
-        <td><strong>${c.nombre}</strong></td>
-        <td>${c.telefono || "—"}</td>
-        <td>${c.correo || "—"}</td>
-        <td>
-          <select class="estado-select" data-id="${c.id}">
-            <option value="pendiente" ${c.estado === "pendiente" ? "selected" : ""}>Pendiente</option>
-            <option value="aprobado" ${c.estado === "aprobado" ? "selected" : ""}>Aprobado</option>
-            <option value="rechazado" ${c.estado === "rechazado" ? "selected" : ""}>Rechazado</option>
-          </select>
-        </td>
-        <td>
-          <button class="link-accion" data-ver-detalle-chofer="${c.id}">Ver detalle</button>
-          ${tieneDocumentos ? `<br><button class="link-accion" data-ver-docs="${c.id}">Ver documentos</button>` : ""}
-        </td>
-        <td>${pend.etapas ? fmtMonto(pend.monto) + ` (${pend.etapas})` : "—"}</td>
-        <td>
-          ${pend.etapas ? `<button class="primario" data-generar-pago="${c.id}">Generar pago</button><br>` : ""}
-          <button class="link-accion rojo" data-eliminar-chofer="${c.id}">Eliminar</button>
-        </td>
-      </tr>
-      <tr class="fila-detalle-factura" id="detalle-chofer-${c.id}" style="display:none;"><td colspan="7"></td></tr>
-      <tr class="fila-detalle-factura" id="detalle-docs-${c.id}" style="display:none;"><td colspan="7"></td></tr>`;
-    }).join("");
-
-    tbody.querySelectorAll("[data-ver-detalle-chofer]").forEach((btn) => {
-      btn.addEventListener("click", () => toggleDetalleChofer(btn.dataset.verDetalleChofer));
-    });
-    tbody.querySelectorAll("[data-eliminar-chofer]").forEach((btn) => {
-      btn.addEventListener("click", () => eliminarChofer(btn.dataset.eliminarChofer));
-    });
-
-    tbody.querySelectorAll(".estado-select").forEach((sel) => {
-      sel.addEventListener("change", async () => {
-        if (sel.value === "aprobado") {
-          sel.disabled = true;
-          const res = await invocarEdgeFunction("notificar-chofer-aprobado", { chofer_id: sel.dataset.id });
-          sel.disabled = false;
-          if (res.error) { alert("No se pudo aprobar: " + res.error); sel.value = "pendiente"; return; }
-          if (res.data && res.data.correo && res.data.correo.enviado === false) {
-            alert("Chofer aprobado. El correo de aviso no se pudo enviar: " + (res.data.correo.motivo || ""));
-          }
-          cargarChoferes();
-          return;
-        }
-        const { error } = await sb.from("choferes").update({ estado: sel.value }).eq("id", sel.dataset.id);
-        if (error) alert("No se pudo actualizar: " + error.message);
-      });
-    });
-    tbody.querySelectorAll("[data-generar-pago]").forEach((btn) => {
-      btn.addEventListener("click", async () => {
-        if (!confirm("¿Generar pago con todas las etapas pendientes de este chofer? Nace como 'pendiente de pago'.")) return;
-        btn.disabled = true; btn.textContent = "Generando...";
-        const { error } = await sb.rpc("generar_pago_chofer", { p_chofer_id: btn.dataset.generarPago });
-        if (error) { alert("No se pudo generar: " + error.message); btn.disabled = false; btn.textContent = "Generar pago"; return; }
-        cargarChoferes();
-        cargarPagosChofer();
-      });
-    });
-    tbody.querySelectorAll("[data-ver-docs]").forEach((btn) => {
-      btn.addEventListener("click", () => toggleDocumentosChofer(btn.dataset.verDocs));
-    });
+    renderChoferes();
   }
 
-  const DOC_LABELS = {
+  let chipChoferes = "disponibles";
+  const hoyStr = () => new Date().toDateString();
+  const enTraslado = (c) => cacheTraslados.some((t) => (t.chofer_retiro_id === c.id && ["en_camino", "llegado", "control_fotografico"].includes(t.estado_retiro)) || (t.chofer_entrega_id === c.id && ["en_camino", "llegado", "control_fotografico"].includes(t.estado_entrega)));
+  const trasladosHoy = (c) => cacheTraslados.filter((t) => (t.chofer_retiro_id === c.id || t.chofer_entrega_id === c.id) && t.fecha_principal && new Date(t.fecha_principal).toDateString() === hoyStr()).length;
+  const FILTROS_CHOFER = [
+    ["disponibles", "Disponibles", (c) => c.estado === "aprobado" && c.disponible && !enTraslado(c)],
+    ["entraslado", "En traslado", (c) => c.estado === "aprobado" && enTraslado(c)],
+    ["nodisp", "No disponibles", (c) => c.estado === "aprobado" && !c.disponible && !enTraslado(c)],
+    ["postulantes", "Postulantes", (c) => c.estado === "pendiente"],
+    ["inactivos", "Inactivos", (c) => c.estado === "inactivo"],
+    ["rechazados", "Rechazados", (c) => c.estado === "rechazado"],
+  ];
+
+  function renderChoferes() {
+    const chips = $("chips-choferes");
+    chips.innerHTML = FILTROS_CHOFER.map(([v, l, fn]) => `<button class="chip ${chipChoferes === v ? "activo" : ""} ${v === "postulantes" ? "rojo" : ""}" data-chip="${v}">${l} ${cacheChoferes.filter(fn).length}</button>`).join("");
+    chips.querySelectorAll("[data-chip]").forEach((b) => b.addEventListener("click", () => { chipChoferes = b.dataset.chip; renderChoferes(); }));
+    const cont = $("lista-choferes");
+    const fn = FILTROS_CHOFER.find((x) => x[0] === chipChoferes)[2];
+    const q = $("filtro-choferes").value.trim().toLowerCase();
+    const orden = $("orden-choferes").value;
+    const lista = cacheChoferes.filter(fn).filter((c) => !q || (c.nombre || "").toLowerCase().includes(q) || (c.telefono || "").includes(q))
+      .sort((a, b) => orden === "disp" ? (b.disponible - a.disponible) : orden === "hoy" ? trasladosHoy(b) - trasladosHoy(a)
+        : orden === "conexion" ? new Date(b.ultima_conexion || 0) - new Date(a.ultima_conexion || 0)
+        : orden === "alta" ? new Date(b.created_at) - new Date(a.created_at) : (a.nombre || "").localeCompare(b.nombre || ""));
+    if (!lista.length) { cont.innerHTML = `<p class="vacio">No hay choferes en esta lista.</p>`; return; }
+
+    cont.innerHTML = lista.map((c) => {
+      const pend = pendientesPorChofer[c.id] || { monto: 0, etapas: 0 };
+      const ndocs = Object.keys(DOC_LABELS).filter((k) => c[k]).length;
+      const post = c.estado === "pendiente";
+      const etq = post ? ["rojo", "Postulante"] : c.estado === "inactivo" ? ["", "Inactivo"] : c.estado === "rechazado" ? ["", "Rechazado"] : enTraslado(c) ? ["", "En traslado"] : c.disponible ? ["ok", "Disponible"] : ["", "No disponible"];
+      const wa = "https://wa.me/" + (c.telefono || "").replace(/\D/g, "");
+      const botones = post
+        ? `<button data-ver-docs="${c.id}">Revisar</button><button class="prim" data-aprobar-chofer="${c.id}">Aprobar</button><button class="rojo" data-rechazar-chofer="${c.id}">Rechazar</button>`
+        : `<button data-ver-detalle-chofer="${c.id}">Detalle</button><a href="${wa}" target="_blank" rel="noopener" style="text-decoration:none;"><button style="width:100%;">WhatsApp</button></a>`
+          + (c.estado === "aprobado" ? `<button data-estado-chofer="inactivo" data-id="${c.id}">Desactivar</button>` : c.estado === "inactivo" ? `<button class="prim" data-estado-chofer="aprobado" data-id="${c.id}">Reactivar</button>` : "")
+          + (pend.etapas ? `<button class="prim" data-generar-pago="${c.id}">Generar pago</button>` : "");
+      return `<div class="card-d">
+        <div class="card-top"><div><h3>${c.nombre}</h3><span class="sub">${c.comuna || "—"}</span></div><span class="etq ${etq[0]}">${etq[1]}</span></div>
+        <div class="grid2">
+          <div><small>Teléfono</small>${c.telefono || "—"}</div>
+          <div><small>Correo</small>${c.correo || "—"}</div>
+          ${post ? `<div><small>Postuló</small>${fmtFechaHora(c.created_at)}</div><div><small>Documentos</small>${ndocs} de 6 subidos</div>`
+            : `<div><small>Traslados de hoy</small>${trasladosHoy(c)}</div><div><small>Última conexión</small>${c.ultima_conexion ? fmtFechaHora(c.ultima_conexion) : "—"}</div>
+               <div><small>Documentos</small>${ndocs} de 6 subidos</div><div><small>Por pagar</small>${pend.etapas ? fmtMonto(pend.monto) + " (" + pend.etapas + ")" : "$0"}</div>`}
+        </div>
+        <div class="acciones">${botones}</div>
+        ${(post || c.estado === "rechazado") ? `<div style="margin-top:8px;"><button class="link-accion rojo" data-eliminar-chofer="${c.id}">Eliminar</button></div>` : ""}
+        <table style="margin:0;"><tbody>
+          <tr class="fila-detalle-factura" id="detalle-chofer-${c.id}" style="display:none;"><td></td></tr>
+          <tr class="fila-detalle-factura" id="detalle-docs-${c.id}" style="display:none;"><td></td></tr>
+        </tbody></table>
+      </div>`;
+    }).join("");
+
+    const on = (sel, fn) => cont.querySelectorAll(sel).forEach((b) => b.addEventListener("click", () => fn(b)));
+    on("[data-ver-detalle-chofer]", (b) => toggleDetalleChofer(b.dataset.verDetalleChofer));
+    on("[data-ver-docs]", (b) => toggleDocumentosChofer(b.dataset.verDocs));
+    on("[data-eliminar-chofer]", (b) => eliminarChofer(b.dataset.eliminarChofer));
+    on("[data-aprobar-chofer]", async (b) => {
+      b.disabled = true; b.textContent = "Aprobando...";
+      const res = await invocarEdgeFunction("notificar-chofer-aprobado", { chofer_id: b.dataset.aprobarChofer });
+      if (res.error) { alert("No se pudo aprobar: " + res.error); b.disabled = false; b.textContent = "Aprobar"; return; }
+      if (res.data && res.data.correo && res.data.correo.enviado === false) alert("Chofer aprobado. El correo de aviso no se pudo enviar: " + (res.data.correo.motivo || ""));
+      cargarChoferes();
+    });
+    on("[data-rechazar-chofer]", async (b) => {
+      const motivo = prompt("Motivo del rechazo (opcional):");
+      if (motivo === null) return;
+      const { error } = await sb.from("choferes").update({ estado: "rechazado", motivo_rechazo: motivo.trim() || null }).eq("id", b.dataset.rechazarChofer);
+      if (error) { alert("No se pudo rechazar: " + error.message); return; }
+      cargarChoferes();
+    });
+    on("[data-estado-chofer]", async (b) => {
+      const nuevo = b.dataset.estadoChofer;
+      if (nuevo === "inactivo" && !confirm("¿Desactivar chofer? Dejará de recibir traslados y se conserva su historial.")) return;
+      const upd = nuevo === "inactivo" ? { estado: "inactivo", disponible: false } : { estado: "aprobado" };
+      const { error } = await sb.from("choferes").update(upd).eq("id", b.dataset.id);
+      if (error) { alert("No se pudo actualizar: " + error.message); return; }
+      cargarChoferes();
+    });
+    on("[data-generar-pago]", async (b) => {
+      if (!confirm("¿Generar pago con todas las etapas pendientes de este chofer? Nace como 'pendiente de pago'.")) return;
+      b.disabled = true; b.textContent = "Generando...";
+      const { error } = await sb.rpc("generar_pago_chofer", { p_chofer_id: b.dataset.generarPago });
+      if (error) { alert("No se pudo generar: " + error.message); b.disabled = false; b.textContent = "Generar pago"; return; }
+      cargarChoferes(); cargarPagosChofer();
+    });
+  }
+  $("filtro-choferes").addEventListener("input", renderChoferes);
+  $("orden-choferes").addEventListener("change", renderChoferes);
+
+    const DOC_LABELS = {
     doc_licencia: "Licencia de conducir",
     doc_cedula_frente: "Cédula — frente",
     doc_cedula_dorso: "Cédula — dorso",
@@ -2157,7 +2248,7 @@
   // ---------- Traslados (monitoreo + control en vivo) ----------
   let cacheTraslados = [];
   let cacheReasignacionesPorTraslado = {}; // { traslado_id: [reasignaciones] }
-  let filtroTrasladoActivo = "todos";
+  let filtroTrasladoActivo = "hoy";
 
   const ESTADO_LABEL_TRASLADO = {
     agendado: "Agendado", asignado: "Chofer asignado", en_camino: "En camino",
@@ -2209,14 +2300,14 @@
   }
 
   async function cargarTraslados() {
-    const tbody = $("tabla-traslados");
     const { data, error } = await sb
       .from("traslados")
-      .select("id, patente, tipo, created_at, estado_retiro, estado_entrega, reasignado_manualmente, chofer_retiro_id, chofer_entrega_id, solicitud_cancelacion_retiro, solicitud_cancelacion_entrega, notas_cancelacion_retiro, notas_cancelacion_entrega, motivo_cancelacion_retiro, motivo_cancelacion_entrega, talleres(nombre_taller), chofer_retiro:choferes!chofer_retiro_id(id, nombre, ubicacion_lat, ubicacion_lng), chofer_entrega:choferes!chofer_entrega_id(id, nombre, ubicacion_lat, ubicacion_lng)")
+      .select("id, patente, tipo, created_at, fecha_principal, cliente_nombre, comuna, estado_retiro, estado_entrega, reasignado_manualmente, chofer_retiro_id, chofer_entrega_id, solicitud_cancelacion_retiro, solicitud_cancelacion_entrega, notas_cancelacion_retiro, notas_cancelacion_entrega, motivo_cancelacion_retiro, motivo_cancelacion_entrega, talleres(nombre_taller), chofer_retiro:choferes!chofer_retiro_id(id, nombre, ubicacion_lat, ubicacion_lng), chofer_entrega:choferes!chofer_entrega_id(id, nombre, ubicacion_lat, ubicacion_lng)")
       .order("created_at", { ascending: false });
-    if (error) { tbody.innerHTML = `<tr><td colspan="9" class="vacio">No se pudo cargar: ${error.message}</td></tr>`; return; }
+    if (error) { $("lista-traslados").innerHTML = `<p class="vacio">No se pudo cargar: ${error.message}</p>`; return; }
     cacheTraslados = data || [];
     renderTraslados();
+    if (cacheChoferes.length) renderChoferes();
     renderSolicitudesCancelacion();
     renderDashboard();
   }
@@ -2248,77 +2339,84 @@
     });
   }
 
+  function trasladoSinChofer(t) {
+    const act = (e) => e && !["completado", "cancelado"].includes(e);
+    return (act(t.estado_retiro) && !t.chofer_retiro_id) || (act(t.estado_entrega) && !t.chofer_entrega_id);
+  }
+
+  async function toggleLineaTiempo(id) {
+    const box = $("linea-" + id);
+    if (box.style.display === "block") { box.style.display = "none"; return; }
+    box.style.display = "block"; box.textContent = "Cargando...";
+    const { data, error } = await sb.from("traslados_eventos").select("*").eq("traslado_id", id).order("created_at");
+    if (error) { box.textContent = "No se pudo cargar: " + error.message; return; }
+    const L = (e) => ESTADO_LABEL_TRASLADO[e] || e;
+    box.innerHTML = data.length ? data.map((e) => `<div style="padding:3px 0;"><span class="mono">${fmtFechaHora(e.created_at)}</span> · ${e.etapa}: ${e.estado_anterior ? L(e.estado_anterior) + " → " : ""}<strong>${L(e.estado_nuevo)}</strong> · ${e.actor_nombre || e.actor_tipo}${e.registro_inicial ? " <em>(estado previo al registro)</em>" : ""}</div>`).join("") : "Sin cambios registrados.";
+  }
+
   function renderTraslados() {
-    const tbody = $("tabla-traslados");
-    let filtrados = cacheTraslados;
-    if (filtroTrasladoActivo === "activos") filtrados = cacheTraslados.filter(trasladoEsActivo);
-    else if (filtroTrasladoActivo === "completado") filtrados = cacheTraslados.filter(trasladoEsCompletado);
-    else if (filtroTrasladoActivo === "cancelado") filtrados = cacheTraslados.filter(trasladoEsCancelado);
-    else if (filtroTrasladoActivo === "reasignado") filtrados = cacheTraslados.filter((t) => t.reasignado_manualmente);
+    const cont = $("lista-traslados");
+    const hoy = new Date().toDateString();
+    const q = $("filtro-traslados").value.trim().toLowerCase();
+    const f = filtroTrasladoActivo;
+    let filtrados = cacheTraslados.filter((t) =>
+      f === "activos" ? trasladoEsActivo(t) : f === "completado" ? trasladoEsCompletado(t) : f === "cancelado" ? trasladoEsCancelado(t)
+      : f === "reasignado" ? t.reasignado_manualmente : f === "sinchofer" ? trasladoSinChofer(t)
+      : f === "hoy" ? (t.fecha_principal && new Date(t.fecha_principal).toDateString() === hoy) : true);
+    if (q) filtrados = filtrados.filter((t) => (t.patente || "").toLowerCase().includes(q) || ((t.talleres && t.talleres.nombre_taller) || "").toLowerCase().includes(q));
+    const orden = $("orden-traslados").value;
+    const nom = (c) => (c ? c.nombre : "~");
+    filtrados = [...filtrados].sort((a, b) =>
+      orden === "reciente" ? new Date(b.created_at) - new Date(a.created_at)
+      : orden === "taller" ? ((a.talleres && a.talleres.nombre_taller) || "").localeCompare((b.talleres && b.talleres.nombre_taller) || "")
+      : orden === "chofer" ? nom(a.chofer_retiro).localeCompare(nom(b.chofer_retiro))
+      : orden === "estado" ? (trasladoSinChofer(b) - trasladoSinChofer(a)) || (trasladoEsActivo(b) - trasladoEsActivo(a))
+      : new Date(a.fecha_principal || "2999-01-01") - new Date(b.fecha_principal || "2999-01-01"));
 
-    if (!filtrados.length) { tbody.innerHTML = `<tr><td colspan="9" class="vacio">No hay traslados en esta vista.</td></tr>`; return; }
+    if (!filtrados.length) { cont.innerHTML = `<p class="vacio">No hay traslados en esta vista.</p>`; return; }
 
-    tbody.innerHTML = filtrados.map((t) => {
-      const activo = trasladoEsActivo(t);
+    cont.innerHTML = filtrados.map((t) => {
       const cancelado = trasladoEsCancelado(t);
-      const badgeReasignado = t.reasignado_manualmente ? ` <span class="badge reasignado">🔄 reasignado</span>` : "";
-      const accionesEtapa = (etapa, choferObj) => {
+      const etapaHtml = (etapa, chofer) => {
         const estado = etapa === "retiro" ? t.estado_retiro : t.estado_entrega;
-        if (!estado) return "";
+        if (!estado) return `<div><small>${etapa === "retiro" ? "Retiro" : "Entrega"}</small>No aplica</div>`;
+        const sin = !["completado", "cancelado"].includes(estado) && !chofer;
+        let acc = "";
         if (estado === "cancelado") {
-          const motivo = etapa === "retiro" ? t.motivo_cancelacion_retiro : t.motivo_cancelacion_entrega;
-          return `<div class="subtitulo" style="margin-top:2px;">${MOTIVO_LABEL_ADMIN[motivo] || motivo || ""}</div>`;
+          const m = etapa === "retiro" ? t.motivo_cancelacion_retiro : t.motivo_cancelacion_entrega;
+          acc = `<div class="sub">${MOTIVO_LABEL_ADMIN[m] || m || ""}</div>`;
+        } else if (estado !== "completado") {
+          acc = `<div style="margin-top:4px; display:flex; gap:8px; flex-wrap:wrap;"><button class="link-accion" data-reasignar="${t.id}" data-etapa="${etapa}">${chofer ? "Reasignar" : "Asignar"}</button>`;
+          if (ORDEN_ESTADOS.indexOf(estado) < ORDEN_ESTADOS.indexOf("completado")) acc += `<button class="link-accion" data-forzar="${t.id}" data-etapa="${etapa}">Forzar avance</button>`;
+          if (chofer && chofer.ubicacion_lat) acc += `<button class="link-accion" data-ver-mapa="${t.id}" data-etapa="${etapa}">Ver ubicación</button>`;
+          acc += `<button class="link-accion rojo" data-cancelar-etapa="${t.id}" data-etapa="${etapa}">Cancelar</button></div>`;
         }
-        if (estado === "completado") return "";
-        let out = `<div style="margin-top:4px; display:flex; gap:8px; flex-wrap:wrap;">`;
-        out += `<button class="link-accion" data-reasignar="${t.id}" data-etapa="${etapa}">Reasignar</button>`;
-        if (ORDEN_ESTADOS.indexOf(estado) < ORDEN_ESTADOS.indexOf("completado")) {
-          out += `<button class="link-accion" data-forzar="${t.id}" data-etapa="${etapa}">Forzar avance</button>`;
-        }
-        if (choferObj && choferObj.ubicacion_lat) {
-          out += `<button class="link-accion" data-ver-mapa="${t.id}" data-etapa="${etapa}">Ver ubicación</button>`;
-        }
-        out += `<button class="link-accion rojo" data-cancelar-etapa="${t.id}" data-etapa="${etapa}">Cancelar</button>`;
-        out += `</div>`;
-        return out;
+        return `<div><small>${etapa === "retiro" ? "Retiro" : "Entrega"}</small><span class="badge ${estado}">${ESTADO_LABEL_TRASLADO[estado] || estado}</span><div class="sub" ${sin ? 'style="color:var(--coral);"' : ""}>${chofer ? chofer.nombre : sin ? "Sin chofer" : "—"}</div>${acc}</div>`;
       };
-      return `
-      <tr>
-        <td class="mono">${t.patente || "—"}${badgeReasignado}</td>
-        <td>${t.talleres ? t.talleres.nombre_taller : "—"}</td>
-        <td>${TIPO_LABEL_TRASLADO[t.tipo] || t.tipo || "—"}</td>
-        <td>${t.estado_retiro ? `<span class="badge ${t.estado_retiro}">${ESTADO_LABEL_TRASLADO[t.estado_retiro] || t.estado_retiro}</span>` : "—"}${accionesEtapa("retiro", t.chofer_retiro)}</td>
-        <td>${t.chofer_retiro ? t.chofer_retiro.nombre : "—"}</td>
-        <td>${t.estado_entrega ? `<span class="badge ${t.estado_entrega}">${ESTADO_LABEL_TRASLADO[t.estado_entrega] || t.estado_entrega}</span>` : "—"}${accionesEtapa("entrega", t.chofer_entrega)}</td>
-        <td>${t.chofer_entrega ? t.chofer_entrega.nombre : "—"}</td>
-        <td>${fmtFechaHora(t.created_at)}</td>
-        <td>
-          <button class="link-accion" data-ver-fotos="${t.id}">Fotos</button><br>
-          ${!cancelado ? `<button class="link-accion rojo" data-cancelar="${t.id}">Cancelar</button>` : ""}
-        </td>
-      </tr>
-      <tr class="fila-detalle-factura" id="detalle-fotos-${t.id}" style="display:none;"><td colspan="9"></td></tr>`;
+      return `<div class="card-d">
+        <div class="card-top"><div><h3 class="mono" style="font-size:1rem;">${t.patente || "—"}${t.reasignado_manualmente ? ' <span class="badge reasignado">🔄</span>' : ""}</h3><span class="sub">${t.talleres ? t.talleres.nombre_taller : "—"}</span></div><span class="etq">${TIPO_LABEL_TRASLADO[t.tipo] || t.tipo || "—"}</span></div>
+        <div class="grid2">
+          <div><small>Fecha y hora</small>${fmtFechaHora(t.fecha_principal || t.created_at)}</div>
+          <div><small>Cliente</small>${t.cliente_nombre || "—"}${t.comuna ? ", " + t.comuna : ""}</div>
+          ${etapaHtml("retiro", t.chofer_retiro)}${etapaHtml("entrega", t.chofer_entrega)}
+        </div>
+        <div class="acciones"><button data-linea="${t.id}">Detalle</button><button data-ver-fotos="${t.id}">Fotos</button>${!cancelado ? `<button class="rojo" data-cancelar="${t.id}">Cancelar</button>` : ""}</div>
+        <div id="linea-${t.id}" class="sub" style="display:none; margin-top:10px; font-size:.78rem;"></div>
+        <table style="margin:0;"><tbody><tr class="fila-detalle-factura" id="detalle-fotos-${t.id}" style="display:none;"><td></td></tr></tbody></table>
+      </div>`;
     }).join("");
 
-    tbody.querySelectorAll("[data-ver-fotos]").forEach((btn) => {
-      btn.addEventListener("click", () => toggleFotosTraslado(btn.dataset.verFotos));
-    });
-    tbody.querySelectorAll("[data-cancelar]").forEach((btn) => {
-      btn.addEventListener("click", () => cancelarTraslado(btn.dataset.cancelar));
-    });
-    tbody.querySelectorAll("[data-cancelar-etapa]").forEach((btn) => {
-      btn.addEventListener("click", () => abrirModalCancelarAdmin(btn.dataset.cancelarEtapa, btn.dataset.etapa));
-    });
-    tbody.querySelectorAll("[data-forzar]").forEach((btn) => {
-      btn.addEventListener("click", () => forzarAvanceEtapa(btn.dataset.forzar, btn.dataset.etapa));
-    });
-    tbody.querySelectorAll("[data-reasignar]").forEach((btn) => {
-      btn.addEventListener("click", () => abrirModalReasignar(btn.dataset.reasignar, btn.dataset.etapa));
-    });
-    tbody.querySelectorAll("[data-ver-mapa]").forEach((btn) => {
-      btn.addEventListener("click", () => abrirModalMapa(btn.dataset.verMapa, btn.dataset.etapa));
-    });
+    const on = (sel, fn) => cont.querySelectorAll(sel).forEach((b) => b.addEventListener("click", () => fn(b)));
+    on("[data-linea]", (b) => toggleLineaTiempo(b.dataset.linea));
+    on("[data-ver-fotos]", (b) => toggleFotosTraslado(b.dataset.verFotos));
+    on("[data-cancelar]", (b) => cancelarTraslado(b.dataset.cancelar));
+    on("[data-cancelar-etapa]", (b) => abrirModalCancelarAdmin(b.dataset.cancelarEtapa, b.dataset.etapa));
+    on("[data-forzar]", (b) => forzarAvanceEtapa(b.dataset.forzar, b.dataset.etapa));
+    on("[data-reasignar]", (b) => abrirModalReasignar(b.dataset.reasignar, b.dataset.etapa));
+    on("[data-ver-mapa]", (b) => abrirModalMapa(b.dataset.verMapa, b.dataset.etapa));
   }
+  $("filtro-traslados").addEventListener("input", renderTraslados);
+  $("orden-traslados").addEventListener("change", renderTraslados);
 
   document.querySelectorAll("#panel-traslados [data-filtro-traslado]").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -2416,40 +2514,109 @@
   });
   $("trasl-periodo").addEventListener("change", cargarTraslados);
 
+  let cacheInteresados = [];
+  let chipInteresados = "nuevo";
+  const ESTADOS_PROSPECTO = [["nuevo", "Sin gestionar"], ["contactado", "En conversación"], ["reunion_agendada", "Reunión agendada"], ["acuerdo_cerrado", "Acuerdo cerrado"], ["alta_enviada", "Alta enviada"], ["descartado", "Descartados"]];
+
   async function cargarInteresados() {
-    const tbody = $("tabla-interesados");
     const { data, error } = await sb.from("interesados_taller").select("*").order("created_at", { ascending: false });
-    if (error) { tbody.innerHTML = `<tr><td colspan="6" class="vacio">No se pudo cargar: ${error.message}</td></tr>`; return; }
-    const nuevos = (data || []).filter((i) => i.estado === "nuevo").length;
+    if (error) { $("lista-interesados").innerHTML = `<p class="vacio">No se pudo cargar: ${error.message}</p>`; return; }
+    cacheInteresados = data || [];
+    renderInteresados();
+  }
+
+  function renderInteresados() {
+    // Un prospecto cuya alta ya fue aprobada sale de la lista activa
+    const aprobados = new Set(cacheSolicitudesTodas.filter((x) => x.estado === "aprobado" && x.prospecto_token).map((x) => x.prospecto_token));
+    const activos = cacheInteresados.filter((i) => !aprobados.has(i.alta_token));
+    const nuevos = activos.filter((i) => i.estado === "nuevo").length;
     const contador = $("contador-interesados");
     contador.textContent = nuevos;
     contador.style.display = nuevos ? "inline-block" : "none";
-    if (!data || !data.length) { tbody.innerHTML = `<tr><td colspan="6" class="vacio">Todavía no hay interesados.</td></tr>`; return; }
-    tbody.innerHTML = data.map((i) => `
-      <tr>
-        <td><strong>${i.nombre_taller}</strong></td>
-        <td>${i.comuna}</td>
-        <td>${i.contacto_nombre}${i.contacto_cargo ? " · " + i.contacto_cargo : ""}<br><span class="subtitulo">${i.contacto_telefono} · ${i.contacto_correo}</span></td>
-        <td>${i.traslados_estimados_mes}</td>
-        <td>
-          <select class="estado-select" data-id="${i.id}">
-            <option value="nuevo" ${i.estado === "nuevo" ? "selected" : ""}>Nuevo</option>
-            <option value="contactado" ${i.estado === "contactado" ? "selected" : ""}>Contactado</option>
-            <option value="descartado" ${i.estado === "descartado" ? "selected" : ""}>Descartado</option>
-          </select>
-        </td>
-        <td>${fmtFechaHora(i.created_at)}</td>
-      </tr>`).join("");
-    tbody.querySelectorAll(".estado-select").forEach((sel) => {
-      sel.addEventListener("change", async () => {
-        const { error } = await sb.from("interesados_taller").update({ estado: sel.value }).eq("id", sel.dataset.id);
-        if (error) alert("No se pudo actualizar: " + error.message);
-        else cargarInteresados();
-      });
-    });
+    const dp = $("dash-prospectos"); dp.textContent = nuevos; dp.style.color = nuevos ? "var(--coral)" : "";
+    renderAtencion();
+
+    const chips = $("chips-interesados");
+    chips.innerHTML = ESTADOS_PROSPECTO.map(([v, l]) => `<button class="chip ${chipInteresados === v ? "activo" : ""} ${v === "nuevo" ? "rojo" : ""}" data-chip="${v}">${l} ${activos.filter((i) => i.estado === v).length}</button>`).join("");
+    chips.querySelectorAll("[data-chip]").forEach((b) => b.addEventListener("click", () => { chipInteresados = b.dataset.chip; renderInteresados(); }));
+
+    const q = $("filtro-interesados").value.trim().toLowerCase();
+    const orden = $("orden-interesados").value;
+    const lista = activos.filter((i) => i.estado === chipInteresados)
+      .filter((i) => !q || [i.nombre_taller, i.comuna, i.contacto_nombre].some((x) => (x || "").toLowerCase().includes(q)))
+      .sort((a, b) => orden === "nombre" ? (a.nombre_taller || "").localeCompare(b.nombre_taller || "") : orden === "traslados" ? (b.traslados_estimados_mes || 0) - (a.traslados_estimados_mes || 0) : new Date(b.created_at) - new Date(a.created_at));
+    const cont = $("lista-interesados");
+    if (!lista.length) { cont.innerHTML = `<p class="vacio">No hay prospectos en esta lista.</p>`; return; }
+
+    cont.innerHTML = lista.map((i) => {
+      const wa = "https://wa.me/" + (i.contacto_telefono || "").replace(/\D/g, "");
+      const puedeEnlace = ["acuerdo_cerrado", "alta_enviada"].includes(i.estado);
+      return `<div class="card-d">
+        <div class="card-top"><div><h3>${i.nombre_taller}</h3><span class="sub">${i.comuna}</span></div><span class="etq ${i.estado === "nuevo" ? "rojo" : ""}">${(ESTADOS_PROSPECTO.find((e) => e[0] === i.estado) || [, i.estado])[1].replace("Descartados", "Descartado")}</span></div>
+        <div class="grid2">
+          <div><small>Contacto</small>${i.contacto_nombre}${i.contacto_cargo ? ", " + i.contacto_cargo : ""}</div>
+          <div><small>Teléfono</small>${i.contacto_telefono || "—"}</div>
+          <div><small>Correo</small>${i.contacto_correo || "—"}</div>
+          <div><small>Traslados al mes</small>${i.traslados_estimados_mes ?? "—"}</div>
+          <div><small>Ingreso</small>${fmtFechaHora(i.created_at)}</div>
+          <div><small>${i.estado === "descartado" ? "Motivo" : i.alta_enviada_at ? "Enlace enviado" : "Estado"}</small>${i.estado === "descartado" ? (i.motivo_descarte || "—") : i.alta_enviada_at ? fmtFechaHora(i.alta_enviada_at) : `<select class="estado-select" data-id="${i.id}" style="padding:4px 6px;">${ESTADOS_PROSPECTO.filter((e) => e[0] !== "alta_enviada").map(([v, l]) => `<option value="${v}" ${i.estado === v ? "selected" : ""}>${l.replace("Descartados", "Descartado")}</option>`).join("")}</select>`}</div>
+        </div>
+        <div class="acciones">
+          <a href="tel:${i.contacto_telefono || ""}" style="text-decoration:none;"><button style="width:100%;">Llamar</button></a>
+          <a href="${wa}" target="_blank" rel="noopener" style="text-decoration:none;"><button style="width:100%;">WhatsApp</button></a>
+          ${puedeEnlace ? `<button class="prim" data-enlace="${i.id}">${i.estado === "alta_enviada" ? "Reenviar enlace" : "Enviar enlace de alta"}</button>` : ""}
+          ${i.estado !== "descartado" ? `<button class="rojo" data-descartar="${i.id}">Descartar</button>` : `<button data-reabrir="${i.id}">Reabrir</button>`}
+        </div>
+      </div>`;
+    }).join("");
+
+    cont.querySelectorAll(".estado-select").forEach((sel) => sel.addEventListener("change", async () => {
+      const upd = sel.value === "descartado" ? { estado: "descartado", motivo_descarte: prompt("Motivo del descarte (opcional):") || null } : { estado: sel.value };
+      const { error } = await sb.from("interesados_taller").update(upd).eq("id", sel.dataset.id);
+      if (error) alert("No se pudo actualizar: " + error.message); else cargarInteresados();
+    }));
+    cont.querySelectorAll("[data-descartar]").forEach((b) => b.addEventListener("click", async () => {
+      const motivo = prompt("Motivo del descarte (opcional):");
+      if (motivo === null) return;
+      const { error } = await sb.from("interesados_taller").update({ estado: "descartado", motivo_descarte: motivo.trim() || null }).eq("id", b.dataset.descartar);
+      if (error) alert("No se pudo descartar: " + error.message); else cargarInteresados();
+    }));
+    cont.querySelectorAll("[data-reabrir]").forEach((b) => b.addEventListener("click", async () => {
+      const { error } = await sb.from("interesados_taller").update({ estado: "contactado" }).eq("id", b.dataset.reabrir);
+      if (error) alert("No se pudo reabrir: " + error.message); else cargarInteresados();
+    }));
+    cont.querySelectorAll("[data-enlace]").forEach((b) => b.addEventListener("click", async () => {
+      b.disabled = true; b.textContent = "Enviando...";
+      const res = await invocarEdgeFunction("enviar-enlace-alta", { prospecto_id: b.dataset.enlace });
+      const ok = !res.error && res.data && res.data.ok;
+      alert(ok ? "Enlace enviado al correo del taller." : "No se pudo enviar: " + (res.error || (res.data && res.data.correo && res.data.correo.motivo) || "error desconocido"));
+      cargarInteresados();
+    }));
+  }
+  document.querySelectorAll("#chips-fact [data-fact]").forEach((b) => b.addEventListener("click", () => {
+    document.querySelectorAll("#chips-fact .chip").forEach((x) => x.classList.toggle("activo", x === b));
+    $("fact-cobros").style.display = b.dataset.fact === "cobros" ? "" : "none";
+    $("fact-pagos").style.display = b.dataset.fact === "pagos" ? "" : "none";
+  }));
+  $("filtro-interesados").addEventListener("input", renderInteresados);
+  $("orden-interesados").addEventListener("change", renderInteresados);
+
+  function renderAtencion() {
+    const f = [];
+    const nuevos = cacheInteresados.filter((i) => i.estado === "nuevo").length;
+    if (nuevos) f.push([`${nuevos} prospecto${nuevos > 1 ? "s" : ""} sin gestionar`, "Contactar", "interesados"]);
+    if (cacheSolicitudesPendientes.length) f.push([`${cacheSolicitudesPendientes.length} alta${cacheSolicitudesPendientes.length > 1 ? "s" : ""} de taller por aprobar`, "Revisar", "solicitudes"]);
+    const sc = cacheTraslados.filter((t) => trasladoSinChofer(t)).length;
+    if (sc) f.push([`${sc} traslado${sc > 1 ? "s" : ""} sin chofer asignado`, "Asignar", "traslados"]);
+    const po = cacheChoferes.filter((c) => c.estado === "pendiente").length;
+    if (po) f.push([`${po} chofer${po > 1 ? "es" : ""} postulante${po > 1 ? "s" : ""} por revisar`, "Revisar", "choferes"]);
+    const box = $("atencion-box");
+    if (!box) return;
+    box.innerHTML = f.length ? `<div class="dash-grupo-titulo">Requiere tu atención</div><div style="display:grid; gap:8px; margin-bottom:20px;">${f.map(([t, b, tab]) => `<div class="card-d" style="display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 14px;"><span>${t}</span><button class="chip activo" data-ir="${tab}">${b}</button></div>`).join("")}</div>` : "";
+    box.querySelectorAll("[data-ir]").forEach((b) => b.addEventListener("click", () => irATab(b.dataset.ir)));
   }
 
-  async function cancelarTraslado(trasladoId) {
+    async function cancelarTraslado(trasladoId) {
     if (!confirm("¿Cancelar este traslado por completo? Se cancelan todas sus etapas pendientes y se liberan ofertas activas. Esta acción no se puede deshacer.")) return;
     const { error } = await sb.rpc("cancelar_traslado", { p_traslado_id: trasladoId });
     if (error) { alert("No se pudo cancelar: " + error.message); return; }
