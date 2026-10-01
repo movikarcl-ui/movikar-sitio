@@ -307,6 +307,20 @@ const PASO_LABEL_CORTO = {
   control_fotografico:"Fotos", completado:"Listo"
 };
 
+// Reduce las fotos del celular (5-10 MB) a ~1600px JPEG para que suban rápido con datos móviles.
+async function comprimirFoto(file){
+  try{
+    if(!file.type || !file.type.startsWith('image/')) return file;
+    const bmp = await createImageBitmap(file);
+    const escala = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+    const c = document.createElement('canvas');
+    c.width = Math.round(bmp.width * escala); c.height = Math.round(bmp.height * escala);
+    c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+    const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.82));
+    return blob && blob.size < file.size ? blob : file;
+  }catch(_){ return file; }
+}
+
 function renderStepper(estadoActual){
   const idxPaso = PASOS_CHOFER.indexOf(estadoActual);
   const pasos = PASOS_CHOFER.map((p, i) => {
@@ -792,29 +806,31 @@ async function cargarTrasladoActivo(){
       btnCompletar.disabled = true;
       btnCompletar.textContent = 'Subiendo fotos...';
       try{
+        const totalFotos = Object.values(fotosEnCurso).filter(f => !f.subida).length + fotosAdicionalesEnCurso.filter(f => !f.subida).length;
+        let subidas = 0;
         for(const tipo of TODOS_LOS_TIPOS_FOTO){
           const foto = fotosEnCurso[tipo];
-          if(!foto) continue;
-          const ext = (foto.file.name.split('.').pop() || 'jpg').toLowerCase();
-          const ruta = `${activo.id}/${etapa}/${tipo}-${Date.now()}.${ext}`;
-          const { error: errUpload } = await sb.storage.from('control-fotografico').upload(ruta, foto.file, {
-            contentType: foto.file.type || 'image/jpeg',
-          });
-          if(errUpload) throw new Error(`No se pudo subir la foto "${tipo}": ` + errUpload.message);
+          if(!foto || foto.subida) continue;
+          btnCompletar.textContent = `Subiendo fotos ${++subidas}/${totalFotos}...`;
+          const archivo = await comprimirFoto(foto.file);
+          const ruta = `${activo.id}/${etapa}/${tipo}-${Date.now()}.jpg`;
+          const { error: errUpload } = await sb.storage.from('control-fotografico').upload(ruta, archivo, { contentType: 'image/jpeg' });
+          if(errUpload) throw new Error('No se pudo subir la foto "' + tipo + '". Revisa tu conexión y vuelve a intentar. Las fotos ya tomadas no se pierden.');
           const { error: errInsert } = await sb.from('traslados_fotos').insert({ traslado_id: activo.id, etapa, tipo, url: ruta });
-          if(errInsert) throw new Error(`No se pudo registrar la foto "${tipo}": ` + errInsert.message);
+          if(errInsert) throw new Error('No se pudo registrar la foto "' + tipo + '": ' + errInsert.message);
+          foto.subida = true; // si hay que reintentar, no se vuelve a subir
         }
-
         for(let i = 0; i < fotosAdicionalesEnCurso.length; i++){
           const foto = fotosAdicionalesEnCurso[i];
-          const ext = (foto.file.name.split('.').pop() || 'jpg').toLowerCase();
-          const ruta = `${activo.id}/${etapa}/adicional-${Date.now()}-${i}.${ext}`;
-          const { error: errUpload } = await sb.storage.from('control-fotografico').upload(ruta, foto.file, {
-            contentType: foto.file.type || 'image/jpeg',
-          });
-          if(errUpload) throw new Error('No se pudo subir una foto adicional: ' + errUpload.message);
+          if(foto.subida) continue;
+          btnCompletar.textContent = `Subiendo fotos ${++subidas}/${totalFotos}...`;
+          const archivoAd = await comprimirFoto(foto.file);
+          const ruta = `${activo.id}/${etapa}/adicional-${Date.now()}-${i}.jpg`;
+          const { error: errUpload } = await sb.storage.from('control-fotografico').upload(ruta, archivoAd, { contentType: 'image/jpeg' });
+          if(errUpload) throw new Error('No se pudo subir una foto adicional. Revisa tu conexión y vuelve a intentar.');
           const { error: errInsert } = await sb.from('traslados_fotos').insert({ traslado_id: activo.id, etapa, tipo: 'adicional', url: ruta });
           if(errInsert) throw new Error('No se pudo registrar una foto adicional: ' + errInsert.message);
+          foto.subida = true;
         }
 
         btnCompletar.textContent = 'Completando traslado...';
