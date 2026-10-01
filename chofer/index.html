@@ -323,6 +323,11 @@ function renderStepper(estadoActual){
     <div class="stepper-wrap">
       <div class="stepper-texto">Paso ${idxPaso + 1} de ${PASOS_CHOFER.length}</div>
       <div class="stepper">${pasos}</div>
+      <div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;margin-top:10px;color:var(--ink-dim);">
+        <span>${idxPaso > 0 ? '✓ Antes: <b>' + PASO_LABEL_CORTO[PASOS_CHOFER[idxPaso-1]] + '</b>' : '&nbsp;'}</span>
+        <span style="color:var(--teal-deep);">● Ahora: <b>${PASO_LABEL_CORTO[PASOS_CHOFER[idxPaso]] || ''}</b></span>
+        <span>${idxPaso >= 0 && idxPaso < PASOS_CHOFER.length-1 ? 'Sigue: <b>' + PASO_LABEL_CORTO[PASOS_CHOFER[idxPaso+1]] + '</b>' : '&nbsp;'}</span>
+      </div>
     </div>`;
 }
 
@@ -461,6 +466,7 @@ document.getElementById('btnVerificar').addEventListener('click', async ()=>{
     choferId = data.chofer_id;
     localStorage.setItem('movikar_chofer_id', choferId);
     localStorage.setItem('movikar_chofer_telefono', telefonoActual);
+    if(data.correo) localStorage.setItem('movikar_chofer_correo', data.correo);
     iniciarApp();
   }catch(e){
     btn.disabled = false; btn.textContent = 'Confirmar';
@@ -473,6 +479,7 @@ function cerrarSesion(){
   detenerAlarma();
   localStorage.removeItem('movikar_chofer_id');
   localStorage.removeItem('movikar_chofer_telefono');
+  localStorage.removeItem('movikar_chofer_correo');
   choferId = null;
   clearInterval(refreshInterval);
   document.getElementById('loginCard').style.display = 'block';
@@ -518,7 +525,7 @@ async function iniciarApp(){
 
   const telefono = localStorage.getItem('movikar_chofer_telefono') || 'Chofer';
   document.getElementById('choferNombre').textContent = telefono;
-  document.getElementById('choferSesion').textContent = 'Sesión activa: ' + telefono;
+  document.getElementById('choferSesion').textContent = 'Sesión activa: ' + (localStorage.getItem('movikar_chofer_correo') || telefono);
   document.getElementById('avatarInicial').textContent = telefono.replace(/[^A-Za-z]/g,'')[0]?.toUpperCase() || 'C';
 
   if(chofer?.nombre){
@@ -692,7 +699,7 @@ async function cargarTrasladoActivo(){
       </div>
 
       <input type="file" accept="image/*" capture="environment" id="inputFotoSlot" style="display:none;">
-      <button class="btn ok" id="btnCompletarFotos" style="margin-top:4px;" disabled>Subir fotos y completar (0/14)</button>
+      <button class="btn ok" id="btnCompletarFotos" style="margin-top:4px;" disabled>Subir fotos y finalizar etapa (0/14)</button>
     `;
 
     let slotActivo = null;
@@ -714,7 +721,7 @@ async function cargarTrasladoActivo(){
       const btnCompletar = document.getElementById('btnCompletarFotos');
       if(!btnCompletar) return;
       const hechas = TODOS_LOS_TIPOS_FOTO.filter(t => fotosEnCurso[t]).length;
-      btnCompletar.textContent = `Subir fotos y completar (${hechas}/${TODOS_LOS_TIPOS_FOTO.length})`;
+      btnCompletar.textContent = `Subir fotos y finalizar etapa (${hechas}/${TODOS_LOS_TIPOS_FOTO.length})`;
       btnCompletar.disabled = hechas < TODOS_LOS_TIPOS_FOTO.length;
     }
 
@@ -780,6 +787,7 @@ async function cargarTrasladoActivo(){
     document.getElementById('btnProblemaFotos').addEventListener('click', () => abrirModalSolicitarCancelacion(activo.id, etapa));
 
     document.getElementById('btnCompletarFotos').addEventListener('click', async () => {
+      if(!confirm('¿Confirmas que las fotos están completas y claras? Al continuar se sube todo y esta etapa del traslado queda FINALIZADA.')) return;
       const btnCompletar = document.getElementById('btnCompletarFotos');
       btnCompletar.disabled = true;
       btnCompletar.textContent = 'Subiendo fotos...';
