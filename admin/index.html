@@ -1925,7 +1925,7 @@
                <div><small>Documentos</small>${ndocs} de 6 subidos</div><div><small>Por pagar</small>${pend.etapas ? fmtMonto(pend.monto) + " (" + pend.etapas + ")" : "$0"}</div>`}
         </div>
         <div class="acciones">${botones}</div>
-        ${(post || c.estado === "rechazado") ? `<div style="margin-top:8px;"><button class="link-accion rojo" data-eliminar-chofer="${c.id}">Eliminar</button></div>` : ""}
+        ${!enTraslado(c) ? `<div style="margin-top:8px;"><button class="link-accion rojo" data-eliminar-chofer="${c.id}">Eliminar</button></div>` : ""}
         <table style="margin:0;"><tbody>
           <tr class="fila-detalle-factura" id="detalle-chofer-${c.id}" style="display:none;"><td></td></tr>
           <tr class="fila-detalle-factura" id="detalle-docs-${c.id}" style="display:none;"><td></td></tr>
@@ -1947,8 +1947,10 @@
     on("[data-rechazar-chofer]", async (b) => {
       const motivo = prompt("Motivo del rechazo (opcional):");
       if (motivo === null) return;
-      const { error } = await sb.from("choferes").update({ estado: "rechazado", motivo_rechazo: motivo.trim() || null }).eq("id", b.dataset.rechazarChofer);
-      if (error) { alert("No se pudo rechazar: " + error.message); return; }
+      b.disabled = true;
+      const res = await invocarEdgeFunction("notificar-chofer-rechazado", { chofer_id: b.dataset.rechazarChofer, motivo: motivo.trim() });
+      if (res.error) { alert("No se pudo rechazar: " + res.error); b.disabled = false; return; }
+      if (res.data && res.data.correo && res.data.correo.enviado === false) alert("Chofer rechazado. El correo de aviso no se pudo enviar: " + (res.data.correo.motivo || ""));
       cargarChoferes();
     });
     on("[data-estado-chofer]", async (b) => {
@@ -1991,7 +1993,15 @@
         <tr><td style="color:var(--dim);">Tipo de licencia</td><td>${chofer.tipo_licencia || "—"}</td></tr>
         <tr><td style="color:var(--dim);">Registrado el</td><td>${fmtFechaHora(chofer.created_at)}</td></tr>
         <tr><td style="color:var(--dim);">Disponible ahora</td><td>${chofer.disponible ? "Sí" : "No"}</td></tr>
-      </table>` : `<span class="vacio">No se encontró el chofer.</span>`;
+        <tr><td style="color:var(--dim);">Estado</td><td>${chofer.estado}</td></tr>
+        <tr><td style="color:var(--dim);">Teléfono</td><td>${chofer.telefono || "—"}</td></tr>
+        <tr><td style="color:var(--dim);">Correo</td><td>${chofer.correo || "—"}</td></tr>
+        <tr><td style="color:var(--dim);">Última conexión</td><td>${chofer.ultima_conexion ? fmtFechaHora(chofer.ultima_conexion) : "—"}</td></tr>
+        ${chofer.motivo_rechazo ? `<tr><td style="color:var(--dim);">Motivo de rechazo</td><td>${chofer.motivo_rechazo}</td></tr>` : ""}
+      </table>
+      <button data-docs-desde-detalle="${chofer.id}" style="margin:2px 0 8px;">Ver documentos</button>` : `<span class="vacio">No se encontró el chofer.</span>`;
+    const bd = fila.querySelector("[data-docs-desde-detalle]");
+    if (bd) bd.addEventListener("click", () => toggleDocumentosChofer(choferId));
   }
 
   async function eliminarChofer(choferId) {
@@ -1999,7 +2009,7 @@
     if (!confirm(`¿Eliminar a ${chofer ? chofer.nombre : "este chofer"} por completo? Esta acción no se puede deshacer.`)) return;
     const { error } = await sb.from("choferes").delete().eq("id", choferId);
     if (error) {
-      alert("No se pudo eliminar: tiene traslados u ofertas asociadas en su historial. Si quieres darlo de baja, cambia su estado a 'Rechazado' en vez de eliminarlo.");
+      alert("No se pudo eliminar: tiene traslados en su historial. Para darlo de baja usa «Desactivar» y se conserva el historial.");
       return;
     }
     cargarChoferes();
@@ -2054,10 +2064,12 @@
     });
     celda.querySelectorAll("[data-rechazar-chofer]").forEach((btn) => {
       btn.addEventListener("click", async () => {
-        if (!confirm("¿Rechazar esta postulación?")) return;
+        const motivo = prompt("Motivo del rechazo (opcional):");
+        if (motivo === null) return;
         btn.disabled = true;
-        const { error } = await sb.from("choferes").update({ estado: "rechazado" }).eq("id", choferId);
-        if (error) { alert("No se pudo rechazar: " + error.message); btn.disabled = false; return; }
+        const res = await invocarEdgeFunction("notificar-chofer-rechazado", { chofer_id: choferId, motivo: motivo.trim() });
+        if (res.error) { alert("No se pudo rechazar: " + res.error); btn.disabled = false; return; }
+        if (res.data && res.data.correo && res.data.correo.enviado === false) alert("Chofer rechazado. El correo de aviso no se pudo enviar: " + (res.data.correo.motivo || ""));
         cargarChoferes();
       });
     });
