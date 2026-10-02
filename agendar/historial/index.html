@@ -365,6 +365,14 @@ function isCompletado(t){
   const estados = [t.estado_retiro, t.estado_entrega].filter(Boolean);
   return estados.length > 0 && estados.every(e => e === 'completado');
 }
+function cargoCancelacion(t, etapa){
+  const pct = etapa === 'retiro' ? t.pct_cobro_taller_retiro : t.pct_cobro_taller_entrega;
+  const monto = etapa === 'retiro' ? t.monto_cobro_retiro : t.monto_cobro_entrega;
+  if(pct == null) return '';
+  if(Number(pct) === 0) return ' <b>Sin cargo para el taller.</b>';
+  const base = monto != null ? ' (' + Math.round(monto * Number(pct) / 100).toLocaleString('es-CL', {style:'currency', currency:'CLP'}) + ')' : '';
+  return ' <b>Cargo por cancelacion: ' + Number(pct) + '% de la tarifa' + base + '.</b>';
+}
 function isCancelado(t){
   const estados = [t.estado_retiro, t.estado_entrega].filter(Boolean);
   return estados.some(e => e === 'cancelado');
@@ -391,13 +399,13 @@ function renderList(){
     if(t.estado_retiro){
       const puedeCancelar = !['completado','cancelado'].includes(t.estado_retiro) && !t.solicitud_cancelacion_retiro;
       stages += `<div class="stage"><div><div class="stage-label">Retiro</div><span class="badge ${t.estado_retiro}">${ESTADO_LABEL[t.estado_retiro]}</span>${t.solicitud_cancelacion_retiro ? `<span class="badge solicitud">solicitud pendiente</span>` : ''}</div>${puedeCancelar ? `<button class="btn-cancelar-etapa" data-cancelar="${t.id}" data-etapa="retiro">Cancelar</button>` : ''}</div>`;
-      if(t.estado_retiro === 'cancelado') cancelInfo += `<div class="card-cancel-info">Retiro cancelado — ${MOTIVO_LABEL[t.motivo_cancelacion_retiro] || t.motivo_cancelacion_retiro}${t.notas_cancelacion_retiro ? `: "${t.notas_cancelacion_retiro}"` : ''}</div>`;
+      if(t.estado_retiro === 'cancelado') cancelInfo += `<div class="card-cancel-info">Retiro cancelado — ${MOTIVO_LABEL[t.motivo_cancelacion_retiro] || t.motivo_cancelacion_retiro}${cargoCancelacion(t, 'retiro')}${t.notas_cancelacion_retiro ? `: "${t.notas_cancelacion_retiro}"` : ''}</div>`;
       else if(t.solicitud_cancelacion_retiro) cancelInfo += `<div class="card-cancel-info">${SOLICITUD_LABEL[t.solicitud_cancelacion_retiro]}${t.notas_cancelacion_retiro ? `: "${t.notas_cancelacion_retiro}"` : ''} — a la espera de que MoviKar lo confirme.</div>`;
     }
     if(t.estado_entrega){
       const puedeCancelar = !['completado','cancelado'].includes(t.estado_entrega) && !t.solicitud_cancelacion_entrega;
       stages += `<div class="stage"><div><div class="stage-label">Entrega</div><span class="badge ${t.estado_entrega}">${ESTADO_LABEL[t.estado_entrega]}</span>${t.solicitud_cancelacion_entrega ? `<span class="badge solicitud">solicitud pendiente</span>` : ''}</div>${puedeCancelar ? `<button class="btn-cancelar-etapa" data-cancelar="${t.id}" data-etapa="entrega">Cancelar</button>` : ''}</div>`;
-      if(t.estado_entrega === 'cancelado') cancelInfo += `<div class="card-cancel-info">Entrega cancelada — ${MOTIVO_LABEL[t.motivo_cancelacion_entrega] || t.motivo_cancelacion_entrega}${t.notas_cancelacion_entrega ? `: "${t.notas_cancelacion_entrega}"` : ''}</div>`;
+      if(t.estado_entrega === 'cancelado') cancelInfo += `<div class="card-cancel-info">Entrega cancelada — ${MOTIVO_LABEL[t.motivo_cancelacion_entrega] || t.motivo_cancelacion_entrega}${cargoCancelacion(t, 'entrega')}${t.notas_cancelacion_entrega ? `: "${t.notas_cancelacion_entrega}"` : ''}</div>`;
       else if(t.solicitud_cancelacion_entrega) cancelInfo += `<div class="card-cancel-info">${SOLICITUD_LABEL[t.solicitud_cancelacion_entrega]}${t.notas_cancelacion_entrega ? `: "${t.notas_cancelacion_entrega}"` : ''} — a la espera de que MoviKar lo confirme.</div>`;
     }
     return `
