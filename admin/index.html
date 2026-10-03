@@ -160,6 +160,30 @@
   .patente-link:hover { color: var(--turquesa); }
   .campo-referencia { font-size: 0.78rem; color: var(--dim); margin: -8px 0 12px; }
   #mapa-chofer { width: 100%; height: 320px; border-radius: 10px; border: 1px solid var(--line); }
+
+  /* ===== Pruebas oct: botones más cuadrados y ordenados ===== */
+  button.primario, button.secundario, header button, .chip, .filter-chip, .tabs button { border-radius: 6px; }
+  .tabs .grupo { border-radius: 10px; }
+  button.primario { padding: 10px 18px; min-height: 38px; }
+  button.secundario { padding: 8px 14px; min-height: 36px; font-weight: 500; }
+  button.secundario:hover, header button:hover { border-color: var(--turquesa); color: var(--turquesa-profundo); }
+  .chip, .filter-chip { padding: 7px 14px; font-weight: 500; }
+  .card-d { border-radius: 10px; padding: 16px; }
+  .card-d .acciones { display: grid; grid-auto-flow: row; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); grid-auto-columns: auto; gap: 8px; }
+  .card-d .acciones > a { display: block; }
+  .card-d .acciones button { width: 100%; min-height: 36px; padding: 8px 6px; border-radius: 6px; font-weight: 500; }
+  .card-d .acciones button:hover:not(:disabled) { border-color: var(--turquesa); color: var(--turquesa-profundo); }
+  .card-d .acciones button.prim:hover:not(:disabled) { background: var(--turquesa-profundo); color: #fff; }
+  .card-d .acciones button.rojo:hover:not(:disabled) { border-color: var(--coral); }
+  .card-d .acciones button:disabled { opacity: .45; cursor: not-allowed; }
+  .card-d button.link-accion { border: 1px solid var(--line); background: var(--bg); border-radius: 6px; padding: 5px 10px; margin: 0; font-size: .76rem; }
+  .card-d button.link-accion:hover { border-color: var(--turquesa); }
+  .card-d button.link-accion.rojo:hover { border-color: var(--coral); }
+  /* ===== Tarifas: más aire y bloques de precio separados ===== */
+  #lista-tarifas.cards-grid { gap: 16px; }
+  #lista-tarifas .card-d { padding: 18px; }
+  #lista-tarifas .grid2 { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px; gap: 12px 14px; margin: 16px 0; }
+  #tarifas-clientes h3, #tarifas-chofer h3 { margin-bottom: 4px; }
 </style>
 </head>
 <body>
@@ -197,7 +221,7 @@
         <button class="tab-btn" data-tab="interesados"><svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8zM4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg>Prospectos <span class="contador" id="contador-interesados" style="display:none;">0</span></button>
         <button class="tab-btn" data-tab="solicitudes"><svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h6M9 17h6"/></svg>Altas Taller <span class="contador" id="contador-solicitudes" style="display:none;">0</span></button>
         <button class="tab-btn" data-tab="talleres"><svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V9l9-5 9 5v12M9 21v-6h6v6"/></svg>Talleres</button>
-        <button class="tab-btn" data-tab="tarifas"><svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 6.5c0-1.9-2.2-3-5-3s-5 1.1-5 3 2.2 2.8 5 3.5 5 1.6 5 3.5-2.2 3-5 3-5-1.1-5-3"/></svg>Tarifas</button>
+        <button class="tab-btn" data-tab="tarifas"><svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 6.5c0-1.9-2.2-3-5-3s-5 1.1-5 3 2.2 2.8 5 3.5 5 1.6 5 3.5-2.2 3-5 3-5-1.1-5-3"/></svg>Tarifas <span class="contador" id="contador-tarifas" style="display:none;">0</span></button>
       </span>
       <span class="grupo g-op">
         <button class="tab-btn" data-tab="traslados"><svg class="tab-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15v-3l2-5h10l3 4h3v4M7.5 17.5a1.8 1.8 0 1 0 0 .1M16.5 17.5a1.8 1.8 0 1 0 0 .1"/></svg>Traslados</button>
@@ -474,27 +498,36 @@
 
     <!-- ============ TARIFAS ============ -->
     <section class="panel" id="panel-tarifas">
-      <div class="dash-card" style="margin-bottom:24px;">
-        <h3 style="font-size:0.95rem; margin-bottom:4px;">Pago a chofer (tarifa global)</h3>
-        <p class="subtitulo" style="margin-top:2px;">Igual para todos los choferes y todos los traslados de la plataforma.</p>
-        <div class="grid-2">
-          <div>
-            <label for="tc-retiro">Retiro ($)</label>
-            <input id="tc-retiro" type="number" min="0" />
-          </div>
-          <div>
-            <label for="tc-entrega">Entrega ($)</label>
-            <input id="tc-entrega" type="number" min="0" />
-          </div>
-        </div>
-        <button class="primario" id="btn-guardar-tarifa-chofer">Guardar tarifa de chofer</button>
-        <div id="tarifa-chofer-ok" class="ok-msg" style="display:none; margin-top:12px;"></div>
+      <div class="chips" id="chips-tarifas-modo">
+        <button class="chip activo" data-tmodo="clientes">Cobro a clientes</button>
+        <button class="chip" data-tmodo="chofer">Pago a choferes</button>
       </div>
 
-      <h3 style="font-size:0.95rem; margin-bottom:12px;">Tarifa de cobro por cliente</h3>
-      <p class="subtitulo" style="margin-bottom:16px;">Cada cliente de facturación (RUT) tiene su propio precio negociado — se aplica a todos sus talleres por igual.</p>
-      <div class="chips" id="chips-tarifas"></div>
-      <div class="cards-grid" id="lista-tarifas"></div>
+      <div id="tarifas-clientes">
+        <h3 style="font-size:0.95rem;">Tarifa de cobro por cliente</h3>
+        <p class="subtitulo" style="margin-bottom:16px;">Cada cliente de facturación (RUT) tiene su propio precio negociado — se aplica a todos sus talleres por igual.</p>
+        <div class="chips" id="chips-tarifas"></div>
+        <div class="cards-grid" id="lista-tarifas"></div>
+      </div>
+
+      <div id="tarifas-chofer" style="display:none; max-width:560px;">
+        <div class="dash-card">
+          <h3 style="font-size:0.95rem;">Pago a chofer (tarifa global)</h3>
+          <p class="subtitulo" style="margin-top:2px;">Lo que MoviKar le paga al chofer por cada etapa. Es igual para todos los choferes y no cambia lo que se cobra a los talleres.</p>
+          <div class="grid-2">
+            <div>
+              <label for="tc-retiro">Retiro ($)</label>
+              <input id="tc-retiro" type="number" min="0" />
+            </div>
+            <div>
+              <label for="tc-entrega">Entrega ($)</label>
+              <input id="tc-entrega" type="number" min="0" />
+            </div>
+          </div>
+          <button class="primario" id="btn-guardar-tarifa-chofer">Guardar tarifa de chofer</button>
+          <div id="tarifa-chofer-ok" class="ok-msg" style="display:none; margin-top:12px;"></div>
+        </div>
+      </div>
     </section>
 
     <!-- ============ FACTURACIÓN ============ -->
@@ -641,7 +674,7 @@
         <select id="orden-choferes">
           <option value="nombre">Ordenar: nombre (A-Z)</option>
           <option value="disp">Disponibles primero</option>
-          <option value="hoy">Más traslados hoy</option>
+          <option value="hoy">Más traslados hoy</option><option value="semana">Más traslados esta semana</option><option value="total">Más traslados en total</option>
           <option value="conexion">Última conexión</option>
           <option value="alta">Alta más reciente</option>
         </select>
@@ -1356,6 +1389,7 @@
     const chips = $("chips-tarifas");
     const completa = (c) => { const a = cacheTarifasClientePorId[c.id] || {}; return !!(a.retiro && a.entrega); };
     const nInc = cacheClientesTarifas.filter((c) => !completa(c)).length;
+    const ctar = $("contador-tarifas"); ctar.textContent = nInc; ctar.style.display = nInc ? "inline-block" : "none";
     chips.innerHTML = `<button class="chip ${chipTarifas === "todas" ? "activo" : ""}" data-chip="todas">Todas ${cacheClientesTarifas.length}</button><button class="chip rojo ${chipTarifas === "incompletas" ? "activo" : ""}" data-chip="incompletas">Solo incompletas ${nInc}</button>`;
     chips.querySelectorAll("[data-chip]").forEach((b) => b.addEventListener("click", () => { chipTarifas = b.dataset.chip; renderTarifasClientes(); }));
 
@@ -1371,7 +1405,7 @@
       const ok = completa(c);
       const locales = localesPorCliente[c.id] || [];
       return `<div class="card-d">
-        <div class="card-top"><div><h3>${c.razon_social}</h3><span class="sub">RUT ${c.rut} · ${locales.length} local${locales.length !== 1 ? "es" : ""}</span></div><span class="etq ${ok ? "ok" : "rojo"}">${ok ? "Activa" : "Incompleta"}</span></div>
+        <div class="card-top"><div><h3>${c.razon_social}</h3><span class="sub">RUT ${c.rut} · ${locales.length ? locales.length + " local" + (locales.length !== 1 ? "es" : "") : "sin talleres asociados"}</span></div><span class="etq ${ok ? "ok" : "rojo"}">${ok ? "Activa" : "Incompleta"}</span></div>
         <div class="grid2">
           <div><label style="font-size:.7rem;color:var(--dim);">Retiro ($)</label><input type="number" min="0" class="tarifa-retiro-input" data-cliente="${c.id}" value="${actual.retiro ?? ""}" placeholder="—" style="margin:0;"></div>
           <div><label style="font-size:.7rem;color:var(--dim);">Entrega ($)</label><input type="number" min="0" class="tarifa-entrega-input" data-cliente="${c.id}" value="${actual.entrega ?? ""}" placeholder="—" style="margin:0;"></div>
@@ -1917,7 +1951,7 @@
 
   let cacheSolicitudesTodas = [];
   let chipSolicitudes = "pendiente";
-  const FILTROS_ALTAS = [["pendiente", "Por aprobar"], ["aprobado", "Aprobadas"], ["rechazado", "Rechazadas"]];
+  const FILTROS_ALTAS = [["pendiente", "Por aprobar"], ["rechazado", "Rechazadas"]];
 
   function renderSolicitudes() {
     const chips = $("chips-solicitudes");
@@ -2048,7 +2082,7 @@
     const q = $("filtro-choferes").value.trim().toLowerCase();
     const orden = $("orden-choferes").value;
     const lista = cacheChoferes.filter(fn).filter((c) => !q || (c.nombre || "").toLowerCase().includes(q) || (c.telefono || "").includes(q))
-      .sort((a, b) => orden === "disp" ? (b.disponible - a.disponible) : orden === "hoy" ? trasladosHoy(b) - trasladosHoy(a)
+      .sort((a, b) => orden === "disp" ? (b.disponible - a.disponible) : orden === "hoy" ? trasladosHoy(b) - trasladosHoy(a) : orden === "semana" ? statsChofer(b).semana - statsChofer(a).semana : orden === "total" ? statsChofer(b).total - statsChofer(a).total
         : orden === "conexion" ? new Date(b.ultima_conexion || 0) - new Date(a.ultima_conexion || 0)
         : orden === "alta" ? new Date(b.created_at) - new Date(a.created_at) : (a.nombre || "").localeCompare(b.nombre || ""));
     if (ordenInvertido["choferes"]) lista.reverse();
@@ -2057,6 +2091,7 @@
     cont.innerHTML = lista.map((c) => {
       const pend = pendientesPorChofer[c.id] || { monto: 0, etapas: 0 };
       const ndocs = Object.keys(DOC_LABELS).filter((k) => c[k]).length;
+      const st = statsChofer(c);
       const post = c.estado === "pendiente";
       const etq = post ? ["rojo", "Postulante"] : c.estado === "inactivo" ? ["", "Inactivo"] : c.estado === "rechazado" ? ["", "Rechazado"] : enTraslado(c) ? ["", "En traslado"] : c.disponible ? ["ok", "Disponible"] : ["", "No disponible"];
       const wa = "https://wa.me/" + (c.telefono || "").replace(/\D/g, "");
@@ -2065,15 +2100,14 @@
         : `<button data-ver-detalle-chofer="${c.id}">Detalle</button><a href="${wa}" target="_blank" rel="noopener" style="text-decoration:none;"><button style="width:100%;">WhatsApp</button></a>`
           + (c.estado === "aprobado" ? `<button data-estado-chofer="inactivo" data-id="${c.id}">Desactivar</button>` : c.estado === "inactivo" ? `<button class="prim" data-estado-chofer="aprobado" data-id="${c.id}">Reactivar</button>` : "")
           + (pend.etapas ? `<button class="prim" data-generar-pago="${c.id}">Generar pago</button>` : "")
-          + `<button data-ver-pagos="${c.id}">Ver pagos</button>`;
+          + `<button data-ver-pagos="${c.id}">Ver pagos</button><button data-liquidacion="${c.id}">Liquidación Excel</button>`;
       return `<div class="card-d">
         <div class="card-top"><div><h3>${c.nombre}</h3><span class="sub">${c.comuna || "—"}</span></div><span class="etq ${etq[0]}">${etq[1]}</span></div>
         <div class="grid2">
           <div><small>Teléfono</small>${c.telefono || "—"}</div>
           <div><small>Correo</small>${c.correo || "—"}</div>
           ${post ? `<div><small>Postuló</small>${fmtFechaHora(c.created_at)}</div><div><small>Documentos</small>${ndocs} de 6 subidos</div>`
-            : `<div><small>Traslados de hoy</small>${trasladosHoy(c)}</div><div><small>Última conexión</small>${c.ultima_conexion ? fmtFechaHora(c.ultima_conexion) : "—"}</div>
-               <div><small>Documentos</small>${ndocs} de 6 subidos</div><div><small>Por pagar</small>${pend.etapas ? fmtMonto(pend.monto) + " (" + pend.etapas + ")" : "$0"}</div>`}
+            : `<div><small>Hoy (asignados)</small>${st.hoy}</div><div><small>Completados esta semana</small>${st.semana}</div><div><small>Completados este mes</small>${st.mes}</div><div><small>Completados en total</small>${st.total}</div><div><small>Última conexión</small>${c.ultima_conexion ? fmtFechaHora(c.ultima_conexion) : "—"}</div><div><small>Por pagar</small>${pend.etapas ? fmtMonto(pend.monto) + " (" + pend.etapas + ")" : "$0"}</div>`}
         </div>
         <div class="acciones">${botones}</div>
         ${!enTraslado(c) ? `<div style="margin-top:8px;"><button class="link-accion rojo" data-eliminar-chofer="${c.id}">Eliminar</button></div>` : ""}
@@ -2093,6 +2127,7 @@
       const chip = document.querySelector('#chips-fact [data-fact="pagos"]'); if (chip) chip.click();
       const q = $("pago-buscar"); if (q && c) { q.value = c.nombre; q.dispatchEvent(new Event("input")); }
     });
+    on("[data-liquidacion]", (b) => exportarLiquidacionChofer(b.dataset.liquidacion));
     on("[data-eliminar-chofer]", (b) => eliminarChofer(b.dataset.eliminarChofer));
     on("[data-aprobar-chofer]", async (b) => {
       b.disabled = true; b.textContent = "Aprobando...";
@@ -2259,7 +2294,7 @@
 
     tbody.innerHTML = lista.map((p) => {
       const chofer = p.choferes;
-      let acciones = `<button class="link-accion" data-detalle-pago="${p.id}">Ver detalle</button>`;
+      let acciones = `<button class="link-accion" data-detalle-pago="${p.id}">Ver detalle</button><button class="link-accion" data-liquidacion-pago="${p.id}">Liquidación</button>`;
       if (p.estado === "pendiente") {
         acciones += `<button class="link-accion" data-pagar-chofer="${p.id}">Marcar pagada</button><button class="link-accion rojo" data-anular-pago="${p.id}">Anular</button>`;
       }
@@ -2277,6 +2312,9 @@
 
     tbody.querySelectorAll("[data-detalle-pago]").forEach((btn) => {
       btn.addEventListener("click", () => toggleDetallePago(btn.dataset.detallePago));
+    });
+    tbody.querySelectorAll("[data-liquidacion-pago]").forEach((btn) => {
+      btn.addEventListener("click", () => exportarLiquidacionChofer(null, btn.dataset.liquidacionPago));
     });
     tbody.querySelectorAll("[data-pagar-chofer]").forEach((btn) => {
       btn.addEventListener("click", () => abrirModalPagarChofer(btn.dataset.pagarChofer));
@@ -2371,6 +2409,7 @@
   });
 
   $("pago-exportar").addEventListener("click", async () => {
+    if (!cachePagosChofer.length) { alert("No hay pagos con el período/estado elegido. Prueba con «Todo» o usa «Liquidación Excel» en la ficha del chofer."); return; }
     const resumen = cachePagosChofer.map((p) => ({
       Chofer: p.choferes ? p.choferes.nombre : "",
       "Período desde": fmtFecha(p.periodo_desde),
@@ -2687,23 +2726,35 @@
     });
   }
 
-  $("trasl-exportar").addEventListener("click", () => {
-    const { desde } = rangoPeriodo($("trasl-periodo").value);
-    const filtrados = desde ? cacheTraslados.filter((t) => new Date(t.created_at) >= desde) : cacheTraslados;
-    const filas = filtrados.map((t) => ({
-      Patente: t.patente || "",
-      Taller: t.talleres ? t.talleres.nombre_taller : "",
-      Tipo: TIPO_LABEL_TRASLADO[t.tipo] || t.tipo || "",
-      "Estado retiro": t.estado_retiro || "",
-      "Chofer retiro": t.chofer_retiro ? t.chofer_retiro.nombre : "",
-      "Estado entrega": t.estado_entrega || "",
-      "Chofer entrega": t.chofer_entrega ? t.chofer_entrega.nombre : "",
-      Fecha: fmtFechaHora(t.created_at),
-    }));
-    const hoja = XLSX.utils.json_to_sheet(filas);
-    const libro = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(libro, hoja, "Traslados");
-    XLSX.writeFile(libro, `traslados_movikar_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  $("trasl-exportar").addEventListener("click", async () => {
+    const btn = $("trasl-exportar");
+    btn.disabled = true;
+    try {
+      if (!cacheTraslados.length) await cargarTraslados();
+      const { desde } = rangoPeriodo($("trasl-periodo").value);
+      const filtrados = desde ? cacheTraslados.filter((t) => new Date(t.fecha_principal || t.created_at) >= desde) : cacheTraslados;
+      if (!filtrados.length) { alert("No hay traslados en el período elegido. Prueba con «Todo»."); return; }
+      const L = (e) => (e ? (ESTADO_LABEL_TRASLADO[e] || e) : "");
+      const filas = filtrados.map((t) => ({
+        Patente: t.patente || "",
+        Taller: t.talleres ? t.talleres.nombre_taller : "",
+        Tipo: TIPO_LABEL_TRASLADO[t.tipo] || t.tipo || "",
+        Cliente: t.cliente_nombre || "",
+        Comuna: t.comuna || "",
+        "Fecha agendada": fmtFechaHora(t.fecha_principal),
+        "Estado retiro": L(t.estado_retiro),
+        "Chofer retiro": t.chofer_retiro ? t.chofer_retiro.nombre : "",
+        "Estado entrega": L(t.estado_entrega),
+        "Chofer entrega": t.chofer_entrega ? t.chofer_entrega.nombre : "",
+        Reasignado: t.reasignado_manualmente ? "Sí" : "No",
+        "Ingresado el": fmtFechaHora(t.created_at),
+      }));
+      const libro = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(libro, XLSX.utils.json_to_sheet(filas), "Traslados");
+      XLSX.writeFile(libro, "traslados_movikar_" + new Date().toISOString().slice(0, 10) + ".xlsx");
+    } finally {
+      btn.disabled = false;
+    }
   });
   $("trasl-periodo").addEventListener("change", cargarTraslados);
 
@@ -2719,10 +2770,12 @@
   }
 
   function renderInteresados() {
-    // Un prospecto cuya alta ya fue aprobada sale de la lista activa
+    // Un prospecto cuya alta ya fue aprobada pasa a "Ya son taller" (ya no desaparece)
     const aprobados = new Set(cacheSolicitudesTodas.filter((x) => x.estado === "aprobado" && x.prospecto_token).map((x) => x.prospecto_token));
-    const activos = cacheInteresados.filter((i) => !aprobados.has(i.alta_token));
-    const nuevos = activos.filter((i) => i.estado === "nuevo").length;
+    const esTaller = (i) => aprobados.has(i.alta_token);
+    const estadoVisible = (i) => (esTaller(i) ? "ya_taller" : i.estado);
+    const activos = cacheInteresados;
+    const nuevos = activos.filter((i) => estadoVisible(i) === "nuevo").length;
     const contador = $("contador-interesados");
     contador.textContent = nuevos;
     contador.style.display = nuevos ? "inline-block" : "none";
@@ -2730,12 +2783,12 @@
     renderAtencion();
 
     const chips = $("chips-interesados");
-    chips.innerHTML = ESTADOS_PROSPECTO.map(([v, l]) => `<button class="chip ${chipInteresados === v ? "activo" : ""} ${v === "nuevo" ? "rojo" : ""}" data-chip="${v}">${l} ${activos.filter((i) => i.estado === v).length}</button>`).join("");
+    chips.innerHTML = [...ESTADOS_PROSPECTO, ["ya_taller", "Ya son taller"]].map(([v, l]) => `<button class="chip ${chipInteresados === v ? "activo" : ""} ${v === "nuevo" ? "rojo" : ""}" data-chip="${v}">${l} ${activos.filter((i) => estadoVisible(i) === v).length}</button>`).join("");
     chips.querySelectorAll("[data-chip]").forEach((b) => b.addEventListener("click", () => { chipInteresados = b.dataset.chip; renderInteresados(); }));
 
     const q = $("filtro-interesados").value.trim().toLowerCase();
     const orden = $("orden-interesados").value;
-    const lista = activos.filter((i) => i.estado === chipInteresados)
+    const lista = activos.filter((i) => estadoVisible(i) === chipInteresados)
       .filter((i) => !q || [i.nombre_taller, i.comuna, i.contacto_nombre].some((x) => (x || "").toLowerCase().includes(q)))
       .sort((a, b) => orden === "nombre" ? (a.nombre_taller || "").localeCompare(b.nombre_taller || "") : orden === "traslados" ? (b.traslados_estimados_mes || 0) - (a.traslados_estimados_mes || 0) : new Date(b.created_at) - new Date(a.created_at));
     const cont = $("lista-interesados");
@@ -2743,9 +2796,9 @@
 
     cont.innerHTML = lista.map((i) => {
       const wa = "https://wa.me/" + (i.contacto_telefono || "").replace(/\D/g, "");
-      const puedeEnlace = ["acuerdo_cerrado", "alta_enviada"].includes(i.estado);
+      const puedeEnlace = ["acuerdo_cerrado", "alta_enviada"].includes(i.estado) && !esTaller(i);
       return `<div class="card-d">
-        <div class="card-top"><div><h3>${i.nombre_taller}</h3><span class="sub">${i.comuna}</span></div><span class="etq ${i.estado === "nuevo" ? "rojo" : ""}">${(ESTADOS_PROSPECTO.find((e) => e[0] === i.estado) || [, i.estado])[1].replace("Descartados", "Descartado")}</span></div>
+        <div class="card-top"><div><h3>${i.nombre_taller}</h3><span class="sub">${i.comuna}</span></div><span class="etq ${esTaller(i) ? "ok" : i.estado === "nuevo" ? "rojo" : ""}">${esTaller(i) ? "Ya es taller" : (ESTADOS_PROSPECTO.find((e) => e[0] === i.estado) || [, i.estado])[1].replace("Descartados", "Descartado")}</span></div>
         <div class="grid2">
           <div><small>Contacto</small>${i.contacto_nombre}${i.contacto_cargo ? ", " + i.contacto_cargo : ""}</div>
           <div><small>Teléfono</small>${i.contacto_telefono || "—"}</div>
@@ -2758,7 +2811,7 @@
           <a href="tel:${i.contacto_telefono || ""}" style="text-decoration:none;"><button style="width:100%;">Llamar</button></a>
           <a href="${wa}" target="_blank" rel="noopener" style="text-decoration:none;"><button style="width:100%;">WhatsApp</button></a>
           ${puedeEnlace ? `<button class="prim" data-enlace="${i.id}">${i.estado === "alta_enviada" ? "Reenviar enlace" : "Enviar enlace de alta"}</button>` : ""}
-          ${i.estado !== "descartado" ? `<button class="rojo" data-descartar="${i.id}">Descartar</button>` : `<button data-reabrir="${i.id}">Reabrir</button>`}
+          ${esTaller(i) ? "" : i.estado !== "descartado" ? `<button class="rojo" data-descartar="${i.id}">Descartar</button>` : `<button data-reabrir="${i.id}">Reabrir</button>`}
         </div>
       </div>`;
     }).join("");
@@ -2964,6 +3017,117 @@
         ${htmlRetiro}${htmlEntrega}
         <span style="font-size:0.76rem; color:var(--dim);">Los enlaces expiran en 10 minutos por seguridad.</span>
       </div>`;
+  }
+
+  // ---------- Tarifas: alternar entre cobro a clientes y pago a choferes ----------
+  document.querySelectorAll("#chips-tarifas-modo [data-tmodo]").forEach((b) => b.addEventListener("click", () => {
+    document.querySelectorAll("#chips-tarifas-modo .chip").forEach((x) => x.classList.toggle("activo", x === b));
+    $("tarifas-clientes").style.display = b.dataset.tmodo === "clientes" ? "" : "none";
+    $("tarifas-chofer").style.display = b.dataset.tmodo === "chofer" ? "" : "none";
+  }));
+
+  // ---------- Choferes: conteo de traslados completados ----------
+  function statsChofer(c) {
+    const hoyD = new Date(); hoyD.setHours(0, 0, 0, 0);
+    const inicioSemana = new Date(hoyD); inicioSemana.setDate(hoyD.getDate() - ((hoyD.getDay() + 6) % 7));
+    const inicioMes = new Date(hoyD.getFullYear(), hoyD.getMonth(), 1);
+    let hoy = 0, semana = 0, mes = 0, total = 0;
+    cacheTraslados.forEach((t) => {
+      const retiro = t.chofer_retiro_id === c.id, entrega = t.chofer_entrega_id === c.id;
+      if (!retiro && !entrega) return;
+      const f = t.fecha_principal ? new Date(t.fecha_principal) : null;
+      if (f && f.toDateString() === hoyD.toDateString()) hoy++;
+      const hizo = (retiro && t.estado_retiro === "completado") || (entrega && t.estado_entrega === "completado");
+      if (!hizo) return;
+      total++;
+      if (f && f >= inicioSemana) semana++;
+      if (f && f >= inicioMes) mes++;
+    });
+    return { hoy, semana, mes, total };
+  }
+
+  // ---------- Liquidación de un chofer en Excel (resumen + detalle) ----------
+  async function exportarLiquidacionChofer(choferId, pagoId) {
+    const etiqueta = (e) => (e === "pagada" ? "Pagada" : e === "pendiente" ? "Pendiente de pago" : (e || "Sin estado"));
+    let pago = null;
+    if (pagoId) {
+      pago = cachePagosChofer.find((p) => p.id === pagoId) || null;
+      if (!choferId && pago) {
+        const porNombre = cacheChoferes.find((c) => pago.choferes && c.nombre === pago.choferes.nombre);
+        choferId = pago.chofer_id || (porNombre && porNombre.id) || null;
+      }
+    }
+    const chofer = cacheChoferes.find((c) => c.id === choferId);
+    if (!chofer) { alert("No se encontró al chofer de esta liquidación."); return; }
+
+    let filas = [];
+    if (pago) {
+      const { data, error } = await sb.from("pagos_chofer_items")
+        .select("etapa, monto, origen, traslados(patente, fecha_principal, talleres(nombre_taller))")
+        .eq("pago_chofer_id", pagoId);
+      if (error) { alert("No se pudo generar la liquidación: " + error.message); return; }
+      filas = (data || []).map((it) => ({
+        Fecha: it.traslados ? fmtFecha(it.traslados.fecha_principal) : "",
+        Patente: it.traslados ? (it.traslados.patente || "") : "",
+        Taller: it.traslados && it.traslados.talleres ? it.traslados.talleres.nombre_taller : "",
+        Etapa: (it.etapa === "retiro" ? "Retiro" : "Entrega") + (it.origen === "compensacion" ? " (compensación)" : ""),
+        Monto: it.monto || 0,
+        "Estado de pago": etiqueta(pago.estado),
+        "N° comprobante": pago.referencia || "",
+      }));
+    } else {
+      const { data, error } = await sb.from("traslados")
+        .select("id, patente, fecha_principal, fecha_entrega, chofer_retiro_id, chofer_entrega_id, monto_pago_chofer_retiro, monto_pago_chofer_entrega, estado_pago_chofer_retiro, estado_pago_chofer_entrega, talleres(nombre_taller)")
+        .or(`chofer_retiro_id.eq.${choferId},chofer_entrega_id.eq.${choferId}`)
+        .order("fecha_principal", { ascending: true });
+      if (error) { alert("No se pudo generar la liquidación: " + error.message); return; }
+      const refs = {};
+      const ids = (data || []).map((t) => t.id);
+      if (ids.length) {
+        const r = await sb.from("pagos_chofer_items").select("traslado_id, etapa, pagos_chofer(referencia)").in("traslado_id", ids);
+        if (!r.error) (r.data || []).forEach((it) => { if (it.pagos_chofer) refs[it.traslado_id + "|" + it.etapa] = it.pagos_chofer.referencia || ""; });
+      }
+      (data || []).forEach((t) => {
+        [["retiro", t.chofer_retiro_id, t.monto_pago_chofer_retiro, t.estado_pago_chofer_retiro, t.fecha_principal],
+         ["entrega", t.chofer_entrega_id, t.monto_pago_chofer_entrega, t.estado_pago_chofer_entrega, t.fecha_entrega || t.fecha_principal]
+        ].forEach(([etapa, cid, monto, estado, fecha]) => {
+          if (cid !== choferId || !(monto > 0)) return;
+          filas.push({
+            Fecha: fmtFecha(fecha),
+            Patente: t.patente || "",
+            Taller: t.talleres ? t.talleres.nombre_taller : "",
+            Etapa: etapa === "retiro" ? "Retiro" : "Entrega",
+            Monto: monto,
+            "Estado de pago": etiqueta(estado),
+            "N° comprobante": refs[t.id + "|" + etapa] || "",
+          });
+        });
+      });
+    }
+    if (!filas.length) { alert("Este chofer todavía no tiene traslados con pago registrado, así que no hay liquidación para descargar."); return; }
+
+    const suma = (fn) => filas.filter(fn).reduce((a, x) => a + x.Monto, 0);
+    const pagado = suma((x) => x["Estado de pago"] === "Pagada");
+    const pendiente = suma((x) => x["Estado de pago"] !== "Pagada");
+    const resumen = [
+      ["Liquidación de chofer", ""],
+      ["Chofer", chofer.nombre || ""],
+      ["RUT", chofer.rut || ""],
+      ["Teléfono", chofer.telefono || ""],
+      ["Generada el", fmtFecha(new Date())],
+      ["Alcance", pago ? "Pago del " + fmtFecha(pago.periodo_desde) + " al " + fmtFecha(pago.periodo_hasta) : "Todos los traslados del chofer"],
+      ["N° de etapas", filas.length],
+      ["Total pagado", pagado],
+      ["Total pendiente de pago", pendiente],
+      ["Total", pagado + pendiente],
+    ];
+    const hojaResumen = XLSX.utils.aoa_to_sheet(resumen);
+    hojaResumen["!cols"] = [{ wch: 26 }, { wch: 36 }];
+    const libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hojaResumen, "Resumen");
+    XLSX.utils.book_append_sheet(libro, XLSX.utils.json_to_sheet(filas), "Detalle");
+    const nombreArchivo = (chofer.nombre || "chofer").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]+/g, "_").replace(/^_|_$/g, "").toLowerCase();
+    XLSX.writeFile(libro, "liquidacion_" + nombreArchivo + "_" + new Date().toISOString().slice(0, 10) + ".xlsx");
   }
 
   (async () => {
