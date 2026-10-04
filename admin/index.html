@@ -107,7 +107,8 @@
   .badge.principal { background: var(--turquesa-claro); color: var(--turquesa-profundo); }
   .badge.borrador { background: var(--surface-2); color: var(--dim); }
   .badge.emitida { background: var(--turquesa-claro); color: var(--turquesa-profundo); }
-  .badge.pagada { background: var(--ok-claro); color: var(--ok); }
+  .badge.pagada, .badge.pagado { background: var(--ok-claro); color: var(--ok); }
+  .badge.facturado, .badge.en_curso { background: var(--turquesa-claro); color: var(--turquesa-profundo); }
   .badge.vencida { background: var(--coral-claro); color: var(--coral); }
   .badge.agendado { background: var(--surface-2); color: var(--dim); }
   .badge.asignado { background: var(--turquesa-claro); color: var(--turquesa-profundo); }
@@ -3048,7 +3049,7 @@
 
   // ---------- Liquidación de un chofer en Excel (resumen + detalle) ----------
   async function exportarLiquidacionChofer(choferId, pagoId) {
-    const etiqueta = (e) => (e === "pagada" ? "Pagada" : e === "pendiente" ? "Pendiente de pago" : (e || "Sin estado"));
+    const etiqueta = (e) => (e === "pagada" || e === "pagado" ? "Pagada" : e === "pendiente" ? "Pendiente de pago" : e === "en_curso" ? "En curso" : (e || "Sin estado"));
     let pago = null;
     if (pagoId) {
       pago = cachePagosChofer.find((p) => p.id === pagoId) || null;
@@ -3108,7 +3109,8 @@
 
     const suma = (fn) => filas.filter(fn).reduce((a, x) => a + x.Monto, 0);
     const pagado = suma((x) => x["Estado de pago"] === "Pagada");
-    const pendiente = suma((x) => x["Estado de pago"] !== "Pagada");
+    const pendiente = suma((x) => x["Estado de pago"] === "Pendiente de pago");
+    const enCurso = suma((x) => x["Estado de pago"] === "En curso");
     const resumen = [
       ["Liquidación de chofer", ""],
       ["Chofer", chofer.nombre || ""],
@@ -3119,7 +3121,8 @@
       ["N° de etapas", filas.length],
       ["Total pagado", pagado],
       ["Total pendiente de pago", pendiente],
-      ["Total", pagado + pendiente],
+      ["En curso (aún no exigible)", enCurso],
+      ["Total", pagado + pendiente + enCurso],
     ];
     const hojaResumen = XLSX.utils.aoa_to_sheet(resumen);
     hojaResumen["!cols"] = [{ wch: 26 }, { wch: 36 }];
