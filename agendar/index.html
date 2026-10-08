@@ -487,7 +487,7 @@
 
     <div class="step-block">
       <div class="step-head"><span class="step-num">4</span><svg class="step-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12l2-5a2 2 0 012-1h10a2 2 0 012 1l2 5"/><path d="M3 12v5h18v-5"/><circle cx="7.5" cy="17" r="1.5"/><circle cx="16.5" cy="17" r="1.5"/></svg><span class="step-title">Datos del vehículo</span></div>
-      <p class="step-caption">La patente es lo único obligatorio aquí — usa el botón para completar marca y modelo automáticamente.</p>
+      <p class="step-caption">La patente es lo único obligatorio aquí — usa el botón para completar marca y modelo automáticamente, o escríbelos tú si no se encuentran.</p>
       <div class="field-row three-col">
         <div class="patente-row">
           <label for="patente">Patente</label>
@@ -508,11 +508,11 @@
         </div>
         <div>
           <label for="marca">Marca</label>
-          <input type="text" id="marca" class="campo-bloqueado" readonly tabindex="-1" placeholder="Se completa con Buscar">
+          <input type="text" id="marca" placeholder="Ej: Toyota">
         </div>
         <div>
           <label for="modelo">Modelo</label>
-          <input type="text" id="modelo" class="campo-bloqueado" readonly tabindex="-1" placeholder="Se completa con Buscar">
+          <input type="text" id="modelo" placeholder="Ej: Yaris">
         </div>
       </div>
     </div>
@@ -741,6 +741,7 @@ let direccionSeleccionadaLng = null;
 
 // Datos de un traslado anterior encontrado por patente, listos para autocompletar
 let matchEncontrado = null;
+let patenteVerificada = false; // true solo si marca/modelo vienen de la consulta de patente (o de un traslado verificado) y no fueron editados a mano
 
 function fmtDateTime(iso){
   if(!iso) return null;
@@ -891,7 +892,7 @@ const buscarMatchPorPatente = debounce(async (patenteVal)=>{
   }
   const { data } = await sb
     .from('traslados')
-    .select('marca, modelo, calle, numero, comuna, depto_casa, cliente_nombre, cliente_telefono, domicilio_lat, domicilio_lng')
+    .select('marca, modelo, patente_verificada, calle, numero, comuna, depto_casa, cliente_nombre, cliente_telefono, domicilio_lat, domicilio_lng')
     .eq('taller_id', currentTallerId)
     .eq('patente', patenteVal)
     .order('created_at', { ascending:false })
@@ -917,6 +918,7 @@ document.getElementById('btnUsarMatch').addEventListener('click', ()=>{
   if(!matchEncontrado) return;
   document.getElementById('marca').value = matchEncontrado.marca || '';
   document.getElementById('modelo').value = matchEncontrado.modelo || '';
+  patenteVerificada = matchEncontrado.patente_verificada === true;
   document.getElementById('calle').value = matchEncontrado.calle || '';
   document.getElementById('numero').value = matchEncontrado.numero || '';
   document.getElementById('comuna').value = matchEncontrado.comuna || '';
@@ -930,11 +932,20 @@ document.getElementById('btnUsarMatch').addEventListener('click', ()=>{
 
 document.getElementById('btnCerrarMatch').addEventListener('click', ocultarMatchHint);
 
-// Marca y modelo son de solo lectura: se completan únicamente con el botón Buscar.
+// Si cambia la patente, se limpian marca/modelo y se pierde la verificación.
 document.getElementById('patente').addEventListener('input', ()=>{
   document.getElementById('marca').value = '';
   document.getElementById('modelo').value = '';
+  patenteVerificada = false;
   mostrarPatenteMsg('', '');
+});
+
+// Si el taller escribe o edita marca/modelo a mano, la patente queda "sin verificar" (aviso interno para el admin).
+['marca','modelo'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', ()=>{
+    patenteVerificada = false;
+    mostrarPatenteMsg('Marca/modelo ingresados manualmente.', '');
+  });
 });
 
 // ---------- Consulta de patente vía Boostr (Edge Function consultar-patente) ----------
@@ -964,9 +975,11 @@ document.getElementById('btnBuscarPatente').addEventListener('click', async ()=>
     const info = data.data;
     if(info.marca) document.getElementById('marca').value = info.marca;
     if(info.modelo) document.getElementById('modelo').value = info.modelo;
+    patenteVerificada = !!(info.marca || info.modelo);
     mostrarPatenteMsg('✓ Datos encontrados' + (info.anio ? ' (' + info.anio + ')' : ''), 'ok');
   }catch(err){
-    mostrarPatenteMsg(err.message || 'No se pudo consultar la patente. Complétalo manualmente.', 'err');
+    patenteVerificada = false;
+    mostrarPatenteMsg((err.message || 'No se pudo consultar la patente.') + ' Puedes escribir marca y modelo a mano.', 'err');
   }finally{
     btn.disabled = false;
     btnText.textContent = 'Buscar';
@@ -1066,6 +1079,7 @@ function startEdit(i){
   document.getElementById('patente').value = t.patente;
   document.getElementById('marca').value = t.marca || '';
   document.getElementById('modelo').value = t.modelo || '';
+  patenteVerificada = t.patenteVerificada === true;
   document.getElementById('calle').value = t.calle;
   document.getElementById('numero').value = t.numero;
   document.getElementById('comuna').value = t.comuna;
@@ -1092,6 +1106,7 @@ function cancelEdit(){
   document.getElementById('patente').value = '';
   document.getElementById('marca').value = '';
   document.getElementById('modelo').value = '';
+  patenteVerificada = false;
   document.getElementById('calle').value = '';
   document.getElementById('numero').value = '';
   document.getElementById('comuna').value = '';
@@ -1164,7 +1179,7 @@ document.getElementById('addBtn').addEventListener('click', ()=>{
     fechaPrincipal: fechaPrincipalValue,
     entregaPendiente: entregaPendienteFlag,
     fechaEntrega: document.getElementById('fechaEntrega').value || '',
-    patente, marca, modelo, calle, numero, comuna, deptoCasa,
+    patente, marca, modelo, patenteVerificada: !!(patenteVerificada && (marca || modelo)), calle, numero, comuna, deptoCasa,
     clienteNombre, clienteTelefono, notas,
     domicilioLat: direccionSeleccionadaLat,
     domicilioLng: direccionSeleccionadaLng
@@ -1200,6 +1215,7 @@ document.getElementById('addBtn').addEventListener('click', ()=>{
   document.getElementById('patente').value = '';
   document.getElementById('marca').value = '';
   document.getElementById('modelo').value = '';
+  patenteVerificada = false;
   document.getElementById('calle').value = '';
   document.getElementById('numero').value = '';
   document.getElementById('comuna').value = '';
@@ -1239,6 +1255,7 @@ document.getElementById('confirmAllBtn').addEventListener('click', async ()=>{
     patente: t.patente,
     marca: t.marca || null,
     modelo: t.modelo || null,
+    patente_verificada: t.patenteVerificada === true,
     calle: t.calle,
     numero: t.numero,
     comuna: t.comuna,
