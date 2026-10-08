@@ -167,6 +167,87 @@
   .tendencia.down{color:var(--coral);background:var(--coral-dim);}
   .tendencia.flat{color:var(--ink-dim);background:var(--surface-2);}
   .compare-note{font-size:11px;color:var(--ink-dim);margin-top:12px;}
+  /* ---- Inicio (portal_resumen) ---- */
+  #vistaResumen{display:none;}
+  .in-hero{background:linear-gradient(135deg,var(--teal-deep),var(--teal));color:#fff;border-radius:16px;padding:24px;display:grid;gap:18px;margin-bottom:20px;}
+  @media (min-width:860px){.in-hero{grid-template-columns:1.25fr 1fr;align-items:end;}}
+  .in-k{font-size:13px;opacity:.9;}
+  .in-big{font-family:'Space Grotesk';font-weight:700;font-size:84px;line-height:.95;letter-spacing:-.03em;margin:6px 0 12px;}
+  .in-big.z{opacity:.4;}
+  .in-chips{display:flex;gap:8px;flex-wrap:wrap;font-size:12.5px;}
+  .in-chips span{background:rgba(255,255,255,.16);border-radius:999px;padding:3px 11px;display:inline-flex;align-items:center;gap:6px;}
+  .in-chips span::before{content:"";width:8px;height:8px;border-radius:50%;background:#fff;}
+  .in-chips .ok::before,.in-mk.ok{background:#6EE7A8;}.in-chips .ruta::before,.in-mk.ruta{background:#F2B84B;}.in-chips .prog::before,.in-mk.prog{background:#C5D3D0;}
+  .in-tl{margin-top:16px;max-width:520px;}
+  .in-tlr{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+  .in-tn{width:52px;font-size:11.5px;opacity:.85;flex-shrink:0;}
+  .in-trk{position:relative;flex:1;height:20px;border-radius:99px;background:rgba(255,255,255,.16);}
+  .in-mk{position:absolute;top:3px;width:14px;height:14px;margin-left:-7px;border-radius:50%;border:2px solid #00695E;}
+  .in-nw{position:absolute;top:-3px;bottom:-3px;width:2px;background:#fff;}
+  .in-ax{display:flex;justify-content:space-between;font-size:10.5px;opacity:.75;}
+  .in-tl.multi .in-ax{margin-left:60px;}
+  .in-side{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .in-mini{background:rgba(255,255,255,.14);border-radius:12px;padding:10px 12px;font-size:12px;line-height:1.3;}
+  .in-mini b{display:block;font-family:'Space Grotesk';font-size:24px;line-height:1.15;}
+  .in-delta{display:inline-block;background:#F2B84B;color:#16302C;font-weight:700;border-radius:99px;padding:0 8px;font-size:11px;margin-top:3px;}
+  .in-delta.neg{background:#fff;color:var(--coral);}
+  .in-grid{display:grid;gap:20px;}
+  @media (min-width:960px){.in-grid{grid-template-columns:1.15fr 1fr;align-items:start;}}
+  .in-col{display:grid;gap:20px;min-width:0;}
+  .in-hint{margin:0 0 12px;font-size:12px;color:var(--ink-dim);}
+  .in-hd{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px;}
+  .in-hd h2{font-size:15px;}
+  .in-lnk{border:0;background:none;color:var(--teal-deep);font-size:12px;font-weight:600;text-decoration:underline;cursor:pointer;padding:2px;font-family:'Inter';}
+  .in-tr{border-top:1px solid var(--line);}.in-tr:first-child{border-top:0;}
+  .in-tr summary{list-style:none;display:grid;grid-template-columns:48px 1fr auto;gap:2px 10px;align-items:center;padding:10px 0;cursor:pointer;}
+  .in-tr summary::-webkit-details-marker{display:none;}
+  .in-hr{font-family:'Space Grotesk';font-weight:700;font-size:14px;}
+  .in-vh{font-size:13px;}.in-vh small{display:block;color:var(--ink-dim);font-size:11px;}
+  .in-pill{font-size:11px;font-weight:600;border-radius:99px;padding:3px 10px;white-space:nowrap;}
+  .in-pill.ok{background:var(--ok-dim);color:var(--ok);}.in-pill.ruta{background:#FDF0D3;color:#8A5A00;}.in-pill.prog{background:var(--surface-2);color:var(--ink-dim);}
+  .in-dt{padding:0 0 12px 58px;font-size:12px;color:var(--ink-dim);}
+  .in-vacio{background:var(--teal-dim);border-radius:12px;padding:14px;font-size:13px;color:var(--teal-deep);}
+  .in-btn{display:inline-block;margin-top:10px;background:var(--teal);color:#fff;border:0;border-radius:10px;padding:10px 16px;font-weight:600;font-size:13px;text-decoration:none;cursor:pointer;font-family:'Space Grotesk';}
+  .in-btn.ghost{background:var(--bg);color:var(--ink);border:1px solid var(--line);}
+  .in-at{display:flex;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:13px;}.in-at:first-of-type{border-top:0;}
+  .in-dot{flex:none;width:10px;height:10px;border-radius:50%;background:#F2B84B;margin-top:5px;}.in-dot.red{background:var(--coral);}
+  .in-chart{display:flex;align-items:flex-end;gap:10px;height:130px;padding-top:22px;}
+  .in-chart div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;font-size:11.5px;color:var(--ink-dim);gap:4px;}
+  .in-chart i{display:block;width:100%;border-radius:7px 7px 0 0;background:var(--surface-2);min-height:4px;position:relative;}
+  .in-chart i b{position:absolute;top:-18px;left:0;right:0;text-align:center;font-size:11.5px;color:var(--ink);}
+  .in-chart .hl i{background:var(--teal);}.in-chart .hl2 i{background:#F2B84B;}
+  .in-chart .gh i{background:transparent;border:2px dashed var(--line);border-bottom:0;}
+  .in-st .on{color:#F2B84B;}.in-st .off{color:#C9D4D1;}
+  .in-sh{width:1em;height:1em;vertical-align:-.12em;margin-right:4px;}
+  .in-nv{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+  .in-nv .num{font-family:'Space Grotesk';font-size:38px;font-weight:700;}.in-nv span{color:var(--ink-dim);font-size:13px;}
+  .in-scale{position:relative;height:11px;background:var(--surface-2);border-radius:99px;margin:12px 0 6px;}
+  .in-scale .f{position:absolute;inset:0 auto 0 0;background:var(--teal);border-radius:99px;}
+  .in-scale .t{position:absolute;top:-4px;width:2px;height:19px;background:var(--ink);opacity:.35;}
+  .in-sl{position:relative;height:28px;font-size:10.5px;color:var(--ink-dim);}
+  .in-sl span{position:absolute;transform:translateX(-50%);text-align:center;line-height:1.1;}
+  .in-med{padding:9px 0;border-top:1px solid var(--line);font-size:13px;}
+  .in-med>div:first-child{display:flex;justify-content:space-between;gap:8px;font-weight:600;}
+  .in-med em{font-style:normal;font-weight:500;color:var(--ink-dim);}
+  .in-med p{margin:2px 0 0;font-size:12px;color:var(--ink-dim);}
+  .in-bar{height:7px;background:var(--surface-2);border-radius:99px;margin:6px 0 2px;overflow:hidden;}.in-bar i{display:block;height:100%;background:var(--teal);}
+  .in-tip{background:var(--teal-dim);border-radius:10px;padding:10px 12px;font-size:12.5px;margin-top:10px;color:var(--ink);}
+  .in-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:13px;}.in-row:first-of-type{border-top:0;}
+  .in-row.me{background:var(--teal-dim);border-radius:10px;padding-left:8px;padding-right:8px;font-weight:700;}
+  .in-chip{font-size:11.5px;font-weight:600;border-radius:99px;padding:3px 10px;background:var(--teal-dim);color:var(--teal-deep);white-space:nowrap;}
+  .in-lr{display:grid;grid-template-columns:52px 1fr 80px 70px;gap:6px;align-items:center;font-size:13px;padding:7px 8px;border-radius:10px;}
+  .in-lr.me{background:var(--teal-dim);font-weight:700;border:1px solid var(--teal);}
+  .in-lr .p{color:var(--ink-dim);font-weight:500;}.in-lr b{text-align:right;}.in-lr .mv{font-size:11px;color:var(--teal-deep);text-align:right;}
+  .in-gap{text-align:center;color:var(--ink-dim);line-height:1;}
+  .in-acc{display:flex;gap:14px;align-items:center;}
+  .in-acc svg{width:44px;height:44px;flex-shrink:0;}
+  .in-err{background:var(--coral-dim);color:var(--coral);border-radius:12px;padding:14px;font-size:13px;margin-bottom:16px;}
+  #inDlg{border:0;border-radius:18px;padding:14px;max-width:min(440px,94vw);background:var(--bg);}
+  #inDlg::backdrop{background:rgba(0,0,0,.55);}
+  #inDlg canvas{width:100%;height:auto;border-radius:12px;display:block;}
+  .in-dact{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:10px;}
+  .in-dact button{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:9px 14px;font-size:13px;cursor:pointer;font-family:'Inter';}
+  .in-dact button.main{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:600;}
 </style>
 </head>
 <body>
@@ -237,10 +318,32 @@
   </div>
 
   <main>
-    <div class="view-tabs" id="viewTabs" style="display:none;">
-      <button class="view-tab active" id="tabResumen">Resumen</button>
+    <div class="view-tabs" id="viewTabs" style="display:flex;">
+      <button class="view-tab active" id="tabInicio">Inicio</button>
+      <button class="view-tab" id="tabResumen">Facturación</button>
       <button class="view-tab" id="tabComparar">Comparar locales</button>
     </div>
+
+    <!-- ============ VISTA: INICIO ============ -->
+    <div id="vistaInicio">
+      <div id="inHero"></div>
+      <div class="in-grid">
+        <div class="in-col">
+          <div class="panel"><div class="in-hd"><h2>Hoy</h2></div><p class="in-hint">Toca un traslado para ver el detalle.</p><div id="inHoy"></div></div>
+          <div class="panel"><div class="in-hd"><h2>Requiere tu atención</h2></div><p class="in-hint" id="inAtenH"></p><div id="inAten"></div></div>
+          <div class="panel" id="inTarjeta"></div>
+        </div>
+        <div class="in-col">
+          <div class="panel"><div class="in-hd"><h2>Traslados exitosos por mes</h2></div><p class="in-hint" id="inMesesH"></p><div class="in-chart" id="inMeses"></div></div>
+          <div class="panel"><div class="in-hd"><h2>Qué días usas más MoviKar</h2></div><p class="in-hint" id="inDiasH"></p><div class="in-chart" id="inDias"></div></div>
+          <div class="panel" id="inNivel"></div>
+          <div class="panel" id="inLiga"></div>
+        </div>
+      </div>
+    </div>
+
+    <dialog id="inDlg"><canvas id="inCanvas" width="1080" height="1350"></canvas>
+      <div class="in-dact"><button class="main" id="inShare">Compartir</button><button id="inDown">Descargar imagen</button><button id="inCerrar">Cerrar</button></div></dialog>
 
     <!-- ============ VISTA: RESUMEN ============ -->
     <div id="vistaResumen">
@@ -452,12 +555,13 @@ async function iniciarPortal(){
 
   const mostrarSwitcher = contexto.rol !== 'jefe_taller' && misTalleres.length > 1;
   $('tallerSwitcherWrap').style.display = mostrarSwitcher ? 'block' : 'none';
-  $('viewTabs').style.display = mostrarSwitcher ? 'flex' : 'none';
+  $('viewTabs').style.display = 'flex'; $('tabComparar').style.display = mostrarSwitcher ? '' : 'none';
 
   renderSwitcherList();
   actualizarContextoVisual();
   poblarFiltroLocal();
   await cargarTodo();
+  mostrarVista('inicio');
 }
 
 function actualizarContextoVisual(){
@@ -503,18 +607,18 @@ document.addEventListener('click', (e)=>{
   if(!$('tallerSwitcherWrap').contains(e.target)) $('switcherPanel').classList.remove('open');
 });
 $('switcherCompareLink').addEventListener('click', ()=>{ $('switcherPanel').classList.remove('open'); mostrarVista('comparar'); });
+$('tabInicio').addEventListener('click', ()=> mostrarVista('inicio'));
 $('tabResumen').addEventListener('click', ()=> mostrarVista('resumen'));
 $('tabComparar').addEventListener('click', ()=> mostrarVista('comparar'));
 
 function mostrarVista(v){
-  if(v === 'comparar'){
-    $('vistaResumen').style.display = 'none'; $('vistaComparar').style.display = 'block';
-    $('tabResumen').classList.remove('active'); $('tabComparar').classList.add('active');
-    cargarComparativa();
-  } else {
-    $('vistaResumen').style.display = 'block'; $('vistaComparar').style.display = 'none';
-    $('tabComparar').classList.remove('active'); $('tabResumen').classList.add('active');
-  }
+  $('vistaInicio').style.display = v === 'inicio' ? 'block' : 'none';
+  $('vistaResumen').style.display = v === 'resumen' ? 'block' : 'none';
+  $('vistaComparar').style.display = v === 'comparar' ? 'block' : 'none';
+  $('tabInicio').classList.toggle('active', v === 'inicio');
+  $('tabResumen').classList.toggle('active', v === 'resumen');
+  $('tabComparar').classList.toggle('active', v === 'comparar');
+  if(v === 'comparar') cargarComparativa();
 }
 
 function poblarFiltroLocal(){
@@ -532,7 +636,7 @@ function fmtFechaHora(iso){ if(!iso) return '—'; return new Date(iso).toLocale
 
 // ---------- Carga principal (KPIs + tabla + facturación + gráfico) ----------
 async function cargarTodo(){
-  await Promise.all([cargarKpisYTabla(), cargarFacturacion()]);
+  await Promise.all([cargarKpisYTabla(), cargarFacturacion(), cargarInicio()]);
 }
 
 async function cargarKpisYTabla(){
@@ -732,6 +836,208 @@ function rangosPeriodo(periodo){
 
 $('periodoCompararSelect').addEventListener('change', cargarComparativa);
 $('periodoSelect').addEventListener('change', cargarTodo);
+
+// ======================= INICIO (datos de portal_resumen) =======================
+const NSTAR = { 'Primeros pasos':1, 'En ruta':2, 'Integrado':3, 'Estratégico':4 };
+const LCOL = { Bronce:'#B87333', Plata:'#A9B6C3', Oro:'#E2B93B' };
+const DIAS_N = ['lunes','martes','miércoles','jueves','viernes'];
+const DIAS_C = ['Lun','Mar','Mié','Jue','Vie'];
+let inData = null, inTs = 0, inCard = null;
+
+const esc = (s)=> String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sumArr = (arrs, L)=> Array.from({length:L}, (_,i)=> arrs.reduce((a,x)=> a + ((x||[])[i]||0), 0));
+const starsH = (n)=> `<span class="in-st"><span class="on">${'★'.repeat(n)}</span><span class="off">${'★'.repeat(4-n)}</span></span>`;
+const shieldH = (l)=> `<svg class="in-sh" viewBox="0 0 24 24"><path fill="${LCOL[l]||'#999'}" d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/></svg>`;
+const TROFEO_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#F2B84B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h10v5a5 5 0 0 1-10 0z" fill="#F2B84B"/><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3M12 13v4M8 21h8"/></svg>';
+const mesLargo = ()=> new Date().toLocaleDateString('es-CL',{month:'long',year:'numeric'});
+const cap = (s)=> s.charAt(0).toUpperCase() + s.slice(1);
+
+async function cargarInicio(forzar){
+  if(!forzar && inData && Date.now() - inTs < 45000){ renderInicio(); return; }
+  const { data, error } = await sb.rpc('portal_resumen');
+  if(error || !data){ $('inHero').innerHTML = '<div class="in-err">No pudimos cargar tu resumen en este momento. Recarga la página en unos minutos.</div>'; return; }
+  inData = data; inTs = Date.now(); renderInicio();
+}
+
+function inCtx(){
+  if(!inData) return null;
+  const ids = new Set(misTalleres.map(t => t.id));
+  const g = (inData.grupos || []).find(x => (x.talleres || []).some(t => ids.has(t.id)));
+  if(!g) return null;
+  const ts = g.talleres.filter(t => ids.has(t.id));
+  let sel = tallerSeleccionado ? ts.find(t => t.id === tallerSeleccionado) : null;
+  if(!sel && ts.length === 1) sel = ts[0];
+  const total = g.talleres.reduce((a,t)=> a + t.n, 0);
+  return { g, cfg: inData.cfg, ts, sel, all: !sel, jefe: g.rol === 'jefe', multi: g.talleres.length > 1, total };
+}
+
+function trofeo(m, grupo){
+  const last = m[5], prevMax = Math.max(0, ...m.slice(0,5));
+  if(!last) return null;
+  if(!prevMax) return ['Primer mes', grupo ? 'El primer mes de tu grupo en MoviKar' : 'Tu primer mes en MoviKar'];
+  if(last > prevMax) return ['Mes récord', grupo ? 'Tu mejor mes sumando todos tus talleres' : 'Tu mejor mes desde que usas MoviKar'];
+  let up = 0; for(let i = 5; i > 0 && m[i] > m[i-1]; i--) up++;
+  return up >= 3 ? ['Racha de alza', up + ' meses seguidos creciendo'] : null;
+}
+
+function pctDelta(n, prev){ if(!prev) return ''; const d = Math.round((n/prev - 1)*100); return `<span class="in-delta${d<0?' neg':''}">${d>0?'+':''}${d} % vs mes anterior</span>`; }
+function hh(h){ const [a,b] = h.split(':'); return Math.min(100, Math.max(0, (parseInt(a) + parseInt(b)/60 - 8)/10*100)); }
+
+function renderInicio(){
+  const c = inCtx();
+  if(!c){ $('inHero').innerHTML = '<div class="in-err">Aún no hay locales aprobados para mostrar en tu portal.</div>'; ['inHoy','inAten','inTarjeta','inMeses','inDias','inNivel','inLiga'].forEach(i => $(i).innerHTML = ''); return; }
+  const { g, cfg, ts, sel, all, jefe, multi, total } = c;
+  const ks = all ? ts : [sel];
+  const hoy = ks.flatMap(t => (t.hoy || []).map(h => ({...h, tn: t.nombre}))).sort((a,b)=> a.hora < b.hora ? -1 : 1);
+  const cnt = { ok:0, ruta:0, prog:0 }; hoy.forEach(h => cnt[h.grupo]++);
+  const n = ks.reduce((a,t)=> a + t.n, 0), prev = ks.reduce((a,t)=> a + t.prev_n, 0), horas = ks.reduce((a,t)=> a + t.horas, 0);
+  const d = new Date(), ahora = d.getHours() + d.getMinutes()/60, ahoraPct = (ahora - 8)/10*100;
+  const tl = `<div class="in-tl${ks.length>1?' multi':''}">` + ks.map(t => `<div class="in-tlr">${ks.length>1?`<span class="in-tn">${esc(t.nombre.replace(/^.*?\s(\S+)$/,'$1'))}</span>`:''}<div class="in-trk">${(t.hoy||[]).map(h=>`<i class="in-mk ${h.grupo}" style="left:${hh(h.hora)}%" title="${esc(h.hora)}"></i>`).join('')}${ahoraPct>=0&&ahoraPct<=100?`<u class="in-nw" style="left:${ahoraPct}%"></u>`:''}</div></div>`).join('') + '<div class="in-ax"><span>8</span><span>10</span><span>12</span><span>14</span><span>16</span><span>18</span></div></div>';
+  const minis = [`<div class="in-mini"><b>${n}</b>exitosos en ${esc(new Date().toLocaleDateString('es-CL',{month:'long'}))}<br>${pctDelta(n, prev)}</div>`, `<div class="in-mini"><b>${horas} h</b>de traslado este mes</div>`];
+  if(sel) minis.push(`<div class="in-mini"><b>${starsH(NSTAR[sel.nivel]||1)}</b>Nivel ${esc(sel.nivel)}${sel.n >= cfg.piso ? ' · '+sel.pts+' de 100' : ''}</div>`);
+  if(jefe && (all || !multi) && g.liga) minis.push(`<div class="in-mini"><b>${shieldH(g.liga.nombre)}${g.liga.activa ? 'N.º '+g.liga.posicion : g.liga.nombre}</b>${g.liga.activa ? 'Liga '+esc(g.liga.nombre)+', de '+g.liga.entidades+' grupos' : 'Liga '+esc(g.liga.nombre)+' · ranking desde '+cfg.min_liga+' grupos'}</div>`);
+  if(all && multi) minis.push(`<div class="in-mini"><b>${ts.length}</b>locales en tu grupo</div>`);
+  if(sel && jefe && multi && total) minis.push(`<div class="in-mini"><b>${Math.round(sel.n/total*100)} %</b>de los traslados de tu grupo</div>`);
+  $('inHero').innerHTML = `<div class="in-hero"><div><div class="in-k">Traslados de hoy · ${all ? (ts.length>1 ? 'tus '+ts.length+' locales' : esc(ts[0].nombre)) : esc(sel.nombre)}</div><div class="in-big${hoy.length?'':' z'}">${hoy.length}</div><div class="in-chips">${hoy.length ? `<span class="ok">${cnt.ok} completados</span><span class="ruta">${cnt.ruta} en camino</span><span class="prog">${cnt.prog} programados</span>` : '<span class="prog">Sin traslados hoy</span>'}</div>${tl}</div><div class="in-side">${minis.join('')}</div></div>`;
+
+  $('inHoy').innerHTML = hoy.length ? hoy.map(h => {
+    const est = (typeof ESTADO_LABEL !== 'undefined' && ESTADO_LABEL[h.estado]) || (h.grupo==='ok'?'Completado':h.grupo==='ruta'?'En camino':'Programado');
+    return `<details class="in-tr"><summary><span class="in-hr">${esc(h.hora)}</span><span class="in-vh">${h.etapa==='entrega'?'Entrega':'Retiro'} · ${esc([h.marca,h.modelo].filter(Boolean).join(' '))}<small>${esc(h.patente||'')}${all&&ts.length>1?' · '+esc(h.tn):''}</small></span><span class="in-pill ${h.grupo}">${esc(est)}</span></summary><div class="in-dt">${esc(h.direccion||'')}<br>${h.chofer_asignado?'Chofer asignado':'Chofer por asignar'}</div></details>`;
+  }).join('') : '<div class="in-vacio">Hoy no tienes traslados. Cuando agendes uno, aparecerá aquí con su estado en vivo.<br><a class="in-btn" href="/agendar">Agendar un traslado</a></div>';
+
+  // Atención: facturas (solo jefatura)
+  const at = [];
+  if(jefe && g.facturas){ (g.facturas.pendientes||[]).forEach(f => at.push([f.estado==='vencida'?'red':'', `Factura ${esc(f.folio||'')} ${f.estado==='vencida'?'vencida el':'vence el'} ${f.vence ? new Date(f.vence+'T12:00:00').toLocaleDateString('es-CL',{day:'numeric',month:'long'}) : '—'}`])); }
+  $('inAtenH').textContent = jefe ? 'Facturas del grupo. Solo las ve la jefatura.' : 'Las facturas las ve la jefatura de tu empresa.';
+  $('inAten').innerHTML = at.length ? at.map(a => `<div class="in-at"><span class="in-dot ${a[0]}"></span><span>${a[1]}</span></div>`).join('') : '<div class="in-vacio">Todo al día. No tienes pendientes.</div>';
+
+  // Gráficos
+  const me = sumArr(ks.map(t=>t.meses), 6), di = sumArr(ks.map(t=>t.dow), 5);
+  const first = me.findIndex(x => x > 0);
+  const lblM = Array.from({length:6}, (_,i)=> new Date(d.getFullYear(), d.getMonth()-5+i, 1).toLocaleDateString('es-CL',{month:'short'}).replace('.',''));
+  const barras = (v, l, cls, ghost)=> { const mx = Math.max(0, ...v.filter(x => x != null)); return v.map((x,i)=> (ghost(i) || !mx) ? `<div class="gh"><i style="height:16%"></i>${l[i]}</div>` : `<div class="${x===mx?cls:''}"><i style="height:${Math.max(4,Math.round(x/mx*100))}%"><b>${x}</b></i>${l[i]}</div>`).join(''); };
+  $('inMeses').innerHTML = barras(me, lblM, 'hl', i => first < 0 || i < first);
+  $('inMesesH').textContent = first >= 0 ? 'Seis meses, el actual destacado si es tu mejor. Cada mes se compara con el anterior.' : 'Aquí verás tu evolución mes a mes desde tu primer traslado.';
+  $('inDias').innerHTML = barras(di, DIAS_C, 'hl2', () => false);
+  const sd = di.reduce((a,x)=>a+x,0);
+  $('inDiasH').textContent = sd ? `Tu día de mayor uso en ${new Date().toLocaleDateString('es-CL',{month:'long'})}: ${DIAS_N[di.indexOf(Math.max(...di))]}.` : 'Cuando tengas traslados verás qué días usas más MoviKar.';
+
+  // Nivel de uso (por local)
+  const HB = '<button class="in-lnk" data-info="1">¿Cómo funciona?</button>';
+  if(all && multi){
+    $('inNivel').innerHTML = `<div class="in-hd"><h2>Nivel de uso por local</h2>${HB}</div><p class="in-hint">Cada local tiene su propio nivel; el grupo no tiene uno. Toca un local para ver su detalle.</p>` +
+      [...ts].sort((a,b)=> b.pts - a.pts).map(t => `<div class="in-row"><button class="in-lnk" data-go="${t.id}">${esc(t.nombre)}</button><span class="in-chip">${starsH(NSTAR[t.nivel]||1)} ${esc(t.nivel)}${t.n>=cfg.piso?' · '+t.pts:''}</span></div>`).join('');
+  } else {
+    const t = sel || ts[0];
+    if(t.n < cfg.piso){
+      $('inNivel').innerHTML = `<div class="in-hd"><h2>Nivel de uso</h2>${HB}</div><p class="in-hint">Mide cómo usa MoviKar este local. Depende de sus hábitos, no de su tamaño.</p><div class="in-nv"><span class="num">—</span><span>${starsH(1)} Primeros pasos</span></div><div class="in-bar" style="margin-top:10px"><i style="width:${Math.round(t.n/cfg.piso*100)}%"></i></div><p class="in-hint"><b>${t.n} de ${cfg.piso} traslados</b> para activar tu nivel este mes.</p>`;
+    } else {
+      const avg = t.prev_n > 0 ? (t.pts_mes + t.pts_prev)/2 : t.pts_mes;
+      const nx = cfg.cortes.find(x => x > avg);
+      let tip = `Estás en Estratégico (${cfg.cortes[2]} puntos o más). Para mantenerlo, sostén el puntaje: el nivel usa el promedio de 2 meses.`;
+      if(nx){ const need = t.prev_n > 0 ? (nx-avg)*2 : (nx-avg), o = [], nom = ['En ruta','Integrado','Estratégico'][cfg.cortes.indexOf(nx)];
+        if(t.dias_activos < t.meta_dias){ const dd = Math.ceil(need/(50/t.meta_dias)); o.push(dd + (dd===1?' día activo más':' días activos más')); }
+        if(t.pct_anticipacion < cfg.ant_completo_pct) o.push(`subir tu anticipación de ${t.pct_anticipacion} % a ${Math.min(100, Math.ceil(t.pct_anticipacion + need*cfg.ant_completo_pct/50))} %`);
+        tip = `Te faltan ${Math.ceil(nx-avg)} puntos para ${nom}: ${o.join(' o ') || 'sostén tu ritmo'}.`; }
+      const cs = [0, ...cfg.cortes, 100], mid = cs.slice(0,-1).map((v,i)=> (v + cs[i+1])/2);
+      $('inNivel').innerHTML = `<div class="in-hd"><h2>Nivel de uso</h2>${HB}</div><p class="in-hint">Mide cómo usa MoviKar este local. ${t.prev_n>0?`Promedio de 2 meses (este mes ${t.pts_mes}, anterior ${t.pts_prev}).`:'Se calcula con el mes en curso.'}</p>` +
+        `<div class="in-nv"><span class="num">${t.pts}</span><span>${starsH(NSTAR[t.nivel]||1)} ${esc(t.nivel)} · de 100</span></div><div class="in-scale"><div class="f" style="width:${t.pts}%"></div>${cfg.cortes.map(x=>`<div class="t" style="left:${x}%"></div>`).join('')}</div><div class="in-sl">${['Primeros pasos','En ruta','Integrado','Estratégico'].map((l,i)=>`<span style="left:${mid[i]}%">${l}</span>`).join('')}</div>` +
+        `<div class="in-med"><div><span>Constancia</span><em>${t.pts_constancia} de 50 pts</em></div><div class="in-bar"><i style="width:${t.pts_constancia*2}%"></i></div><p>${t.dias_activos} de ${t.meta_dias} días activos · meta según tu volumen</p></div>` +
+        `<div class="in-med"><div><span>Anticipación</span><em>${t.pts_anticipacion} de 50 pts</em></div><div class="in-bar"><i style="width:${t.pts_anticipacion*2}%"></i></div><p>${t.pct_anticipacion} % de tus traslados con ${cfg.ant_horas} h o más · completo desde ${cfg.ant_completo_pct} %</p></div><div class="in-tip">${tip}</div>`;
+    }
+  }
+
+  // Liga (grupo) o aporte del local al grupo
+  const L = g.liga, panel = $('inLiga');
+  panel.style.display = jefe ? '' : 'none';
+  if(jefe && L && (all || !multi)){
+    let cuerpo = '';
+    if(L.activa){
+      const v = L.valores, p = L.posicion, idx = [...new Set([1,p-1,p,p+1])].filter(i => i>=1 && i<=v.length).sort((a,b)=>a-b); let last = 0;
+      cuerpo = '<div class="in-lr" style="font-size:11px;color:var(--ink-dim)"><span></span><span></span><span style="text-align:right">Traslados</span><span></span></div>' + idx.map(i => { const gap = last && i-last>1 ? '<div class="in-gap">···</div>' : ''; last = i; return gap + `<div class="in-lr${i===p?' me':''}"><span class="p">N.º ${i}</span><span>${i===p?'Tu grupo':'Entidad'}</span><b>${v[i-1]}</b><span class="mv"></span></div>`; }).join('');
+      if(p > 1) cuerpo += `<div class="in-tip">Te faltan <b>${v[p-2]-v[p-1]+1} traslados</b> para pasar al N.º ${p-1}.</div>`;
+      if(p < v.length) cuerpo += `<div class="in-tip">La entidad de abajo viene a <b>${v[p-1]-v[p]} traslados</b> de alcanzarte.</div>`;
+    } else {
+      cuerpo = `<div class="in-tip">El ranking se activa con ${cfg.min_liga} grupos en tu liga. Mientras, compites contra tu propio mes anterior.</div>` + (L.siguiente ? `<div class="in-bar" style="margin-top:12px"><i style="width:${L.siguiente.pct}%"></i></div>` : '') + (L.total ? '' : '<div class="in-tip">Tu primer traslado completado te ubica en la liga Bronce.</div>');
+    }
+    if(L.siguiente && L.total) cuerpo += `<div class="in-tip">Te faltan <b>${L.siguiente.faltan} traslados</b> este mes para subir a la liga ${esc(L.siguiente.nombre)}.</div>`;
+    const ult = (g.cierres||[])[0]; if(ult && ult.entidades >= cfg.min_liga && ult.posicion) cuerpo += `<p class="in-hint" style="margin-top:10px">Último cierre: N.º ${ult.posicion} de ${ult.entidades} en liga ${esc(ult.liga)}${ult.posicion<=3?' · podio':''}.</p>`;
+    panel.innerHTML = `<div class="in-hd"><h2>${shieldH(L.nombre)} Liga ${esc(L.nombre)}</h2>${HB}</div><p class="in-hint">Mide cuánto mueve tu grupo, sumando todos tus locales. Compites con otras entidades; todas aparecen sin nombre.</p>${cuerpo}`;
+  } else if(jefe && sel && multi){
+    panel.innerHTML = `<div class="in-hd"><h2>Tu local en el grupo</h2><button class="in-lnk" data-go="todos">Ver la liga del grupo</button></div><p class="in-hint">La liga es del grupo entero; este local aporta a ella.</p>` +
+      (total ? `<b style="font-size:13px">${sel.n} de ${total} traslados del grupo (${Math.round(sel.n/total*100)} %)</b><div class="in-bar"><i style="width:${Math.round(sel.n/total*100)}%"></i></div>` : '<b style="font-size:13px">Aún sin traslados en el grupo</b>') +
+      [...g.talleres].sort((a,b)=> b.n - a.n).map(t => `<div class="in-row${t.id===sel.id?' me':''}"><span>${esc(t.nombre)}</span><span>${t.n} traslados · ${starsH(NSTAR[t.nivel]||1)}</span></div>`).join('');
+  } else panel.innerHTML = '';
+
+  // Tarjeta del mes (accesorio compartible)
+  const mm = sumArr(ks.map(t=>t.meses), 6), tro = trofeo(mm, all && multi);
+  const falta = Math.max(0, ...mm) - mm[5];
+  const cajas = [];
+  if(sel){ cajas.push({ stars: NSTAR[sel.nivel]||1, small: 'nivel ' + sel.nivel });
+    if(jefe && multi && total) cajas.push({ big: Math.round(sel.n/total*100)+' %', small: 'de los traslados del grupo' });
+    else if(jefe && g.liga) cajas.push({ shield: g.liga.nombre, big: g.liga.activa ? 'N.º '+g.liga.posicion : g.liga.nombre, small: g.liga.activa ? 'liga '+g.liga.nombre : 'liga' });
+    else cajas.push({ big: String(sel.dias_activos), small: 'días con traslados' }); }
+  else { if(jefe && g.liga) cajas.push({ shield: g.liga.nombre, big: g.liga.activa ? 'N.º '+g.liga.posicion : g.liga.nombre, small: g.liga.activa ? 'liga '+g.liga.nombre : 'liga' });
+    cajas.push({ big: String(ts.length), small: 'locales en el grupo' }); }
+  cajas.push({ big: horas + ' h', small: 'de traslado' });
+  const delta = prev ? Math.round((n/prev-1)*100) : null;
+  inCard = { marca: all ? (multi ? g.nombre : ts[0].nombre) : sel.nombre, mes: cap(mesLargo()) + ' (en curso)', n, delta, tro, falta, cajas, bloqueado: n === 0 };
+  $('inTarjeta').innerHTML = `<div class="in-hd"><h2>Tu tarjeta de ${esc(new Date().toLocaleDateString('es-CL',{month:'long'}))}</h2></div><p class="in-hint">Un recuerdo para compartir con tu equipo y tus colegas.</p><div class="in-acc">${TROFEO_SVG}<div style="font-size:13px">${n === 0 ? 'Se desbloquea con tu primer traslado completado del mes.' : esc(tro ? tro[0] + ': ' + tro[1] : 'Sigue sumando traslados para ganar tu primer trofeo.')}<br><button class="in-btn" id="inAbrir">${n === 0 ? 'Ver avance' : 'Ver y compartir'}</button></div></div>`;
+  $('inAbrir').addEventListener('click', async ()=>{ await inDibujar(inCard); $('inDlg').showModal(); });
+}
+
+// ---- Tarjeta compartible: se dibuja en un canvas (1080x1350) y se descarga o comparte como imagen ----
+async function inDibujar(d){
+  try{ await Promise.all([document.fonts.load('700 60px "Space Grotesk"'), document.fonts.load('500 30px "Inter"')]); }catch(e){}
+  const cv = $('inCanvas'), x = cv.getContext('2d'), W = 1080, H = 1350;
+  const gr = x.createLinearGradient(0,0,W*.55,H); gr.addColorStop(0,'#0E2B26'); gr.addColorStop(1,'#00695E'); x.fillStyle = gr; x.fillRect(0,0,W,H);
+  const F = (w,s,f)=> x.font = `${w} ${s}px "${f||'Space Grotesk'}", sans-serif`;
+  const caja = (a,b,w,h,r,col)=>{ x.fillStyle = col; x.beginPath(); if(x.roundRect) x.roundRect(a,b,w,h,r); else x.rect(a,b,w,h); x.fill(); };
+  const wrap = (t,px,py,maxW,lh,maxL)=>{ const ws = String(t).split(' '); let line = '', k = 0; for(const w of ws){ const tst = line ? line+' '+w : w; if(x.measureText(tst).width > maxW && line){ x.fillText(line,px,py+k*lh); k++; line = w; if(k >= maxL) return; } else line = tst; } x.fillText(line,px,py+k*lh); };
+  x.fillStyle = '#fff'; F(700,60); x.fillText('Movi',72,128); const wm = x.measureText('Movi').width; x.fillStyle = '#F2B84B'; x.fillText('Kar',72+wm,128);
+  x.fillStyle = 'rgba(255,255,255,.85)'; F(500,32,'Inter'); x.textAlign = 'right'; x.fillText(d.mes,W-72,126); x.textAlign = 'left';
+  x.fillStyle = '#fff'; F(600,40); wrap(d.marca,72,200,W-144,48,1);
+  if(d.bloqueado){
+    x.strokeStyle = '#F2B84B'; x.lineWidth = 14; x.lineCap = 'round'; x.beginPath(); x.arc(W/2,560,70,Math.PI,0); x.stroke(); caja(W/2-120,560,240,200,28,'#F2B84B');
+    x.textAlign = 'center'; x.fillStyle = '#fff'; F(700,68); x.fillText('Tu primera tarjeta',W/2,880); x.fillText('está en camino',W/2,962);
+    F(500,34,'Inter'); x.fillStyle = 'rgba(255,255,255,.85)'; wrap('Se desbloquea cuando completes tu primer traslado del mes.',W/2,1040,W-240,46,3); x.textAlign = 'center'; wrap('',0,0,1,1,1);
+  } else {
+    caja(72,250,W-144,250,36,'rgba(255,255,255,.12)');
+    x.save(); x.translate(110,292); x.scale(7,7); x.fillStyle = '#F2B84B'; x.fill(new Path2D('M7 3h10v5a5 5 0 0 1-10 0z')); x.strokeStyle = '#F2B84B'; x.lineWidth = .8; x.lineCap = 'round'; x.stroke(new Path2D('M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3M12 13v4M8 21h8')); x.restore();
+    x.fillStyle = '#fff'; F(700,62); x.fillText(d.tro ? d.tro[0] : 'Sigue sumando',320,345);
+    F(500,32,'Inter'); x.fillStyle = 'rgba(255,255,255,.85)'; wrap(d.tro ? d.tro[1] : (d.falta > 0 ? `Te faltan ${d.falta} traslados para igualar tu mejor mes` : 'Mantén el ritmo para sumar tu primer trofeo'),320,400,W-72-320-40,42,3);
+    x.fillStyle = '#fff'; F(700,300); x.fillText(String(d.n),72,830); const wn = x.measureText(String(d.n)).width;
+    F(500,44,'Inter'); x.fillText('traslados',72+wn+36,740); x.fillText('exitosos',72+wn+36,796);
+    if(d.delta !== null){ const tx = (d.delta>0?'+':'')+d.delta+' % vs mes anterior'; F(700,34,'Inter'); const tw = x.measureText(tx).width; caja(72+wn+36,820,tw+44,56,28,'#F2B84B'); x.fillStyle = '#16302C'; x.fillText(tx,72+wn+58,859); }
+    const bw = (W-144-48)/3; d.cajas.forEach((c,i)=>{ const bx = 72 + i*(bw+24); caja(bx,930,bw,200,28,'rgba(255,255,255,.12)'); x.fillStyle = '#fff';
+      if(c.stars){ F(700,56); x.fillStyle = '#F2B84B'; x.fillText('★'.repeat(c.stars),bx+26,1010); const ws = x.measureText('★'.repeat(c.stars)).width; x.fillStyle = 'rgba(255,255,255,.3)'; x.fillText('★'.repeat(4-c.stars),bx+26+ws,1010); }
+      else { x.save(); let off = 26; if(c.shield){ x.translate(bx+26,962); x.scale(2.2,2.2); x.fillStyle = LCOL[c.shield]||'#999'; x.fill(new Path2D('M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z')); off = 26 + 60; } x.restore(); x.fillStyle = '#fff'; F(700,c.big && c.big.length>8?40:56); x.fillText(c.big,bx+off,1010); }
+      F(500,26,'Inter'); x.fillStyle = 'rgba(255,255,255,.85)'; wrap(c.small,bx+26,1060,bw-40,32,2); });
+  }
+  x.textAlign = 'left'; x.fillStyle = '#fff'; F(700,46); x.fillText('Tú reparas. Nosotros movemos.',72,1250); x.fillStyle = 'rgba(255,255,255,.75)'; F(500,32,'Inter'); x.fillText('movikar.vercel.app',72,1300);
+}
+function inBlob(){ return new Promise(r => $('inCanvas').toBlob(r,'image/png')); }
+$('inDown').addEventListener('click', async ()=>{ const b = await inBlob(); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'movikar-tarjeta.png'; a.click(); });
+$('inShare').addEventListener('click', async ()=>{ const b = await inBlob(), f = new File([b],'movikar-tarjeta.png',{type:'image/png'});
+  if(navigator.canShare && navigator.canShare({files:[f]})){ try{ await navigator.share({files:[f], title:'MoviKar', text:'Mi mes en MoviKar. Tú reparas. Nosotros movemos.'}); }catch(e){} }
+  else { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'movikar-tarjeta.png'; a.click(); } });
+$('inCerrar').addEventListener('click', ()=> $('inDlg').close());
+
+// ---- Explicación nivel vs liga ----
+function inInfo(){
+  const cfg = inData && inData.cfg; if(!cfg) return;
+  let dlg = document.getElementById('inInfo');
+  if(!dlg){ dlg = document.createElement('dialog'); dlg.id = 'inInfo'; dlg.style.cssText = 'border:0;border-radius:18px;max-width:min(620px,94vw);padding:20px;'; document.body.appendChild(dlg); }
+  const L = cfg.ligas;
+  dlg.innerHTML = `<h2 style="font-size:18px;margin-bottom:12px">Nivel y liga: dos cosas distintas</h2><div style="display:grid;gap:12px;font-size:13px"><div style="border:1px solid var(--line);border-radius:12px;padding:12px"><h3 style="font-size:15px;margin-bottom:6px">${starsH(3)} Nivel de uso</h3><p style="margin:0 0 6px"><b>Es de cada local y mide cómo usa MoviKar.</b> Dos mediciones de 50 puntos: constancia (días con traslados, con una meta según el volumen del local) y anticipación (traslados programados con ${cfg.ant_horas} h o más; completo desde ${cfg.ant_completo_pct} %). Los pedidos para ahora cuentan como sin anticipación.</p><ul style="margin:0;padding-left:18px"><li>1 estrella · Primeros pasos: 0 a ${cfg.cortes[0]-1}</li><li>2 estrellas · En ruta: ${cfg.cortes[0]} a ${cfg.cortes[1]-1}</li><li>3 estrellas · Integrado: ${cfg.cortes[1]} a ${cfg.cortes[2]-1}</li><li>4 estrellas · Estratégico: ${cfg.cortes[2]} a 100</li></ul><p style="margin:6px 0 0;color:var(--ink-dim)">Se promedian los 2 últimos meses y hace falta un mínimo de ${cfg.piso} traslados al mes. Las facturas son del grupo y no afectan el nivel.</p></div><div style="border:1px solid var(--line);border-radius:12px;padding:12px"><h3 style="font-size:15px;margin-bottom:6px">Liga</h3><p style="margin:0 0 6px"><b>Es de la entidad y mide cuánto mueve.</b> Suma los traslados completados de todos tus locales y te compara con otras entidades de tu tamaño. Todas aparecen sin nombre.</p><ul style="margin:0;padding-left:18px">${L.map(l=>`<li>${l[0]}: ${l[2]>1e8 ? l[1]+' o más' : l[1]+' a '+l[2]} traslados al mes</li>`).join('')}</ul><p style="margin:6px 0 0;color:var(--ink-dim)">El ranking se activa con ${cfg.min_liga} entidades en la liga. La temporada parte en cero cada mes; los 3 primeros reciben trofeo.</p></div></div><p style="background:var(--teal-dim);border-radius:10px;padding:10px 12px;font-size:12.5px;margin:12px 0">${cfg.modo==='maduro' ? 'Calibración automática: los tramos salen de los percentiles de '+cfg.entidades+' entidades activas y se revisan cada mes.' : 'Calibración de arranque con parámetros fijos, hasta tener '+cfg.maduro_entidades+' entidades activas y '+cfg.maduro_meses+' meses cerrados.'}</p><button class="in-btn" id="inInfoOk" style="margin:0">Entendido</button>`;
+  dlg.querySelector('#inInfoOk').addEventListener('click', ()=> dlg.close()); dlg.showModal();
+}
+document.addEventListener('click', (e)=>{
+  const t = e.target.closest ? e.target.closest('[data-info],[data-go]') : null; if(!t) return;
+  if(t.dataset.info){ inInfo(); return; }
+  const go = t.dataset.go; tallerSeleccionado = go === 'todos' ? null : go;
+  actualizarContextoVisual(); renderSwitcherList(); paginaActual = 0; cargarTodo(); window.scrollTo(0,0);
+});
 </script>
 </body>
 </html>
