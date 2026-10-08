@@ -1758,7 +1758,7 @@
     const { data: t, error } = await sb
       .from("traslados")
       .select(`
-        patente, marca, modelo, calle, numero, comuna, cliente_nombre, cliente_telefono,
+        patente, marca, modelo, patente_verificada, calle, numero, comuna, cliente_nombre, cliente_telefono,
         fecha_principal, fecha_entrega, estado_retiro, estado_entrega,
         monto_cobro_retiro, monto_cobro_entrega, estado_pago_cliente_retiro, estado_pago_cliente_entrega,
         monto_pago_chofer_retiro, monto_pago_chofer_entrega, estado_pago_chofer_retiro, estado_pago_chofer_entrega,
@@ -1783,6 +1783,7 @@
 
     cuerpoModal(fondo).innerHTML = `
       <p class="subtitulo" style="margin:-4px 0 2px;">${[t.marca, t.modelo].filter(Boolean).join(" ") || "—"} · ${t.talleres ? t.talleres.nombre_taller : "—"}</p>
+      ${t.patente_verificada ? "" : `<p style="margin:0 0 4px;"><span class="badge pendiente" title="Marca y modelo no se verificaron con la consulta de patente">⚠ Patente sin verificar</span></p>`}
       <p class="subtitulo" style="margin:0 0 4px;">${t.cliente_nombre || "—"} · ${t.cliente_telefono || "—"}</p>
       <p class="subtitulo" style="margin:0;">${direccion || "Sin dirección registrada"}</p>
       ${filaEtapa("Retiro", t.fecha_principal, t.chofer_retiro, t.monto_cobro_retiro, t.estado_pago_cliente_retiro, t.monto_pago_chofer_retiro, t.estado_pago_chofer_retiro)}
