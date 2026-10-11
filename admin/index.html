@@ -695,6 +695,8 @@
   var ordenInvertido = {};
   const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
   const $ = (id) => document.getElementById(id);
+  // Vuelve inofensivo cualquier texto antes de mostrarlo como HTML (evita que un dato malicioso se ejecute en el admin).
+  const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
   let correoEnCurso = "";
   let correoAdminActual = "";
 
@@ -874,7 +876,7 @@
   function mostrarAvisoPortal(titulo, detalle, alClick) {
     const el = document.createElement("div");
     el.className = "toast-aviso";
-    el.innerHTML = `<b>${titulo}</b>${detalle}`;
+    el.innerHTML = `<b>${esc(titulo)}</b>${esc(detalle)}`;
     el.addEventListener("click", () => { el.remove(); if (alClick) alClick(); });
     document.body.appendChild(el);
     setTimeout(() => el.remove(), 15000);
@@ -939,8 +941,8 @@
     tbody.innerHTML = recientes.length
       ? recientes.map((t) => `
           <tr>
-            <td><strong>${t.nombre_taller}</strong></td>
-            <td>${t.comuna || "—"}</td>
+            <td><strong>${esc(t.nombre_taller)}</strong></td>
+            <td>${esc(t.comuna) || "—"}</td>
             <td>${(cacheUsuariosPorTaller[t.id] || []).length}/${t.limite_usuarios ?? 3}</td>
           </tr>`).join("")
       : `<tr><td colspan="3" class="vacio">Todavía no hay talleres dados de alta.</td></tr>`;
@@ -995,7 +997,7 @@
 
   async function cargarTalleres() {
     const { data: talleres, error } = await sb.from("talleres").select("*");
-    if (error) { $("lista-talleres").innerHTML = `<p class="vacio">No se pudo cargar: ${error.message}</p>`; return; }
+    if (error) { $("lista-talleres").innerHTML = `<p class="vacio">No se pudo cargar: ${esc(error.message)}</p>`; return; }
 
     const { data: usuarios } = await sb.from("taller_usuarios").select("*").order("nombre");
     const usuariosPorTaller = {};
@@ -1074,13 +1076,13 @@
           ? `<button data-suspender="${t.id}">Suspender</button>`
           : `<button class="prim" data-habilitar="${t.id}" ${falta.length ? "disabled title='Completa lo que falta'" : ""}>Habilitar</button>`;
       const usuariosHtml = us.length
-        ? us.map((u) => `<div>${u.nombre}${u.cargo ? ` <span class="sub">· ${u.cargo}</span>` : ""} <span class="etq ${u.estado === "activo" ? "ok" : ""}">${u.estado}</span>${u.es_principal ? ` <span class="etq">principal</span>` : ""}<br><span class="sub">${u.correo}</span></div>`).join("")
+        ? us.map((u) => `<div>${esc(u.nombre)}${esc(u.cargo) ? ` <span class="sub">· ${esc(u.cargo)}</span>` : ""} <span class="etq ${u.estado === "activo" ? "ok" : ""}">${u.estado}</span>${u.es_principal ? ` <span class="etq">principal</span>` : ""}<br><span class="sub">${esc(u.correo)}</span></div>`).join("")
         : `<span class="sub">Sin usuarios</span>`;
       return `<div class="card-d">
-        <div class="card-top"><div><h3>${t.nombre_taller}</h3><span class="sub">${t.calle} ${t.numero}${t.depto_casa ? ", " + t.depto_casa : ""}, ${t.comuna}</span></div><span class="etq ${etq[0]}">${etq[1]}</span></div>
+        <div class="card-top"><div><h3>${esc(t.nombre_taller)}</h3><span class="sub">${esc(t.calle)} ${esc(t.numero)}${esc(t.depto_casa) ? ", " + esc(t.depto_casa) : ""}, ${esc(t.comuna)}</span></div><span class="etq ${etq[0]}">${etq[1]}</span></div>
         <div class="grid2">
-          <div><small>Cliente de facturación</small>${cliente ? cliente.razon_social : "—"}</div>
-          <div><small>RUT</small>${t.rut_taller || (cliente ? cliente.rut : "—")}</div>
+          <div><small>Cliente de facturación</small>${cliente ? esc(cliente.razon_social) : "—"}</div>
+          <div><small>RUT</small>${esc(t.rut_taller) || (cliente ? esc(cliente.rut) : "—")}</div>
           <div><small>Usuarios</small>${us.length}/${limite}</div>
           <div><small>Ciclo</small>${cliente ? (cliente.ciclo_facturacion === "personalizado" ? `cada ${cliente.ciclo_facturacion_dias || "?"} días` : String(cliente.ciclo_facturacion).replace("_", " ")) : "—"}</div>
         </div>
@@ -1223,7 +1225,7 @@
       $("t-metodo-pago").value = cliente.metodo_pago || "";
       $("t-datos-pago").value = cliente.datos_pago || "";
       $("t-facturacion-fieldset").querySelector("legend").innerHTML =
-        `Facturación de ${cliente.razon_social} <span class="opcional">— RUT ${cliente.rut}</span>`;
+        `Facturación de ${esc(cliente.razon_social)} <span class="opcional">— RUT ${esc(cliente.rut)}</span>`;
       const otrosTalleres = cacheTalleres.filter((x) => x.cliente_facturacion_id === t.cliente_facturacion_id && x.id !== t.id);
       if (otrosTalleres.length) {
         $("taller-aviso-compartido").textContent = `Estos datos de facturación son compartidos: al guardar, también se actualizan para ${otrosTalleres.map((x) => x.nombre_taller).join(", ")}.`;
@@ -1424,7 +1426,7 @@
       const ok = completa(c);
       const locales = localesPorCliente[c.id] || [];
       return `<div class="card-d">
-        <div class="card-top"><div><h3>${c.razon_social}</h3><span class="sub">RUT ${c.rut} · ${locales.length ? locales.length + " local" + (locales.length !== 1 ? "es" : "") : "sin talleres asociados"}</span></div><span class="etq ${ok ? "ok" : "rojo"}">${ok ? "Activa" : "Incompleta"}</span></div>
+        <div class="card-top"><div><h3>${esc(c.razon_social)}</h3><span class="sub">RUT ${esc(c.rut)} · ${locales.length ? locales.length + " local" + (locales.length !== 1 ? "es" : "") : "sin talleres asociados"}</span></div><span class="etq ${ok ? "ok" : "rojo"}">${ok ? "Activa" : "Incompleta"}</span></div>
         <div class="grid2">
           <div><label style="font-size:.7rem;color:var(--dim);">Retiro ($)</label><input type="number" min="0" class="tarifa-retiro-input" data-cliente="${c.id}" value="${actual.retiro ?? ""}" placeholder="—" style="margin:0;"></div>
           <div><label style="font-size:.7rem;color:var(--dim);">Entrega ($)</label><input type="number" min="0" class="tarifa-entrega-input" data-cliente="${c.id}" value="${actual.entrega ?? ""}" placeholder="—" style="margin:0;"></div>
@@ -1442,7 +1444,7 @@
       btn.addEventListener("click", () => {
         const box = $("extra-tarifa-" + btn.dataset.verLocales);
         const l = localesPorCliente[btn.dataset.verLocales] || [];
-        box.innerHTML = l.length ? l.map((n) => `<div>• ${n}</div>`).join("") : `<span class="sub">Este cliente aún no tiene talleres.</span>`;
+        box.innerHTML = l.length ? l.map((n) => `<div>• ${esc(n)}</div>`).join("") : `<span class="sub">Este cliente aún no tiene talleres.</span>`;
         box.style.display = box.style.display === "none" || box.dataset.modo !== "locales" ? "block" : "none";
         box.dataset.modo = "locales";
       });
@@ -1455,7 +1457,7 @@
         box.dataset.modo = "historial"; box.style.display = "block"; box.innerHTML = `<span class="sub">Cargando...</span>`;
         const { data } = await sb.from("tarifas_cliente").select("etapa, precio_cobro, activa, created_at, creada_por").eq("cliente_facturacion_id", id).order("created_at", { ascending: false });
         box.innerHTML = (data || []).length
-          ? data.map((t) => `<div>${fmtFecha(t.created_at)} · ${t.etapa} · <b>${fmtMonto(t.precio_cobro)}</b> ${t.activa ? '<span class="etq ok">vigente</span>' : '<span class="etq">anterior</span>'}${t.creada_por ? ` <span class="sub">${t.creada_por}</span>` : ""}</div>`).join("")
+          ? data.map((t) => `<div>${fmtFecha(t.created_at)} · ${t.etapa} · <b>${fmtMonto(t.precio_cobro)}</b> ${t.activa ? '<span class="etq ok">vigente</span>' : '<span class="etq">anterior</span>'}${esc(t.creada_por) ? ` <span class="sub">${esc(t.creada_por)}</span>` : ""}</div>`).join("")
           : `<span class="sub">Sin historial.</span>`;
       });
     });
@@ -1507,13 +1509,13 @@
   async function cargarFacturacion() {
     const tbodyPend = $("tabla-facturacion-pendiente");
     const { data: clientes, error: errC } = await sb.from("clientes_facturacion").select("*").order("razon_social");
-    if (errC) { tbodyPend.innerHTML = `<tr><td colspan="4" class="vacio">No se pudo cargar: ${errC.message}</td></tr>`; return; }
+    if (errC) { tbodyPend.innerHTML = `<tr><td colspan="4" class="vacio">No se pudo cargar: ${esc(errC.message)}</td></tr>`; return; }
 
     const { data: traslados, error: errT } = await sb
       .from("traslados")
       .select("id, taller_id, monto_cobro_retiro, monto_cobro_entrega, estado_pago_cliente_retiro, estado_pago_cliente_entrega, talleres(cliente_facturacion_id)")
       .or("estado_pago_cliente_retiro.eq.pendiente,estado_pago_cliente_entrega.eq.pendiente");
-    if (errT) { tbodyPend.innerHTML = `<tr><td colspan="4" class="vacio">No se pudo cargar: ${errT.message}</td></tr>`; return; }
+    if (errT) { tbodyPend.innerHTML = `<tr><td colspan="4" class="vacio">No se pudo cargar: ${esc(errT.message)}</td></tr>`; return; }
 
     const porCliente = {};
     (traslados || []).forEach((t) => {
@@ -1545,7 +1547,7 @@
 
     tbody.innerHTML = lista.map((x) => `
       <tr>
-        <td><strong>${x.cliente.razon_social}</strong><br><span class="mono" style="color:var(--dim);">${x.cliente.rut}</span></td>
+        <td><strong>${esc(x.cliente.razon_social)}</strong><br><span class="mono" style="color:var(--dim);">${esc(x.cliente.rut)}</span></td>
         <td>${x.etapas}</td>
         <td>${fmtMonto(x.monto)}</td>
         <td><button class="primario" data-generar-factura="${x.cliente.id}">Generar factura</button></td>
@@ -1598,7 +1600,7 @@
       const est = estadoDe(i);
       const etq = est === "vencido" ? ["rojo", "Vencido"] : est === "porcobrar" ? ["", "Por cobrar"] : ["ok", "Al día"];
       return `<div class="card-d">
-        <div class="card-top"><div><h3>${i.c.razon_social}</h3><span class="sub">RUT ${i.c.rut}</span></div><span class="etq ${etq[0]}">${etq[1]}</span></div>
+        <div class="card-top"><div><h3>${esc(i.c.razon_social)}</h3><span class="sub">RUT ${esc(i.c.rut)}</span></div><span class="etq ${etq[0]}">${etq[1]}</span></div>
         <div class="grid2">
           <div><small>Por facturar</small>${fmtMonto(i.porFacturar)}${i.etapas ? ` <span class="sub">(${i.etapas} etapas)</span>` : ""}</div>
           <div><small>Facturado, sin pagar</small>${fmtMonto(i.porCobrar)}</div>
@@ -1625,7 +1627,7 @@
         if (t.estado_pago_cliente_retiro && t.estado_pago_cliente_retiro !== "sin_tarifa") filas.push([t.patente, t.talleres.nombre_taller, "Retiro", t.monto_cobro_retiro, t.estado_pago_cliente_retiro]);
         if (t.estado_pago_cliente_entrega && t.estado_pago_cliente_entrega !== "sin_tarifa") filas.push([t.patente, t.talleres.nombre_taller, "Entrega", t.monto_cobro_entrega, t.estado_pago_cliente_entrega]);
       });
-      box.innerHTML = filas.length ? filas.map((f) => `<div style="display:flex;justify-content:space-between;gap:8px;"><span>${f[0]} · ${f[2]} <span class="sub">${f[1]}</span></span><span>${fmtMonto(f[3])} <span class="etq">${f[4]}</span></span></div>`).join("") : `<span class="sub">Sin etapas con cobro todavía.</span>`;
+      box.innerHTML = filas.length ? filas.map((f) => `<div style="display:flex;justify-content:space-between;gap:8px;"><span>${esc(f[0])} · ${f[2]} <span class="sub">${esc(f[1])}</span></span><span>${fmtMonto(f[3])} <span class="etq">${f[4]}</span></span></div>`).join("") : `<span class="sub">Sin etapas con cobro todavía.</span>`;
     }));
     cont.querySelectorAll("[data-cobro-facturar]").forEach((btn) => btn.addEventListener("click", async () => {
       if (!confirm("¿Generar factura con todas las etapas pendientes de este cliente? Nace como borrador.")) return;
@@ -1664,7 +1666,7 @@
     if (filtro) q = q.eq("estado", filtro);
     if (desde) q = q.gte("created_at", desde.toISOString());
     const { data, error } = await q;
-    if (error) { tbody.innerHTML = `<tr><td colspan="5" class="vacio">No se pudo cargar: ${error.message}</td></tr>`; return; }
+    if (error) { tbody.innerHTML = `<tr><td colspan="5" class="vacio">No se pudo cargar: ${esc(error.message)}</td></tr>`; return; }
     cacheFacturas = data || [];
     renderFacturas();
   }
@@ -1687,8 +1689,8 @@
       }
       return `
         <tr>
-          <td><strong>${cliente ? cliente.razon_social : "—"}</strong><br><span class="mono" style="color:var(--dim);">${cliente ? cliente.rut : ""}</span></td>
-          <td>${fmtFecha(f.periodo_desde)} – ${fmtFecha(f.periodo_hasta)}${f.numero_folio ? `<br><span class="mono" style="color:var(--dim); font-size:0.72rem;">Folio ${f.numero_folio}</span>` : ""}</td>
+          <td><strong>${cliente ? esc(cliente.razon_social) : "—"}</strong><br><span class="mono" style="color:var(--dim);">${cliente ? esc(cliente.rut) : ""}</span></td>
+          <td>${fmtFecha(f.periodo_desde)} – ${fmtFecha(f.periodo_hasta)}${esc(f.numero_folio) ? `<br><span class="mono" style="color:var(--dim); font-size:0.72rem;">Folio ${esc(f.numero_folio)}</span>` : ""}</td>
           <td>${fmtMonto(f.monto_total)}</td>
           <td><span class="badge ${f.estado}">${f.estado}</span></td>
           <td>${acciones}</td>
@@ -1738,7 +1740,7 @@
 
     const filasDetalle = (data || []).flatMap((t) => {
       const out = [];
-      const patBtn = `<button class="patente-link" data-ver-traslado="${t.id}">${t.patente || "—"}</button>`;
+      const patBtn = `<button class="patente-link" data-ver-traslado="${t.id}">${esc(t.patente) || "—"}</button>`;
       if (t.factura_id_retiro === facturaId) out.push(`<tr><td>${patBtn}</td><td>Retiro</td><td>${fmtMonto(t.monto_cobro_retiro)}</td></tr>`);
       if (t.factura_id_entrega === facturaId) out.push(`<tr><td>${patBtn}</td><td>Entrega</td><td>${fmtMonto(t.monto_cobro_entrega)}</td></tr>`);
       return out;
@@ -1793,17 +1795,17 @@
         <p style="font-size:0.75rem; color:var(--dim); font-weight:600; margin:0 0 4px; text-transform:uppercase; letter-spacing:0.03em;">${titulo}</p>
         <table style="font-size:0.85rem;">
           <tr><td style="color:var(--dim);">Fecha</td><td style="text-align:right;">${fecha ? new Date(fecha).toLocaleString("es-CL") : "—"}</td></tr>
-          <tr><td style="color:var(--dim);">Chofer</td><td style="text-align:right;">${chofer ? chofer.nombre : "sin asignar"}</td></tr>
+          <tr><td style="color:var(--dim);">Chofer</td><td style="text-align:right;">${chofer ? esc(chofer.nombre) : "sin asignar"}</td></tr>
           <tr><td style="color:var(--dim);">Cobro cliente</td><td style="text-align:right;">${fmtMonto(montoCobro)} · <span class="badge ${estadoCliente || "pendiente"}">${estadoCliente || "—"}</span></td></tr>
           <tr><td style="color:var(--dim);">Pago chofer</td><td style="text-align:right;">${fmtMonto(montoPago)} · <span class="badge ${estadoChofer || "pendiente"}">${estadoChofer || "—"}</span></td></tr>
         </table>
       </div>`;
 
     cuerpoModal(fondo).innerHTML = `
-      <p class="subtitulo" style="margin:-4px 0 2px;">${[t.marca, t.modelo].filter(Boolean).join(" ") || "—"} · ${t.talleres ? t.talleres.nombre_taller : "—"}</p>
+      <p class="subtitulo" style="margin:-4px 0 2px;">${[esc(t.marca), esc(t.modelo)].filter(Boolean).join(" ") || "—"} · ${t.talleres ? esc(t.talleres.nombre_taller) : "—"}</p>
       ${t.patente_verificada ? "" : `<p style="margin:0 0 4px;"><span class="badge pendiente" title="Marca y modelo no se verificaron con la consulta de patente">⚠ Patente sin verificar</span></p>`}
-      <p class="subtitulo" style="margin:0 0 4px;">${t.cliente_nombre || "—"} · ${t.cliente_telefono || "—"}</p>
-      <p class="subtitulo" style="margin:0;">${direccion || "Sin dirección registrada"}</p>
+      <p class="subtitulo" style="margin:0 0 4px;">${esc(t.cliente_nombre) || "—"} · ${esc(t.cliente_telefono) || "—"}</p>
+      <p class="subtitulo" style="margin:0;">${esc(direccion) || "Sin dirección registrada"}</p>
       ${filaEtapa("Retiro", t.fecha_principal, t.chofer_retiro, t.monto_cobro_retiro, t.estado_pago_cliente_retiro, t.monto_pago_chofer_retiro, t.estado_pago_chofer_retiro)}
       ${filaEtapa("Entrega", t.fecha_entrega || t.fecha_principal, t.chofer_entrega, t.monto_cobro_entrega, t.estado_pago_cliente_entrega, t.monto_pago_chofer_entrega, t.estado_pago_chofer_entrega)}
     `;
@@ -1855,12 +1857,12 @@
   $("fact-buscar").addEventListener("input", () => { renderFacturacionPendiente(); renderFacturas(); renderCobrosClientes(); });
 
   $("fact-card-pendiente").addEventListener("click", async () => {
-    const filas = cacheFacturacionPendiente.map((x) => `<tr><td>${x.cliente.razon_social}</td><td>${x.etapas}</td><td>${fmtMonto(x.monto)}</td></tr>`).join("");
+    const filas = cacheFacturacionPendiente.map((x) => `<tr><td>${esc(x.cliente.razon_social)}</td><td>${x.etapas}</td><td>${fmtMonto(x.monto)}</td></tr>`).join("");
     abrirModalListadoFilas("Pendiente de facturar, por cliente", ["Cliente", "Etapas", "Monto"], filas);
   });
   $("fact-card-emitidas").addEventListener("click", async () => {
     const { data } = await sb.from("facturas").select("*, clientes_facturacion(razon_social)").eq("estado", "emitida").order("fecha_emision", { ascending: false });
-    const filas = (data || []).map((f) => `<tr><td>${f.clientes_facturacion ? f.clientes_facturacion.razon_social : "—"}</td><td>${fmtFecha(f.fecha_emision)}</td><td>${fmtMonto(f.monto_total)}</td></tr>`).join("");
+    const filas = (data || []).map((f) => `<tr><td>${f.clientes_facturacion ? esc(f.clientes_facturacion.razon_social) : "—"}</td><td>${fmtFecha(f.fecha_emision)}</td><td>${fmtMonto(f.monto_total)}</td></tr>`).join("");
     abrirModalListadoFilas("Facturado, sin pagar", ["Cliente", "Emitida el", "Monto"], filas);
   });
   $("fact-card-pagado-periodo").addEventListener("click", async () => {
@@ -1868,7 +1870,7 @@
     let q = sb.from("facturas").select("*, clientes_facturacion(razon_social)").eq("estado", "pagada").order("fecha_pago", { ascending: false });
     if (desde) q = q.gte("fecha_pago", desde.toISOString());
     const { data } = await q;
-    const filas = (data || []).map((f) => `<tr><td>${f.clientes_facturacion ? f.clientes_facturacion.razon_social : "—"}</td><td>${fmtFecha(f.fecha_pago)}</td><td>${fmtMonto(f.monto_total)}</td></tr>`).join("");
+    const filas = (data || []).map((f) => `<tr><td>${f.clientes_facturacion ? esc(f.clientes_facturacion.razon_social) : "—"}</td><td>${fmtFecha(f.fecha_pago)}</td><td>${fmtMonto(f.monto_total)}</td></tr>`).join("");
     abrirModalListadoFilas("Pagado en el período", ["Cliente", "Pagada el", "Monto"], filas);
   });
 
@@ -1954,7 +1956,7 @@
   // ---------- Solicitudes ----------
   async function cargarSolicitudes() {
     const { data, error } = await sb.from("solicitudes_talleres").select("*");
-    if (error) { $("lista-solicitudes").innerHTML = `<p class="vacio">No se pudo cargar: ${error.message}</p>`; return; }
+    if (error) { $("lista-solicitudes").innerHTML = `<p class="vacio">No se pudo cargar: ${esc(error.message)}</p>`; return; }
     cacheSolicitudesTodas = data || [];
     cacheSolicitudesPendientes = cacheSolicitudesTodas.filter((s) => s.estado === "pendiente");
     const contador = $("contador-solicitudes");
@@ -1987,14 +1989,14 @@
       const pend = s.estado === "pendiente";
       const etq = pend ? ["rojo", "Por aprobar"] : s.estado === "aprobado" ? ["ok", "Aprobada"] : ["", "Rechazada"];
       return `<div class="card-d">
-        <div class="card-top"><div><h3>${s.nombre_taller}</h3><span class="sub">${s.rut_taller || "Sin RUT"} · ${s.comuna}</span></div><span class="etq ${etq[0]}">${etq[1]}</span></div>
+        <div class="card-top"><div><h3>${esc(s.nombre_taller)}</h3><span class="sub">${esc(s.rut_taller) || "Sin RUT"} · ${esc(s.comuna)}</span></div><span class="etq ${etq[0]}">${etq[1]}</span></div>
         <div class="grid2">
-          <div><small>Contacto principal</small>${s.usuario_nombre}${s.usuario_cargo ? ", " + s.usuario_cargo : ""}</div>
-          <div><small>Teléfono</small>${s.usuario_telefono || "—"}</div>
-          <div><small>Correo</small>${s.usuario_correo}</div>
+          <div><small>Contacto principal</small>${esc(s.usuario_nombre)}${esc(s.usuario_cargo) ? ", " + esc(s.usuario_cargo) : ""}</div>
+          <div><small>Teléfono</small>${esc(s.usuario_telefono) || "—"}</div>
+          <div><small>Correo</small>${esc(s.usuario_correo)}</div>
           <div><small>Usuarios pedidos</small>${contarUsuariosSolicitud(s)} de 3</div>
           <div><small>Ingreso</small>${fmtFechaHora(s.created_at)}</div>
-          <div><small>${s.estado === "rechazado" ? "Motivo" : "Términos aceptados"}</small>${s.estado === "rechazado" ? (s.motivo_rechazo || "—") : (s.acepta_terminos ? "Sí" : "No")}</div>
+          <div><small>${s.estado === "rechazado" ? "Motivo" : "Términos aceptados"}</small>${s.estado === "rechazado" ? (esc(s.motivo_rechazo) || "—") : (s.acepta_terminos ? "Sí" : "No")}</div>
         </div>
         ${pend ? `<div class="acciones"><button data-revisar="${s.id}">Revisar</button><button class="prim" data-aprobar="${s.id}">Aprobar</button><button class="rojo" data-rechazar="${s.id}">Rechazar</button></div>` : ""}
       </div>`;
@@ -2072,7 +2074,7 @@
 
   async function cargarChoferes() {
     const { data, error } = await sb.from("choferes").select("*").order("created_at", { ascending: false });
-    if (error) { $("lista-choferes").innerHTML = `<p class="vacio">No se pudo cargar: ${error.message}</p>`; return; }
+    if (error) { $("lista-choferes").innerHTML = `<p class="vacio">No se pudo cargar: ${esc(error.message)}</p>`; return; }
     cacheChoferes = data || [];
     renderDashboard();
     await calcularPendientesChofer();
@@ -2122,10 +2124,10 @@
           + (pend.etapas ? `<button class="prim" data-generar-pago="${c.id}">Generar pago</button>` : "")
           + `<button data-ver-pagos="${c.id}">Ver pagos</button><button data-liquidacion="${c.id}">Liquidación Excel</button>`;
       return `<div class="card-d">
-        <div class="card-top"><div><h3>${c.nombre}</h3><span class="sub">${c.comuna || "—"}</span></div><span class="etq ${etq[0]}">${etq[1]}</span></div>
+        <div class="card-top"><div><h3>${esc(c.nombre)}</h3><span class="sub">${esc(c.comuna) || "—"}</span></div><span class="etq ${etq[0]}">${etq[1]}</span></div>
         <div class="grid2">
-          <div><small>Teléfono</small>${c.telefono || "—"}</div>
-          <div><small>Correo</small>${c.correo || "—"}</div>
+          <div><small>Teléfono</small>${esc(c.telefono) || "—"}</div>
+          <div><small>Correo</small>${esc(c.correo) || "—"}</div>
           ${post ? `<div><small>Postuló</small>${fmtFechaHora(c.created_at)}</div><div><small>Documentos</small>${ndocs} de 6 subidos</div>`
             : `<div><small>Hoy (asignados)</small>${st.hoy}</div><div><small>Completados esta semana</small>${st.semana}</div><div><small>Completados este mes</small>${st.mes}</div><div><small>Completados en total</small>${st.total}</div><div><small>Última conexión</small>${c.ultima_conexion ? fmtFechaHora(c.ultima_conexion) : "—"}</div><div><small>Por pagar</small>${pend.etapas ? fmtMonto(pend.monto) + " (" + pend.etapas + ")" : "$0"}</div>`}
         </div>
@@ -2200,16 +2202,16 @@
     fila.style.display = "table-row";
     fila.querySelector("td").innerHTML = chofer ? `
       <table style="margin:6px 0;">
-        <tr><td style="color:var(--dim);">RUT</td><td>${chofer.rut || "—"}</td></tr>
-        <tr><td style="color:var(--dim);">Comuna</td><td>${chofer.comuna || "—"}</td></tr>
-        <tr><td style="color:var(--dim);">Tipo de licencia</td><td>${chofer.tipo_licencia || "—"}</td></tr>
+        <tr><td style="color:var(--dim);">RUT</td><td>${esc(chofer.rut) || "—"}</td></tr>
+        <tr><td style="color:var(--dim);">Comuna</td><td>${esc(chofer.comuna) || "—"}</td></tr>
+        <tr><td style="color:var(--dim);">Tipo de licencia</td><td>${esc(chofer.tipo_licencia) || "—"}</td></tr>
         <tr><td style="color:var(--dim);">Registrado el</td><td>${fmtFechaHora(chofer.created_at)}</td></tr>
         <tr><td style="color:var(--dim);">Disponible ahora</td><td>${chofer.disponible ? "Sí" : "No"}</td></tr>
         <tr><td style="color:var(--dim);">Estado</td><td>${chofer.estado}</td></tr>
-        <tr><td style="color:var(--dim);">Teléfono</td><td>${chofer.telefono || "—"}</td></tr>
-        <tr><td style="color:var(--dim);">Correo</td><td>${chofer.correo || "—"}</td></tr>
+        <tr><td style="color:var(--dim);">Teléfono</td><td>${esc(chofer.telefono) || "—"}</td></tr>
+        <tr><td style="color:var(--dim);">Correo</td><td>${esc(chofer.correo) || "—"}</td></tr>
         <tr><td style="color:var(--dim);">Última conexión</td><td>${chofer.ultima_conexion ? fmtFechaHora(chofer.ultima_conexion) : "—"}</td></tr>
-        ${chofer.motivo_rechazo ? `<tr><td style="color:var(--dim);">Motivo de rechazo</td><td>${chofer.motivo_rechazo}</td></tr>` : ""}
+        ${esc(chofer.motivo_rechazo) ? `<tr><td style="color:var(--dim);">Motivo de rechazo</td><td>${esc(chofer.motivo_rechazo)}</td></tr>` : ""}
       </table>
       <button data-docs-desde-detalle="${chofer.id}" style="margin:2px 0 8px;">Ver documentos</button>` : `<span class="vacio">No se encontró el chofer.</span>`;
     const bd = fila.querySelector("[data-docs-desde-detalle]");
@@ -2298,7 +2300,7 @@
     if (filtro) q = q.eq("estado", filtro);
     if (desde) q = q.gte("created_at", desde.toISOString());
     const { data, error } = await q;
-    if (error) { tbody.innerHTML = `<tr><td colspan="5" class="vacio">No se pudo cargar: ${error.message}</td></tr>`; return; }
+    if (error) { tbody.innerHTML = `<tr><td colspan="5" class="vacio">No se pudo cargar: ${esc(error.message)}</td></tr>`; return; }
     cachePagosChofer = data || [];
     renderPagosChofer();
     await actualizarMetricasPagos();
@@ -2318,10 +2320,10 @@
       if (p.estado === "pendiente") {
         acciones += `<button class="link-accion" data-pagar-chofer="${p.id}">Marcar pagada</button><button class="link-accion rojo" data-anular-pago="${p.id}">Anular</button>`;
       }
-      const infoComprobante = p.estado === "pagada" && p.referencia ? `<br><span class="mono" style="color:var(--dim); font-size:0.72rem;">${p.metodo || ""} · ${p.referencia}</span>` : "";
+      const infoComprobante = p.estado === "pagada" && p.referencia ? `<br><span class="mono" style="color:var(--dim); font-size:0.72rem;">${esc(p.metodo) || ""} · ${esc(p.referencia)}</span>` : "";
       return `
         <tr>
-          <td><strong>${chofer ? chofer.nombre : "—"}</strong></td>
+          <td><strong>${chofer ? esc(chofer.nombre) : "—"}</strong></td>
           <td>${fmtFecha(p.periodo_desde)} – ${fmtFecha(p.periodo_hasta)}${infoComprobante}</td>
           <td>${fmtMonto(p.monto_total)}</td>
           <td><span class="badge ${p.estado}">${p.estado === "pendiente" ? "pendiente de pago" : "pagada"}</span></td>
@@ -2366,7 +2368,7 @@
     if (error) { fila.querySelector("td").innerHTML = `<span class="vacio">No se pudo cargar el detalle.</span>`; return; }
 
     const filas = (data || []).map((it) => {
-      const patBtn = it.traslados ? `<button class="patente-link" data-ver-traslado="${it.traslado_id}">${it.traslados.patente || "—"}</button>` : "—";
+      const patBtn = it.traslados ? `<button class="patente-link" data-ver-traslado="${it.traslado_id}">${esc(it.traslados.patente) || "—"}</button>` : "—";
       return `<tr><td>${patBtn}</td><td>${it.etapa === "retiro" ? "Retiro" : "Entrega"}${it.origen === "compensacion" ? ` <span class="badge compensacion">compensación</span>` : ""}</td><td>${fmtMonto(it.monto)}</td></tr>`;
     }).join("");
 
@@ -2415,7 +2417,7 @@
   $("pago-card-pendiente").addEventListener("click", () => {
     const filas = Object.entries(pendientesPorChofer).map(([choferId, acc]) => {
       const chofer = cacheChoferes.find((c) => c.id === choferId);
-      return `<tr><td>${chofer ? chofer.nombre : "—"}</td><td>${acc.etapas}</td><td>${fmtMonto(acc.monto)}</td></tr>`;
+      return `<tr><td>${chofer ? esc(chofer.nombre) : "—"}</td><td>${acc.etapas}</td><td>${fmtMonto(acc.monto)}</td></tr>`;
     }).join("");
     abrirModalListadoFilas("Pendiente de pago, por chofer", ["Chofer", "Etapas", "Monto"], filas);
   });
@@ -2424,7 +2426,7 @@
     let q = sb.from("pagos_chofer").select("*, choferes(nombre)").eq("estado", "pagada").order("fecha_pago", { ascending: false });
     if (desde) q = q.gte("fecha_pago", desde.toISOString());
     const { data } = await q;
-    const filas = (data || []).map((p) => `<tr><td>${p.choferes ? p.choferes.nombre : "—"}</td><td>${fmtFecha(p.fecha_pago)}</td><td>${fmtMonto(p.monto_total)}</td></tr>`).join("");
+    const filas = (data || []).map((p) => `<tr><td>${p.choferes ? esc(p.choferes.nombre) : "—"}</td><td>${fmtFecha(p.fecha_pago)}</td><td>${fmtMonto(p.monto_total)}</td></tr>`).join("");
     abrirModalListadoFilas("Pagado en el período", ["Chofer", "Pagado el", "Monto"], filas);
   });
 
@@ -2532,7 +2534,7 @@
       .from("traslados")
       .select("id, patente, tipo, created_at, fecha_principal, cliente_nombre, comuna, estado_retiro, estado_entrega, reasignado_manualmente, chofer_retiro_id, chofer_entrega_id, solicitud_cancelacion_retiro, solicitud_cancelacion_entrega, notas_cancelacion_retiro, notas_cancelacion_entrega, motivo_cancelacion_retiro, motivo_cancelacion_entrega, talleres(nombre_taller), chofer_retiro:choferes!chofer_retiro_id(id, nombre, ubicacion_lat, ubicacion_lng), chofer_entrega:choferes!chofer_entrega_id(id, nombre, ubicacion_lat, ubicacion_lng)")
       .order("created_at", { ascending: false });
-    if (error) { $("lista-traslados").innerHTML = `<p class="vacio">No se pudo cargar: ${error.message}</p>`; return; }
+    if (error) { $("lista-traslados").innerHTML = `<p class="vacio">No se pudo cargar: ${esc(error.message)}</p>`; return; }
     cacheTraslados = data || [];
     renderTraslados();
     if (cacheChoferes.length) renderChoferes();
@@ -2557,10 +2559,10 @@
     $("lista-solicitudes-cancelacion").innerHTML = pendientes.map((p) => `
       <div style="display:flex; align-items:center; justify-content:space-between; border-top:1px solid var(--line); padding:10px 0; gap:12px; flex-wrap:wrap;">
         <div>
-          <strong>${p.t.patente}</strong> · ${p.etapa === "retiro" ? "Retiro" : "Entrega"} — ${SOLICITUD_LABEL_ADMIN[p.motivo] || p.motivo}
-          <div class="subtitulo" style="margin-top:2px;">"${p.nota || ""}"</div>
+          <strong>${esc(p.t.patente)}</strong> · ${p.etapa === "retiro" ? "Retiro" : "Entrega"} — ${SOLICITUD_LABEL_ADMIN[p.motivo] || esc(p.motivo)}
+          <div class="subtitulo" style="margin-top:2px;">"${esc(p.nota) || ""}"</div>
         </div>
-        <button class="link-accion" data-resolver="${p.t.id}" data-etapa="${p.etapa}" data-motivo-sugerido="${p.motivo}">Resolver</button>
+        <button class="link-accion" data-resolver="${p.t.id}" data-etapa="${p.etapa}" data-motivo-sugerido="${esc(p.motivo)}">Resolver</button>
       </div>`).join("");
     $("lista-solicitudes-cancelacion").querySelectorAll("[data-resolver]").forEach((btn) => {
       btn.addEventListener("click", () => abrirModalCancelarAdmin(btn.dataset.resolver, btn.dataset.etapa, btn.dataset.motivoSugerido));
@@ -2579,7 +2581,7 @@
     const { data, error } = await sb.from("traslados_eventos").select("*").eq("traslado_id", id).order("created_at");
     if (error) { box.textContent = "No se pudo cargar: " + error.message; return; }
     const L = (e) => ESTADO_LABEL_TRASLADO[e] || e;
-    box.innerHTML = data.length ? data.map((e) => `<div style="padding:3px 0;"><span class="mono">${fmtFechaHora(e.created_at)}</span> · ${e.etapa}: ${e.estado_anterior ? L(e.estado_anterior) + " → " : ""}<strong>${L(e.estado_nuevo)}</strong> · ${e.actor_nombre || e.actor_tipo}${e.registro_inicial ? " <em>(estado previo al registro)</em>" : ""}</div>`).join("") : "Sin cambios registrados.";
+    box.innerHTML = data.length ? data.map((e) => `<div style="padding:3px 0;"><span class="mono">${fmtFechaHora(e.created_at)}</span> · ${e.etapa}: ${e.estado_anterior ? L(e.estado_anterior) + " → " : ""}<strong>${L(e.estado_nuevo)}</strong> · ${esc(e.actor_nombre) || esc(e.actor_tipo)}${e.registro_inicial ? " <em>(estado previo al registro)</em>" : ""}</div>`).join("") : "Sin cambios registrados.";
   }
 
   function renderTraslados() {
@@ -2634,13 +2636,13 @@
           if (chofer && chofer.ubicacion_lat) acc += `<button class="link-accion" data-ver-mapa="${t.id}" data-etapa="${etapa}">Ver ubicación</button>`;
           acc += `<button class="link-accion rojo" data-cancelar-etapa="${t.id}" data-etapa="${etapa}">Cancelar</button></div>`;
         }
-        return `<div><small>${etapa === "retiro" ? "Retiro" : "Entrega"}</small><span class="badge ${estado}">${ESTADO_LABEL_TRASLADO[estado] || estado}</span><div class="sub" ${sin ? 'style="color:var(--coral);"' : ""}>${chofer ? chofer.nombre : sin ? "Sin chofer" : "—"}</div>${acc}</div>`;
+        return `<div><small>${etapa === "retiro" ? "Retiro" : "Entrega"}</small><span class="badge ${estado}">${ESTADO_LABEL_TRASLADO[estado] || estado}</span><div class="sub" ${sin ? 'style="color:var(--coral);"' : ""}>${chofer ? esc(chofer.nombre) : sin ? "Sin chofer" : "—"}</div>${acc}</div>`;
       };
       return `<div class="card-d">
-        <div class="card-top"><div><h3 class="mono" style="font-size:1rem;">${t.patente || "—"}${t.reasignado_manualmente ? ' <span class="badge reasignado">🔄</span>' : ""}</h3><span class="sub">${t.talleres ? t.talleres.nombre_taller : "—"}</span></div><span class="etq">${TIPO_LABEL_TRASLADO[t.tipo] || t.tipo || "—"}</span></div>
+        <div class="card-top"><div><h3 class="mono" style="font-size:1rem;">${esc(t.patente) || "—"}${t.reasignado_manualmente ? ' <span class="badge reasignado">🔄</span>' : ""}</h3><span class="sub">${t.talleres ? esc(t.talleres.nombre_taller) : "—"}</span></div><span class="etq">${TIPO_LABEL_TRASLADO[t.tipo] || t.tipo || "—"}</span></div>
         <div class="grid2">
           <div><small>Fecha y hora</small>${fmtFechaHora(t.fecha_principal || t.created_at)}</div>
-          <div><small>Cliente</small>${t.cliente_nombre || "—"}${t.comuna ? ", " + t.comuna : ""}</div>
+          <div><small>Cliente</small>${esc(t.cliente_nombre) || "—"}${esc(t.comuna) ? ", " + esc(t.comuna) : ""}</div>
           ${etapaHtml("retiro", t.chofer_retiro)}${etapaHtml("entrega", t.chofer_entrega)}
         </div>
         <div class="acciones"><button data-linea="${t.id}">Detalle</button><button data-ver-fotos="${t.id}">Fotos</button>${(!cancelado && !trasladoEsFinalizado(t)) ? `<button class="rojo" data-cancelar="${t.id}">Cancelar</button>` : ""}</div>
@@ -2784,7 +2786,7 @@
 
   async function cargarInteresados() {
     const { data, error } = await sb.from("interesados_taller").select("*").order("created_at", { ascending: false });
-    if (error) { $("lista-interesados").innerHTML = `<p class="vacio">No se pudo cargar: ${error.message}</p>`; return; }
+    if (error) { $("lista-interesados").innerHTML = `<p class="vacio">No se pudo cargar: ${esc(error.message)}</p>`; return; }
     cacheInteresados = data || [];
     renderInteresados();
   }
@@ -2818,17 +2820,17 @@
       const wa = "https://wa.me/" + (i.contacto_telefono || "").replace(/\D/g, "");
       const puedeEnlace = ["acuerdo_cerrado", "alta_enviada"].includes(i.estado) && !esTaller(i);
       return `<div class="card-d">
-        <div class="card-top"><div><h3>${i.nombre_taller}</h3><span class="sub">${i.comuna}</span></div><span class="etq ${esTaller(i) ? "ok" : i.estado === "nuevo" ? "rojo" : ""}">${esTaller(i) ? "Ya es taller" : (ESTADOS_PROSPECTO.find((e) => e[0] === i.estado) || [, i.estado])[1].replace("Descartados", "Descartado")}</span></div>
+        <div class="card-top"><div><h3>${esc(i.nombre_taller)}</h3><span class="sub">${esc(i.comuna)}</span></div><span class="etq ${esTaller(i) ? "ok" : i.estado === "nuevo" ? "rojo" : ""}">${esTaller(i) ? "Ya es taller" : (ESTADOS_PROSPECTO.find((e) => e[0] === i.estado) || [, i.estado])[1].replace("Descartados", "Descartado")}</span></div>
         <div class="grid2">
-          <div><small>Contacto</small>${i.contacto_nombre}${i.contacto_cargo ? ", " + i.contacto_cargo : ""}</div>
-          <div><small>Teléfono</small>${i.contacto_telefono || "—"}</div>
-          <div><small>Correo</small>${i.contacto_correo || "—"}</div>
+          <div><small>Contacto</small>${esc(i.contacto_nombre)}${esc(i.contacto_cargo) ? ", " + esc(i.contacto_cargo) : ""}</div>
+          <div><small>Teléfono</small>${esc(i.contacto_telefono) || "—"}</div>
+          <div><small>Correo</small>${esc(i.contacto_correo) || "—"}</div>
           <div><small>Traslados al mes</small>${i.traslados_estimados_mes ?? "—"}</div>
           <div><small>Ingreso</small>${fmtFechaHora(i.created_at)}</div>
-          <div><small>${i.estado === "descartado" ? "Motivo" : i.alta_enviada_at ? "Enlace enviado" : "Estado"}</small>${i.estado === "descartado" ? (i.motivo_descarte || "—") : i.alta_enviada_at ? fmtFechaHora(i.alta_enviada_at) : `<select class="estado-select" data-id="${i.id}" style="padding:4px 6px;">${ESTADOS_PROSPECTO.filter((e) => e[0] !== "alta_enviada").map(([v, l]) => `<option value="${v}" ${i.estado === v ? "selected" : ""}>${l.replace("Descartados", "Descartado")}</option>`).join("")}</select>`}</div>
+          <div><small>${i.estado === "descartado" ? "Motivo" : i.alta_enviada_at ? "Enlace enviado" : "Estado"}</small>${i.estado === "descartado" ? (esc(i.motivo_descarte) || "—") : i.alta_enviada_at ? fmtFechaHora(i.alta_enviada_at) : `<select class="estado-select" data-id="${i.id}" style="padding:4px 6px;">${ESTADOS_PROSPECTO.filter((e) => e[0] !== "alta_enviada").map(([v, l]) => `<option value="${v}" ${i.estado === v ? "selected" : ""}>${l.replace("Descartados", "Descartado")}</option>`).join("")}</select>`}</div>
         </div>
         <div class="acciones">
-          <a href="tel:${i.contacto_telefono || ""}" style="text-decoration:none;"><button style="width:100%;">Llamar</button></a>
+          <a href="tel:${esc(i.contacto_telefono) || ""}" style="text-decoration:none;"><button style="width:100%;">Llamar</button></a>
           <a href="${wa}" target="_blank" rel="noopener" style="text-decoration:none;"><button style="width:100%;">WhatsApp</button></a>
           ${puedeEnlace ? `<button class="prim" data-enlace="${i.id}">${i.estado === "alta_enviada" ? "Reenviar enlace" : "Enviar enlace de alta"}</button>` : ""}
           ${esTaller(i) ? "" : i.estado !== "descartado" ? `<button class="rojo" data-descartar="${i.id}">Descartar</button>` : `<button data-reabrir="${i.id}">Reabrir</button>`}
@@ -2904,7 +2906,7 @@
     const choferActual = (etapa === "retiro" ? t.chofer_retiro : t.chofer_entrega) || {};
     const opciones = cacheChoferes
       .filter((c) => c.estado === "aprobado" && c.id !== choferActualId)
-      .map((c) => `<option value="${c.id}">${c.nombre}</option>`).join("");
+      .map((c) => `<option value="${c.id}">${esc(c.nombre)}</option>`).join("");
 
     const fondo = document.createElement("div");
     fondo.className = "modal-fondo";
@@ -2912,7 +2914,7 @@
       <div class="modal-caja">
         <button class="modal-cerrar" id="modal-reasignar-cerrar">✕</button>
         <h3>Reasignar chofer — ${etapa === "retiro" ? "Retiro" : "Entrega"}</h3>
-        <p class="subtitulo">Patente ${t.patente || "—"}. Chofer actual: <strong>${choferActual.nombre || "sin asignar"}</strong>.</p>
+        <p class="subtitulo">Patente ${esc(t.patente) || "—"}. Chofer actual: <strong>${esc(choferActual.nombre) || "sin asignar"}</strong>.</p>
         <label for="reasig-chofer-nuevo">Nuevo chofer</label>
         <select id="reasig-chofer-nuevo">${opciones || `<option value="">No hay choferes aprobados disponibles</option>`}</select>
         <label for="reasig-monto-nuevo">Monto a pagar al chofer nuevo ($)</label>
@@ -2972,8 +2974,8 @@
     fondo.innerHTML = `
       <div class="modal-caja" style="max-width:520px;">
         <button class="modal-cerrar" id="modal-mapa-cerrar">✕</button>
-        <h3>Ubicación de ${chofer.nombre || "chofer"}</h3>
-        <p class="subtitulo">Patente ${t.patente || "—"} · ${etapa === "retiro" ? "Retiro" : "Entrega"}</p>
+        <h3>Ubicación de ${esc(chofer.nombre) || "chofer"}</h3>
+        <p class="subtitulo">Patente ${esc(t.patente) || "—"} · ${etapa === "retiro" ? "Retiro" : "Entrega"}</p>
         <div id="mapa-chofer"></div>
       </div>`;
     document.body.appendChild(fondo);
@@ -3001,7 +3003,7 @@
       .eq("traslado_id", trasladoId)
       .order("created_at", { ascending: true });
 
-    if (error) { celda.innerHTML = `<span class="vacio">No se pudo cargar: ${error.message}</span>`; return; }
+    if (error) { celda.innerHTML = `<span class="vacio">No se pudo cargar: ${esc(error.message)}</span>`; return; }
     if (!data || !data.length) { celda.innerHTML = `<span class="vacio">Sin fotos registradas para este traslado.</span>`; return; }
 
     async function bloqueEtapa(etapaNombre, fotos) {
