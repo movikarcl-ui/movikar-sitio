@@ -213,6 +213,7 @@
 <div id="vista-panel" style="display:none;">
   <header>
     <h1 style="display:flex; align-items:center; gap:10px;"><img src="/favicon.svg" alt="MoviKar" style="height:22px;" /> MoviKar · Panel de administración</h1>
+    <span style="margin-left:auto; font-size:.85rem; opacity:.85;">Sesión: <b id="sesion-correo">—</b></span>
     <button id="btn-salir">Cerrar sesión</button>
   </header>
   <main>
@@ -839,10 +840,27 @@
     $("t-principal-campos").style.display = e.target.checked ? "none" : "block";
   });
 
+  function trasladoEsFinalizado(t) {
+    const et = [t.estado_retiro, t.estado_entrega].filter(Boolean);
+    return et.length > 0 && et.every((e) => e === "completado" || e === "cancelado");
+  }
+
   async function entrarAlPanel() {
     const { data: { user } } = await sb.auth.getUser();
     if (!user) return;
     correoAdminActual = user.email || "";
+    const { data: esAdm, error: errAdm } = await sb.rpc("es_admin");
+    if (errAdm || esAdm !== true) {
+      await sb.auth.signOut();
+      $("vista-panel").style.display = "none";
+      $("vista-login").style.display = "block";
+      $("paso-codigo").style.display = "none";
+      $("paso-correo").style.display = "block";
+      mostrarError("login-error", "La cuenta " + correoAdminActual + " no tiene acceso de administrador. Ingresa con un correo de admin.");
+      return;
+    }
+    const elSesion = $("sesion-correo");
+    if (elSesion) elSesion.textContent = correoAdminActual;
     $("vista-login").style.display = "none";
     $("vista-panel").style.display = "block";
     await Promise.all([cargarTalleres(), cargarSolicitudes(), cargarChoferes(), cargarTarifas(), cargarFacturacion(), cargarPagosChofer(), cargarTraslados(), cargarInteresados()]);
@@ -2625,7 +2643,7 @@
           <div><small>Cliente</small>${t.cliente_nombre || "—"}${t.comuna ? ", " + t.comuna : ""}</div>
           ${etapaHtml("retiro", t.chofer_retiro)}${etapaHtml("entrega", t.chofer_entrega)}
         </div>
-        <div class="acciones"><button data-linea="${t.id}">Detalle</button><button data-ver-fotos="${t.id}">Fotos</button>${!cancelado ? `<button class="rojo" data-cancelar="${t.id}">Cancelar</button>` : ""}</div>
+        <div class="acciones"><button data-linea="${t.id}">Detalle</button><button data-ver-fotos="${t.id}">Fotos</button>${(!cancelado && !trasladoEsFinalizado(t)) ? `<button class="rojo" data-cancelar="${t.id}">Cancelar</button>` : ""}</div>
         <div id="linea-${t.id}" class="sub" style="display:none; margin-top:10px; font-size:.78rem;"></div>
         <table style="margin:0;"><tbody><tr class="fila-detalle-factura" id="detalle-fotos-${t.id}" style="display:none;"><td></td></tr></tbody></table>
       </div>`;
