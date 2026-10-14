@@ -979,7 +979,7 @@ document.getElementById('btnBuscarPatente').addEventListener('click', async ()=>
     mostrarPatenteMsg('✓ Datos encontrados' + (info.anio ? ' (' + info.anio + ')' : ''), 'ok');
   }catch(err){
     patenteVerificada = false;
-    mostrarPatenteMsg((err.message || 'No se pudo consultar la patente.') + ' Puedes escribir marca y modelo a mano.', 'err');
+    mostrarPatenteMsg('No encontramos esa patente. Pero puedes escribir marca y modelo a mano y seguir con el agendamiento.', '');
   }finally{
     btn.disabled = false;
     btnText.textContent = 'Buscar';
