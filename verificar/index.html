@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>MoviKar — Verifica a tu chofer</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FFFFFF; --surface:#F6F9F8;
+    --ink:#16302C; --ink-dim:#5E7570; --line:#DCE6E3;
+    --teal:#009688; --teal-dim:#E3F5F2; --teal-deep:#00695E;
+    --coral:#E8542F; --coral-dim:#FFEEE7;
+    --ok:#1F8F5C; --ok-dim:#E6F6EC;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;color:var(--ink);font-family:'Inter',sans-serif;min-height:100vh;
+    background:
+      radial-gradient(circle at 12% 0%, var(--teal-dim) 0%, transparent 45%),
+      radial-gradient(circle at 88% 8%, var(--coral-dim) 0%, transparent 40%),
+      var(--bg);
+    background-attachment:fixed;
+  }
+  header{display:flex;align-items:center;gap:13px;padding:18px clamp(16px,4vw,32px);}
+  .brand-mark{width:48px;height:48px;border-radius:14px;background:var(--teal-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .brand-name{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:19px;}
+  .brand-tag{font-size:11.5px;color:var(--teal-deep);font-weight:600;letter-spacing:.02em;}
+  .wrap{max-width:460px;margin:0 auto;padding:8px clamp(16px,4vw,32px) 60px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:26px 22px;text-align:center;box-shadow:0 1px 3px rgba(22,48,44,0.05), 0 10px 28px rgba(22,48,44,0.06);}
+  .foto{width:132px;height:132px;border-radius:50%;margin:0 auto 14px;background:var(--teal-dim);display:flex;align-items:center;justify-content:center;overflow:hidden;border:4px solid var(--ok-dim);}
+  .foto img{width:100%;height:100%;object-fit:cover;}
+  .foto span{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:48px;color:var(--teal-deep);}
+  .sello{display:inline-flex;align-items:center;gap:6px;background:var(--ok-dim);color:var(--ok);font-weight:700;font-size:13px;padding:6px 12px;border-radius:999px;margin-bottom:12px;}
+  .sello.malo{background:var(--coral-dim);color:var(--coral);}
+  h1{font-family:'Space Grotesk',sans-serif;font-size:26px;margin:0 0 4px;}
+  .sub{font-size:14px;color:var(--ink-dim);margin:0 0 18px;line-height:1.5;}
+  .dato{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:10px;background:var(--surface);text-align:left;}
+  .dato small{display:block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:2px;}
+  .dato b{font-size:16px;}
+  .aviso{margin-top:18px;font-size:13px;line-height:1.55;color:var(--ink-dim);text-align:left;background:var(--teal-dim);border-radius:12px;padding:12px 14px;}
+  .aviso b{color:var(--teal-deep);}
+  .pie{text-align:center;font-size:12px;color:var(--ink-dim);margin-top:18px;}
+  .codigo{width:100%;text-align:center;font-size:34px;letter-spacing:.5em;padding:14px 10px 14px 24px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin:6px 0 12px;font-family:'JetBrains Mono',monospace;color:var(--ink);}
+  .btn{width:100%;border:none;border-radius:12px;padding:15px 16px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;background:var(--teal);color:#fff;margin-top:14px;}
+  .btn:disabled{opacity:.55;cursor:default;}
+  .err{color:#B3261E;font-size:13px;margin:0 0 4px;min-height:18px;}
+  .ok-box{margin-top:16px;background:var(--ok-dim);color:var(--ok);border-radius:12px;padding:14px;font-weight:700;font-size:14.5px;line-height:1.45;}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand-mark">
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#009688" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3v6c0 5-3.4 9.3-8 11-4.6-1.7-8-6-8-11V5l8-3z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>
+  </div>
+  <div>
+    <div class="brand-name">MoviKar</div>
+    <div class="brand-tag">Verificación de chofer</div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="card" id="tarjeta">
+    <p class="sub">Verificando…</p>
+  </div>
+  <div class="pie">¿Dudas? Escríbenos o llámanos antes de entregar tu auto.</div>
+</div>
+
+<script>
+const URL_FN = 'https://gcivybtcccaslyzkzgri.supabase.co/functions/v1/verificar-chofer';
+const tarjeta = document.getElementById('tarjeta');
+const token = new URLSearchParams(location.search).get('t') || '';
+let codigoActual = '';
+
+function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+async function llamar(extra){
+  const resp = await fetch(URL_FN, {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json' },
+    body: JSON.stringify({ token, ...extra })
+  });
+  return resp.json();
+}
+
+function pintarNoValido(titulo, texto){
+  tarjeta.innerHTML = `
+    <div class="sello malo">⚠️ No verificado</div>
+    <h1>${esc(titulo)}</h1>
+    <p class="sub">${esc(texto)}</p>
+    <div class="aviso"><b>Por tu seguridad:</b> si no puedes confirmar a la persona que se presenta, no entregues tu auto y contáctanos.</div>`;
+}
+
+// Retiro: pide el código que el chofer muestra en su app
+function pintarPedirCodigo(d, mensajeError){
+  if(d && d.bloqueado){
+    tarjeta.innerHTML = `
+      <div class="sello malo">🔒 Bloqueado</div>
+      <h1>Demasiados intentos</h1>
+      <p class="sub">Por seguridad bloqueamos esta verificación. No entregues tu auto y contáctanos.</p>`;
+    return;
+  }
+  tarjeta.innerHTML = `
+    <div class="sello">🛡️ Verificación MoviKar</div>
+    <h1>Ingresa el código</h1>
+    <p class="sub">Cuando el chofer llegue, te dirá un <b>código de 4 dígitos</b> que ve en su app. Ingrésalo aquí para ver sus datos y confirmar que es él.</p>
+    <input class="codigo" id="codigo" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="one-time-code" placeholder="----">
+    <div class="err" id="err">${esc(mensajeError || '')}</div>
+    <button class="btn" id="btnVerificar">Verificar chofer</button>
+    <div class="aviso"><b>Importante:</b> no entregues tu auto hasta confirmar al chofer en este paso.</div>`;
+  const inp = document.getElementById('codigo');
+  const btn = document.getElementById('btnVerificar');
+  inp.addEventListener('input', () => { inp.value = inp.value.replace(/\D/g,'').slice(0,4); });
+  inp.addEventListener('keydown', (e) => { if(e.key === 'Enter') btn.click(); });
+  btn.addEventListener('click', async () => {
+    const c = inp.value.trim();
+    if(c.length !== 4){ document.getElementById('err').textContent = 'Ingresa los 4 dígitos.'; return; }
+    btn.disabled = true; btn.textContent = 'Verificando…';
+    try{
+      const r = await llamar({ codigo: c });
+      if(r.codigo_incorrecto){
+        pintarPedirCodigo(r, r.bloqueado ? '' : `Código incorrecto. Te quedan ${r.intentos_restantes} intentos.`);
+        return;
+      }
+      if(r.requiere_codigo){ pintarPedirCodigo(r, ''); return; }
+      codigoActual = c;
+      pintarChofer(r);
+    }catch(e){
+      document.getElementById('err').textContent = 'No pudimos conectar. Intenta de nuevo.';
+      btn.disabled = false; btn.textContent = 'Verificar chofer';
+    }
+  });
+  setTimeout(() => inp.focus(), 50);
+}
+
+function pintarChofer(d){
+  const inicial = esc((d.nombre || '?').trim()[0] || '?').toUpperCase();
+  const etapaTxt = d.etapa === 'retiro' ? 'retirará tu auto' : 'te entregará tu auto';
+  const foto = d.foto_url
+    ? `<img src="${esc(d.foto_url)}" alt="Foto del chofer" id="imgChofer">`
+    : `<span>${inicial}</span>`;
+
+  let pie = '';
+  if(d.requiere_confirmar){
+    pie = `
+      <div class="aviso"><b>Compara:</b> la foto y el nombre deben coincidir con la persona que tienes enfrente, y la patente con tu auto.</div>
+      <button class="btn" id="btnConfirmar">✓ Sí, es esta persona — autorizar retiro</button>
+      <div class="err" id="err" style="margin-top:8px;"></div>`;
+  } else if(d.confirmado){
+    pie = `<div class="ok-box">✓ Retiro autorizado.<br>Ya puedes entregar tu auto al chofer.</div>`;
+  } else if(d.autorizado_por_admin){
+    pie = `<div class="ok-box">✓ MoviKar autorizó este retiro.</div>`;
+  } else {
+    pie = `<div class="aviso"><b>Antes de entregar:</b> compara la foto con la persona que tienes enfrente y confirma que la patente coincide.</div>`;
+  }
+
+  tarjeta.innerHTML = `
+    <div class="foto" id="contFoto">${foto}</div>
+    <div class="sello">✓ Chofer verificado por MoviKar</div>
+    <h1>${esc(d.nombre)}</h1>
+    <p class="sub">Es la persona que ${etapaTxt}.</p>
+    <div class="dato"><small>Patente del vehículo</small><b>${esc(d.patente)}</b>${d.vehiculo ? ` · ${esc(d.vehiculo)}` : ''}</div>
+    ${pie}`;
+
+  const img = document.getElementById('imgChofer');
+  if(img){
+    img.addEventListener('error', () => {
+      document.getElementById('contFoto').innerHTML = `<span>${inicial}</span>`;
+    });
+  }
+
+  const btn = document.getElementById('btnConfirmar');
+  if(btn){
+    btn.addEventListener('click', async () => {
+      btn.disabled = true; btn.textContent = 'Confirmando…';
+      try{
+        const r = await llamar({ codigo: codigoActual, confirmar: true });
+        if(r.confirmado){ pintarChofer(r); return; }
+        document.getElementById('err').textContent = 'No se pudo confirmar. Intenta de nuevo.';
+        btn.disabled = false; btn.textContent = '✓ Sí, es esta persona — autorizar retiro';
+      }catch(e){
+        document.getElementById('err').textContent = 'No pudimos conectar. Intenta de nuevo.';
+        btn.disabled = false; btn.textContent = '✓ Sí, es esta persona — autorizar retiro';
+      }
+    });
+  }
+}
+
+(async function(){
+  if(!token){ pintarNoValido('Enlace incompleto', 'Este enlace no es válido. Pide al chofer que te muestre su código QR.'); return; }
+  try{
+    const d = await llamar({});
+    if(!d.ok){ pintarNoValido('No pudimos verificar', 'Intenta de nuevo en unos minutos.'); return; }
+    if(!d.encontrado){ pintarNoValido('Enlace no vigente', 'Este enlace ya no es válido o el traslado fue reasignado a otro chofer.'); return; }
+    if(d.finalizado){ pintarNoValido('Traslado finalizado', 'Este traslado ya terminó, por lo que este enlace ya no está activo.'); return; }
+    if(!d.vigente){ pintarNoValido('Chofer no vigente', 'Esta persona no está autorizada actualmente por MoviKar para este traslado.'); return; }
+    if(d.requiere_codigo){ pintarPedirCodigo(d, ''); return; }
+    pintarChofer(d);
+  }catch(e){
+    pintarNoValido('Sin conexión', 'No pudimos conectar. Revisa tu internet e intenta de nuevo.');
+  }
+})();
+</script>
+</body>
+</html>
