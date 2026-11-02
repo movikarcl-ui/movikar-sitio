@@ -17,6 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <style>
   :root{
     --bg:#FFFFFF; --surface:#F6F9F8; --surface-2:#EDF3F1;
@@ -66,6 +67,12 @@
   .modal-opcion{width:100%;text-align:left;background:var(--surface-2,#EDF3F1);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:8px;font-size:13.5px;cursor:pointer;font-family:inherit;}
   .modal-opcion.activa{border-color:var(--teal-deep);background:var(--teal-dim);}
   .modal-err{color:#B3261E;font-size:12.5px;margin:-6px 0 10px;display:none;}
+  .sello-box{margin-top:14px;}
+  .sello-info{background:var(--teal-dim);border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.5;margin-bottom:8px;}
+  .sello-aviso{background:var(--coral-dim);border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.5;margin-bottom:8px;}
+  .btn-sello{width:100%;background:#fff;border:1px solid var(--teal-deep);color:var(--teal-deep);border-radius:12px;padding:12px 14px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:8px;}
+  .qr-caja svg{width:100%;height:auto;display:block;}
+  .pin-input{width:100%;text-align:center;font-size:30px;letter-spacing:.5em;padding:14px 10px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin:10px 0 14px;font-family:'JetBrains Mono',monospace;}
   input:focus{outline:2px solid var(--teal);outline-offset:1px;border-color:var(--teal);}
   .btn{width:100%;background:var(--ink);color:#fff;border:none;border-radius:10px;padding:13px;font-weight:600;font-size:14px;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:.15s;}
   .btn:hover{background:var(--teal-deep);transform:translateY(-1px);}
@@ -898,6 +905,7 @@ async function cargarTrasladoActivo(){
     <span class="estado-badge">${etapa === 'retiro' ? 'Retiro' : 'Entrega'} · ${ESTADO_LABEL[estadoActual] || estadoActual}</span>
     <div class="traslado-row"><b>${activo.patente}</b> ${[activo.marca, activo.modelo].filter(Boolean).join(' ')}</div>
     ${bloquesRuta}
+    <div class="sello-box" id="selloBox"></div>
     <button class="btn" style="margin-top:16px;" id="btnAvanzar" ${esUltimo ? 'disabled' : ''}>
       ${textoBoton}
     </button>
@@ -906,13 +914,20 @@ async function cargarTrasladoActivo(){
 
   const btnProblema = document.getElementById('btnProblema');
   if(btnProblema) btnProblema.addEventListener('click', () => abrirModalSolicitarCancelacion(activo.id, etapa));
+  iniciarSello(activo.id, etapa, estadoActual);
 
   const btn = document.getElementById('btnAvanzar');
   if(btn && !esUltimo){
     btn.addEventListener('click', async ()=>{
       btn.disabled = true; btn.textContent = 'Actualizando...';
       try{
-        await invocar('chofer-actualizar', { modo:'avanzar_estado', chofer_id: choferId, traslado_id: activo.id, etapa });
+        const r = await invocar('chofer-actualizar', { modo:'avanzar_estado', chofer_id: choferId, traslado_id: activo.id, etapa });
+        if(r && r.requiere_pin){
+          alert(r.motivo || 'Espera a que el cliente confirme tu código.');
+          selloCache = null;
+          await cargarTrasladoActivo();
+          return;
+        }
         await cargarTrasladoActivo();
       }catch(e){
         console.error(e);
@@ -983,6 +998,117 @@ function detenerAlarma(){
 }
 
 // --- Solicitar cancelación ---
+// ---------- Sello de Confianza: QR, PIN y avisos al admin ----------
+let selloCache = null; // { clave, datos }
+
+function iniciarSello(trasladoId, etapa, estadoActual){
+  const clave = `${trasladoId}|${etapa}|${estadoActual}`;
+  if(!['asignado','en_camino','llegado'].includes(estadoActual)) return;
+  if(selloCache && selloCache.clave === clave) pintarSello(selloCache.datos, trasladoId, etapa, estadoActual);
+  invocar('chofer-actualizar', { modo:'mi_verificacion', chofer_id: choferId, traslado_id: trasladoId, etapa })
+    .then((v) => {
+      if(!v || !v.existe) return;
+      const cambio = !selloCache || selloCache.clave !== clave || JSON.stringify(selloCache.datos) !== JSON.stringify(v);
+      selloCache = { clave, datos: v };
+      if(cambio) pintarSello(v, trasladoId, etapa, estadoActual);
+    })
+    .catch(() => { /* el sello es un extra: si falla, el flujo normal sigue igual */ });
+}
+
+function pintarSello(v, trasladoId, etapa, estadoActual){
+  const box = document.getElementById('selloBox');
+  if(!box) return;
+  const btnAv = document.getElementById('btnAvanzar');
+  if(btnAv && !btnAv.dataset.t) btnAv.dataset.t = btnAv.textContent.trim();
+
+  let html = `<button class="btn-sello" id="btnQr">🛡️ Mostrar mi QR / enlace de verificación</button>`;
+  let bloquearAvance = false;
+
+  if(etapa === 'retiro' && estadoActual === 'llegado'){
+    if(v.requiere_pin){
+      bloquearAvance = true;
+      if(v.bloqueado){
+        html += `<div class="sello-aviso">El cliente falló el código demasiadas veces. <b>Espera instrucciones de MoviKar</b>, no retires el auto.</div>`;
+      } else {
+        html += `<div class="sello-info">🔑 <b>Tu código de verificación</b>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:40px;letter-spacing:.35em;text-align:center;margin:8px 0 6px;">${v.codigo || '····'}</div>
+          Díctaselo al cliente. Él debe ingresarlo en su enlace (o escaneando tu QR), ver tus datos y confirmar. <b>Tu botón se activa solo</b> cuando lo confirme.</div>`;
+      }
+      html += v.sin_codigo_avisado
+        ? `<div class="sello-aviso">Avisamos a MoviKar que el cliente no puede confirmar. <b>Espera sus instrucciones</b>, no retires el auto todavía.</div>`
+        : `<button class="btn-sello" id="btnSinCodigo">El cliente no puede confirmar</button>`;
+    } else if(v.pin_validado){
+      html += `<div class="sello-info">✅ El cliente confirmó tu identidad. Ya puedes comenzar el control fotográfico.</div>`;
+    } else if(v.pin_omitido){
+      html += `<div class="sello-info">✅ MoviKar autorizó este retiro. Ya puedes comenzar el control fotográfico.</div>`;
+    }
+  }
+  if(etapa === 'entrega' && estadoActual === 'llegado'){
+    html += v.cliente_no_esta_avisado
+      ? `<div class="sello-aviso">Avisamos a MoviKar que el cliente no está. <b>Espera sus instrucciones</b>, no dejes el auto con otra persona.</div>`
+      : `<button class="btn-sello" id="btnClienteNoEsta">El cliente no está</button>`;
+  }
+  box.innerHTML = html;
+
+  if(btnAv){
+    if(bloquearAvance){ btnAv.disabled = true; btnAv.textContent = 'Esperando confirmación del cliente'; }
+    else if(btnAv.dataset.t){ btnAv.disabled = false; btnAv.textContent = btnAv.dataset.t; }
+  }
+
+  const bQr = document.getElementById('btnQr');
+  if(bQr) bQr.addEventListener('click', () => abrirModalQr(v.token));
+  const bSin = document.getElementById('btnSinCodigo');
+  if(bSin) bSin.addEventListener('click', () => avisarAdmin('sin_codigo', trasladoId, etapa, bSin));
+  const bNo = document.getElementById('btnClienteNoEsta');
+  if(bNo) bNo.addEventListener('click', () => avisarAdmin('cliente_no_esta', trasladoId, etapa, bNo));
+}
+
+async function avisarAdmin(modo, trasladoId, etapa, boton){
+  boton.disabled = true; boton.textContent = 'Avisando a MoviKar...';
+  try{
+    const r = await invocar('chofer-actualizar', { modo, chofer_id: choferId, traslado_id: trasladoId, etapa });
+    if(r && r.ok === false){ alert(r.motivo || 'No se pudo avisar. Intenta de nuevo.'); boton.disabled = false; return; }
+    selloCache = null;
+    await cargarTrasladoActivo();
+  }catch(e){
+    alert('No se pudo avisar. Revisa tu conexión e intenta de nuevo.');
+    boton.disabled = false;
+  }
+}
+
+function abrirModalQr(token){
+  const url = `${location.origin}/verificar/?t=${token}`;
+  let qrSvg = '';
+  try{
+    if(typeof qrcode === 'function'){
+      const qr = qrcode(0, 'M');
+      qr.addData(url);
+      qr.make();
+      qrSvg = qr.createSvgTag({ cellSize: 6, margin: 2, scalable: true });
+    }
+  }catch(e){ qrSvg = ''; }
+  const fondo = document.createElement('div');
+  fondo.className = 'modal-fondo';
+  fondo.innerHTML = `
+    <div class="modal-caja" style="text-align:center;">
+      <button class="modal-cerrar" id="qrCerrar">✕</button>
+      <h3>Mi verificación MoviKar</h3>
+      <p style="font-size:13px;color:var(--ink-dim);margin:0 0 12px;">Muestra este QR al cliente (o compártele el enlace). Al abrirlo, ingresará tu código para ver tus datos.</p>
+      <div class="qr-caja">${qrSvg || `<p style="font-size:12px;word-break:break-all;">${url}</p>`}</div>
+      <button class="btn-sello" id="qrCompartir" style="margin-top:12px;">Compartir enlace</button>
+    </div>`;
+  document.body.appendChild(fondo);
+  fondo.querySelector('#qrCerrar').addEventListener('click', () => fondo.remove());
+  fondo.addEventListener('click', (e) => { if(e.target === fondo) fondo.remove(); });
+  fondo.querySelector('#qrCompartir').addEventListener('click', async () => {
+    try{
+      if(navigator.share){ await navigator.share({ title: 'Verifica a tu chofer MoviKar', url }); return; }
+      await navigator.clipboard.writeText(url);
+      alert('Enlace copiado.');
+    }catch(e){ /* el usuario canceló */ }
+  });
+}
+
 function abrirModalSolicitarCancelacion(trasladoId, etapa){
   let motivoElegido = null;
   const fondo = document.createElement('div');
