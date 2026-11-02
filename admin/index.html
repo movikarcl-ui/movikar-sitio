@@ -468,6 +468,10 @@
         <h3 style="font-size:0.9rem; margin-bottom:8px;">⚠️ Solicitudes de cancelación de choferes</h3>
         <div id="lista-solicitudes-cancelacion"></div>
       </div>
+      <div class="dash-card" id="card-sello" style="margin-bottom:20px; display:none;">
+        <h3 style="font-size:0.9rem; margin-bottom:8px;">🛡️ Sello de Confianza — acciones pendientes</h3>
+        <div id="lista-sello"></div>
+      </div>
       <div class="filtros-row">
         <select id="trasl-periodo">
           <option value="mes">Este mes</option>
@@ -2477,6 +2481,7 @@
 
   // ---------- Traslados (monitoreo + control en vivo) ----------
   let cacheTraslados = [];
+  let cacheSello = [];
   let cacheReasignacionesPorTraslado = {}; // { traslado_id: [reasignaciones] }
   let filtroTrasladoActivo = "hoy";
 
@@ -2539,6 +2544,7 @@
     renderTraslados();
     if (cacheChoferes.length) renderChoferes();
     renderSolicitudesCancelacion();
+    cargarSello();
     renderDashboard();
   }
 
@@ -2567,6 +2573,122 @@
     $("lista-solicitudes-cancelacion").querySelectorAll("[data-resolver]").forEach((btn) => {
       btn.addEventListener("click", () => abrirModalCancelarAdmin(btn.dataset.resolver, btn.dataset.etapa, btn.dataset.motivoSugerido));
     });
+  }
+
+  // ---------- Sello de Confianza: aviso al cliente por WhatsApp, PIN y alertas ----------
+  const ETAPA_ACTIVA_SELLO = ["asignado", "en_camino", "llegado", "control_fotografico"];
+
+  function telefonoWhatsapp(tel) {
+    let d = String(tel || "").replace(/\D/g, "");
+    if (d.startsWith("56")) return d;
+    if (d.length === 9 && d.startsWith("9")) return "56" + d;
+    if (d.length === 8) return "569" + d;
+    return d;
+  }
+
+  function nombreCortoChofer(nombre) {
+    const p = String(nombre || "").trim().split(/\s+/).filter(Boolean);
+    return p.length > 1 ? `${p[0]} ${p[1][0].toUpperCase()}.` : (p[0] || "tu chofer MoviKar");
+  }
+
+  function mensajeWhatsappSello(v) {
+    const t = v.traslados || {};
+    const chofer = nombreCortoChofer(v.choferes && v.choferes.nombre);
+    const link = `${location.origin}/verificar/?t=${v.token}`;
+    const saludo = `Hola${t.cliente_nombre ? " " + t.cliente_nombre.split(" ")[0] : ""}, te escribe MoviKar.`;
+    if (v.etapa === "retiro") {
+      return `${saludo} Hoy ${chofer} retirará tu auto patente ${t.patente}.\n\nCuando llegue, abre este enlace: ${link}\n\nAhí ingresarás el código de 4 dígitos que el chofer te dirá, verás su foto y podrás confirmar que es él. No le entregues tu auto antes de ese paso.`;
+    }
+    return `${saludo} Hoy ${chofer} te entregará tu auto patente ${t.patente}.\n\nVerifícalo aquí: ${link}`;
+  }
+
+  async function cargarSello() {
+    const { data, error } = await sb
+      .from("verificaciones_traslado")
+      .select("*, traslados(patente, cliente_nombre, cliente_telefono, estado_retiro, estado_entrega), choferes(nombre)")
+      .order("creada_at", { ascending: false })
+      .limit(300);
+    if (error) { cacheSello = []; renderSello(); return; }
+    cacheSello = (data || []).filter((v) => {
+      const t = v.traslados || {};
+      const est = v.etapa === "retiro" ? t.estado_retiro : t.estado_entrega;
+      return ETAPA_ACTIVA_SELLO.includes(est);
+    });
+    renderSello();
+    if (typeof renderAtencion === "function") renderAtencion();
+  }
+
+  function pendientesSello() {
+    const items = [];
+    cacheSello.forEach((v) => {
+      const sinPin = v.etapa === "retiro" && v.pin && !v.pin_validado_at && !v.pin_omitido_at;
+      if (v.etapa === "retiro" && v.sin_codigo_at && sinPin) items.push({ v, tipo: "sin_codigo" });
+      else if (v.etapa === "retiro" && v.pin_intentos >= 5 && sinPin) items.push({ v, tipo: "bloqueado" });
+      else if (v.etapa === "entrega" && v.cliente_no_esta_at) items.push({ v, tipo: "no_esta" });
+      else if (!v.aviso_enviado_at) items.push({ v, tipo: "avisar" });
+    });
+    return items;
+  }
+
+  function renderSello() {
+    const card = $("card-sello");
+    if (!card) return;
+    const items = pendientesSello();
+    if (!items.length) { card.style.display = "none"; return; }
+    card.style.display = "block";
+    const orden = { sin_codigo: 0, bloqueado: 0, no_esta: 0, avisar: 1 };
+    items.sort((a, b) => orden[a.tipo] - orden[b.tipo]);
+    $("lista-sello").innerHTML = items.map(({ v, tipo }) => {
+      const t = v.traslados || {};
+      const etapaTxt = v.etapa === "retiro" ? "Retiro" : "Entrega";
+      const chofer = esc((v.choferes && v.choferes.nombre) || "—");
+      const cliente = `${esc(t.cliente_nombre || "Cliente")}${t.cliente_telefono ? " · " + esc(t.cliente_telefono) : ""}`;
+      const titulos = {
+        sin_codigo: "🔑 El cliente no puede confirmar al chofer — el chofer espera",
+        bloqueado: "🔒 El cliente falló el código 5 veces — el chofer espera",
+        no_esta: "🚪 El cliente no está en la entrega — el chofer espera instrucciones",
+        avisar: "📲 Falta avisar al cliente",
+      };
+      const botones = [];
+      if (t.cliente_telefono) botones.push(`<button class="link-accion" data-sello-wa="${v.id}">${tipo === "avisar" ? "Enviar WhatsApp" : "Reenviar WhatsApp"}</button>`);
+      if (tipo === "sin_codigo" || tipo === "bloqueado") botones.push(`<button class="link-accion rojo" data-sello-omitir="${v.id}">Autorizar retiro sin confirmación</button>`);
+      return `
+      <div style="border-top:1px solid var(--line); padding:10px 0;">
+        <div><strong>${esc(t.patente)}</strong> · ${etapaTxt} — ${titulos[tipo]}</div>
+        <div class="subtitulo" style="margin-top:2px;">Chofer: ${chofer} · ${cliente}</div>
+        <div style="margin-top:6px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">${botones.join("")}</div>
+      </div>`;
+    }).join("");
+
+    $("lista-sello").querySelectorAll("[data-sello-wa]").forEach((b) => {
+      b.addEventListener("click", () => enviarWhatsappSello(b.dataset.selloWa));
+    });
+    $("lista-sello").querySelectorAll("[data-sello-omitir]").forEach((b) => {
+      b.addEventListener("click", () => omitirPinSello(b.dataset.selloOmitir));
+    });
+  }
+
+  async function enviarWhatsappSello(id) {
+    const v = cacheSello.find((x) => x.id === id);
+    if (!v) return;
+    const tel = telefonoWhatsapp(v.traslados && v.traslados.cliente_telefono);
+    if (!tel) { alert("Este traslado no tiene teléfono del cliente."); return; }
+    window.open(`https://wa.me/${tel}?text=${encodeURIComponent(mensajeWhatsappSello(v))}`, "_blank", "noopener");
+    const { error } = await sb.rpc("admin_marcar_aviso", { p_traslado_id: v.traslado_id, p_etapa: v.etapa });
+    if (error) { alert("Se abrió WhatsApp, pero no se pudo registrar el aviso: " + error.message); return; }
+    cargarSello();
+  }
+
+  async function omitirPinSello(id) {
+    const v = cacheSello.find((x) => x.id === id);
+    if (!v) return;
+    const t = v.traslados || {};
+    const motivo = prompt(`Autorizar retiro SIN confirmación del cliente — ${t.patente}.\nUsa esto solo después de llamar al cliente y confirmar su identidad.\n\nEscribe el motivo (queda registrado con tu correo y la hora):`);
+    if (motivo === null) return;
+    if (!motivo.trim()) { alert("Debes indicar el motivo."); return; }
+    const { error } = await sb.rpc("admin_omitir_pin", { p_traslado_id: v.traslado_id, p_motivo: motivo });
+    if (error) { alert("No se pudo autorizar: " + error.message); return; }
+    cargarSello();
   }
 
   function trasladoSinChofer(t) {
@@ -2876,6 +2998,10 @@
     if (cacheSolicitudesPendientes.length) f.push([`${cacheSolicitudesPendientes.length} alta${cacheSolicitudesPendientes.length > 1 ? "s" : ""} de taller por aprobar`, "Revisar", "solicitudes"]);
     const sc = cacheTraslados.filter((t) => trasladoSinChofer(t)).length;
     if (sc) f.push([`${sc} traslado${sc > 1 ? "s" : ""} sin chofer asignado`, "Asignar", "traslados"]);
+    const urg = pendientesSello().filter((i) => i.tipo !== "avisar").length;
+    if (urg) f.push([`${urg} chofer${urg > 1 ? "es" : ""} esperando tu instrucción en el domicilio`, "Atender", "traslados"]);
+    const av = pendientesSello().filter((i) => i.tipo === "avisar").length;
+    if (av) f.push([`${av} cliente${av > 1 ? "s" : ""} sin aviso de verificación del chofer`, "Avisar", "traslados"]);
     const po = cacheChoferes.filter((c) => c.estado === "pendiente").length;
     if (po) f.push([`${po} chofer${po > 1 ? "es" : ""} postulante${po > 1 ? "s" : ""} por revisar`, "Revisar", "choferes"]);
     const box = $("atencion-box");
