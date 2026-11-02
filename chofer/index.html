@@ -283,7 +283,7 @@
     <div class="oferta-sub">Tienes que responder antes de que se agote el tiempo</div>
 
     <div class="countdown-wrap">
-      <div class="countdown-num" id="countdownNum">10:00</div>
+      <div class="countdown-num" id="countdownNum">1:30</div>
     </div>
     <div class="countdown-bar"><div class="countdown-fill" id="countdownFill"></div></div>
 
@@ -353,6 +353,11 @@ function renderStepper(estadoActual){
 }
 
 let choferId = localStorage.getItem('movikar_chofer_id');
+let choferToken = localStorage.getItem('movikar_chofer_token');
+let cacheEstado = null;
+let ultimaPos = null;
+let ultimoEnvio = 0;
+let latidoInterval = null;
 let telefonoActual = '';
 let watchId = null;
 let refreshInterval = null;
@@ -360,6 +365,7 @@ let refreshInterval = null;
 // --- estado de la oferta activa ---
 let ofertaActualId = null;
 let ofertaExpiraAt = null;
+let ofertaTotalMs = 90000;
 let countdownInterval = null;
 let beepInterval = null;
 let audioCtx = null;
@@ -399,9 +405,31 @@ function hideMsg(id){
 }
 
 async function invocar(fn, body){
-  const { data, error } = await sb.functions.invoke(fn, { body });
-  if(error) throw error;
+  const esChofer = fn === 'chofer-actualizar';
+  const payload = (esChofer && choferToken) ? { ...body, token: choferToken } : body;
+  const { data, error } = await sb.functions.invoke(fn, { body: payload });
+  if(error){
+    if(esChofer && error.context && error.context.status === 401) sesionVencida();
+    throw error;
+  }
+  if(esChofer && data && data.sesion_expirada) sesionVencida();
+  if(esChofer && !['mi_estado','set_disponible','mi_verificacion'].includes(body.modo)) cacheEstado = null;
   return data;
+}
+
+// Una sola lectura segura por ciclo (traslados + oferta), compartida por las dos pantallas.
+function obtenerEstado(){
+  const ahora = Date.now();
+  if(cacheEstado && ahora - cacheEstado.t < 2500) return cacheEstado.p;
+  const p = invocar('chofer-actualizar', { modo:'mi_estado', chofer_id: choferId }).catch(e=>{ cacheEstado = null; throw e; });
+  cacheEstado = { t: ahora, p };
+  return p;
+}
+
+function sesionVencida(){
+  if(!choferId) return;
+  cerrarSesion();
+  showMsg('loginMsg', '⚠ Tu sesión venció. Ingresa de nuevo.', 'err');
 }
 
 // ---------- Desbloqueo de audio ----------
@@ -460,7 +488,7 @@ document.getElementById('btnSolicitar').addEventListener('click', async ()=>{
     if(data.mock_codigo){
       showMsg('loginMsg', 'Código de prueba (mock): ' + data.mock_codigo, 'mock');
     } else {
-      showMsg('loginMsg', '✓ Código enviado por WhatsApp.', 'ok');
+      showMsg('loginMsg', '✓ Te enviamos el código a tu correo registrado. Revisa tu bandeja y el spam.', 'ok');
     }
   }catch(e){
     btn.disabled = false; btn.textContent = 'Enviarme un código';
@@ -485,7 +513,9 @@ document.getElementById('btnVerificar').addEventListener('click', async ()=>{
       return;
     }
     choferId = data.chofer_id;
+    choferToken = data.token || null;
     localStorage.setItem('movikar_chofer_id', choferId);
+    if(choferToken) localStorage.setItem('movikar_chofer_token', choferToken);
     localStorage.setItem('movikar_chofer_telefono', telefonoActual);
     if(data.correo) localStorage.setItem('movikar_chofer_correo', data.correo);
     iniciarApp();
@@ -498,6 +528,10 @@ document.getElementById('btnVerificar').addEventListener('click', async ()=>{
 function cerrarSesion(){
   pararGeolocalizacion();
   detenerAlarma();
+  if(choferToken){ invocar('chofer-login', { modo:'cerrar', token: choferToken }).catch(()=>{}); }
+  choferToken = null;
+  cacheEstado = null;
+  localStorage.removeItem('movikar_chofer_token');
   localStorage.removeItem('movikar_chofer_id');
   localStorage.removeItem('movikar_chofer_telefono');
   localStorage.removeItem('movikar_chofer_correo');
@@ -586,21 +620,25 @@ function activarDisponible(){
     document.getElementById('dispEstado').textContent = 'Desactivado';
     return;
   }
-  watchId = navigator.geolocation.watchPosition(async (pos)=>{
+  watchId = navigator.geolocation.watchPosition((pos)=>{
     document.getElementById('dispEstado').textContent = 'Activo';
-    try{
-      await invocar('chofer-actualizar', {
-        modo: 'set_disponible',
-        chofer_id: choferId,
-        disponible: true,
-        lat: pos.coords.latitude,
-        lng: pos.coords.longitude
-      });
-    }catch(err){ console.error('No se pudo actualizar ubicación:', err); }
+    ultimaPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+    if(Date.now() - ultimoEnvio > 15000) enviarUbicacion();
   }, (err)=>{
     document.getElementById('dispEstado').textContent = 'Sin permiso de ubicación';
     document.getElementById('dispToggle').checked = false;
   }, { enableHighAccuracy:true, maximumAge:15000 });
+  clearInterval(latidoInterval);
+  latidoInterval = setInterval(enviarUbicacion, 60000);
+}
+
+// Envía la última ubicación conocida. El GPS vigente es requisito para recibir ofertas.
+async function enviarUbicacion(){
+  if(!ultimaPos || !choferId) return;
+  ultimoEnvio = Date.now();
+  try{
+    await invocar('chofer-actualizar', { modo:'set_disponible', chofer_id: choferId, disponible: true, lat: ultimaPos.lat, lng: ultimaPos.lng });
+  }catch(err){ console.error('No se pudo actualizar ubicación:', err); }
 }
 
 async function desactivarDisponible(){
@@ -617,6 +655,9 @@ document.getElementById('dispToggle').addEventListener('change', (e)=>{
 });
 
 function pararGeolocalizacion(){
+  clearInterval(latidoInterval);
+  latidoInterval = null;
+  ultimaPos = null;
   if(watchId !== null){
     navigator.geolocation.clearWatch(watchId);
     watchId = null;
@@ -626,12 +667,11 @@ function pararGeolocalizacion(){
 // --- Traslado activo ---
 async function cargarTrasladoActivo(){
   if(!choferId) return;
-  const { data, error } = await sb
-    .from('traslados')
-    .select('id, tipo, patente, marca, modelo, calle, numero, comuna, depto_casa, cliente_nombre, cliente_telefono, estado_retiro, estado_entrega, chofer_retiro_id, chofer_entrega_id')
-    .or(`chofer_retiro_id.eq.${choferId},chofer_entrega_id.eq.${choferId}`)
-    .order('created_at', { ascending:false })
-    .limit(5);
+  let data = null, error = null;
+  try{
+    const r = await obtenerEstado();
+    if(r && r.ok) data = r.traslados; else error = true;
+  }catch(e){ error = e; }
 
   const cont = document.getElementById('trasladoActivo');
   if(error || !data || data.length === 0){
@@ -658,11 +698,7 @@ async function cargarTrasladoActivo(){
   const wazeUrl = `https://waze.com/ul?q=${encodeURIComponent(direccion)}&navigate=yes`;
   const mapsUrl = (dir) => `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dir)}`;
 
-  let infoTaller = null;
-  try{
-    const { data: rt } = await sb.rpc('chofer_info_taller_traslado', { p_traslado_id: activo.id, p_chofer_id: choferId });
-    infoTaller = rt && rt[0] ? rt[0] : null;
-  }catch(e){ /* si falla, mostramos solo la dirección del cliente */ }
+  const infoTaller = activo.talleres || null;
   const direccionTaller = infoTaller
     ? `${infoTaller.calle} ${infoTaller.numero}${infoTaller.depto_casa ? ', '+infoTaller.depto_casa : ''}, ${infoTaller.comuna}`
     : null;
@@ -940,14 +976,11 @@ async function cargarTrasladoActivo(){
 // --- Ofertas de traslado ---
 async function revisarOfertas(){
   if(!choferId) return;
-  const { data, error } = await sb
-    .from('ofertas_traslado')
-    .select('id, traslado_id, etapa, expira_at, traslados(patente, marca, modelo, calle, numero, comuna, depto_casa, cliente_nombre, cliente_telefono)')
-    .eq('chofer_id', choferId)
-    .eq('estado', 'pendiente')
-    .gt('expira_at', new Date().toISOString())
-    .order('creada_at', { ascending:true })
-    .limit(1);
+  let data = null, error = null;
+  try{
+    const r = await obtenerEstado();
+    if(r && r.ok) data = r.oferta ? [r.oferta] : []; else error = true;
+  }catch(e){ error = e; }
 
   if(error || !data || !data.length){
     if(ofertaActualId) ocultarOferta();
@@ -963,6 +996,7 @@ async function revisarOfertas(){
 function mostrarOferta(oferta){
   ofertaActualId = oferta.id;
   ofertaExpiraAt = new Date(oferta.expira_at).getTime();
+  ofertaTotalMs = Math.max(1000, ofertaExpiraAt - Date.now());
 
   const t = oferta.traslados;
   const direccion = `${t.calle} ${t.numero}${t.depto_casa ? ', '+t.depto_casa : ''}, ${t.comuna}`;
@@ -1165,7 +1199,7 @@ function actualizarCountdown(){
   const min = Math.floor(totalSeg / 60);
   const seg = totalSeg % 60;
   document.getElementById('countdownNum').textContent = `${min}:${seg.toString().padStart(2,'0')}`;
-  const pct = Math.max(0, (restanteMs / (10 * 60 * 1000)) * 100);
+  const pct = Math.max(0, (restanteMs / ofertaTotalMs) * 100);
   document.getElementById('countdownFill').style.width = pct + '%';
 }
 
