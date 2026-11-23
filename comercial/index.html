@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>MoviKar — Portal comercial</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --bg:#FFFFFF; --surface:#F6F9F8; --surface-2:#EDF3F1; --ink:#16302C; --ink-dim:#5E7570; --line:#DCE6E3;
+    --teal:#009688; --teal-dim:#E3F5F2; --teal-deep:#00695E; --coral:#E8542F; --coral-dim:#FFEEE7;
+    --ok:#1F8F5C; --ok-dim:#E6F6EC; --amber:#B8860B; --amber-dim:#FBF3DC; --radius:12px;
+  }
+  *{box-sizing:border-box;min-width:0;}
+  html,body{overflow-x:hidden;width:100%;}
+  body{margin:0;background:var(--surface);color:var(--ink);font-family:'Inter',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3{font-family:'Space Grotesk',sans-serif;margin:0;}
+  button{font-family:inherit;cursor:pointer;}
+  a{color:var(--teal-deep);}
+  :focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+
+  header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:14px clamp(16px,4vw,32px);background:var(--bg);border-bottom:1px solid var(--line);}
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-mark{width:46px;height:46px;border-radius:12px;background:var(--teal-dim);display:flex;align-items:center;justify-content:center;}
+  .brand-mark svg{width:32px;height:32px;}
+  .brand-name{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:19px;line-height:1.1;}
+  .brand-tag{font-size:12px;color:var(--teal-deep);font-weight:600;}
+  .chip-user{display:none;align-items:center;gap:10px;font-size:12.5px;color:var(--ink-dim);}
+  .chip-user b{color:var(--ink);}
+  .link-btn{background:none;border:none;color:var(--ink-dim);font-size:12px;text-decoration:underline;padding:0;}
+
+  .login-wrap{max-width:400px;margin:60px auto;padding:0 16px;}
+  .card{background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);padding:20px;}
+  .login-card{text-align:center;padding:28px;}
+  .login-card h2{font-size:18px;margin-bottom:8px;} .login-card p{font-size:13px;color:var(--ink-dim);margin:0 0 18px;line-height:1.5;}
+
+  label{display:block;font-size:12px;color:var(--ink-dim);margin:0 0 5px;font-weight:500;}
+  input,select,textarea{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 11px;color:var(--ink);font-family:'Inter',sans-serif;font-size:13.5px;margin-bottom:12px;}
+  textarea{resize:vertical;min-height:62px;}
+  input[type=checkbox]{width:auto;margin:0 8px 0 0;}
+  .btn{background:var(--ink);color:#fff;border:none;border-radius:8px;padding:11px 16px;font-weight:600;font-size:13.5px;font-family:'Space Grotesk',sans-serif;}
+  .btn:hover{background:var(--teal-deep);} .btn:disabled{opacity:.5;cursor:default;}
+  .btn.full{width:100%;} .btn.teal{background:var(--teal);} .btn.ghost{background:var(--bg);color:var(--ink);border:1px solid var(--line);}
+  .btn.ghost:hover{border-color:var(--teal);color:var(--teal-deep);background:var(--bg);}
+  .btn.sm{padding:7px 11px;font-size:12px;}
+  .msg{font-size:13px;font-weight:600;margin-top:12px;padding:10px 12px;border-radius:8px;display:none;text-align:left;line-height:1.4;}
+  .msg.ok{display:block;color:var(--ok);background:var(--ok-dim);border:1px solid var(--ok);}
+  .msg.err{display:block;color:var(--coral);background:var(--coral-dim);border:1px solid var(--coral);}
+
+  .app{display:none;}
+  nav.tabs{display:flex;gap:4px;padding:0 clamp(16px,4vw,32px);background:var(--bg);border-bottom:1px solid var(--line);overflow-x:auto;}
+  nav.tabs button{background:none;border:none;border-bottom:3px solid transparent;padding:13px 14px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;color:var(--ink-dim);white-space:nowrap;}
+  nav.tabs button.on{color:var(--ink);border-bottom-color:var(--coral);}
+  .count{background:var(--coral);color:#fff;border-radius:99px;font-size:11px;padding:1px 7px;margin-left:5px;font-family:'JetBrains Mono',monospace;}
+  main{max-width:960px;margin:0 auto;padding:22px clamp(16px,4vw,32px) 90px;}
+  .view{display:none;} .view.on{display:block;}
+  .sec-title{font-size:15px;margin:22px 0 4px;} .sec-title:first-child{margin-top:0;}
+  .hint{font-size:12.5px;color:var(--ink-dim);margin:0 0 12px;line-height:1.45;}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
+  .filters input,.filters select{width:auto;margin:0;flex:1 1 180px;}
+  .pill{border:1px solid var(--line);background:var(--bg);border-radius:99px;padding:6px 13px;font-size:12.5px;font-weight:600;color:var(--ink-dim);}
+  .pill.on{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px;}
+  .pcard{background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);padding:15px;cursor:pointer;display:flex;flex-direction:column;gap:6px;}
+  .pcard:hover{border-color:var(--teal);}
+  .pcard h3{font-size:15px;} .sub{font-size:12px;color:var(--ink-dim);line-height:1.4;}
+  .row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+  .tag{font-size:11px;font-weight:600;border-radius:99px;padding:2px 9px;background:var(--surface-2);color:var(--ink-dim);white-space:nowrap;}
+  .tag.nuevo{background:var(--coral-dim);color:var(--coral);} .tag.contactado,.tag.reunion_agendada{background:var(--teal-dim);color:var(--teal-deep);}
+  .tag.acuerdo_cerrado,.tag.alta_enviada,.tag.pagable,.tag.pagada,.tag.vigente{background:var(--ok-dim);color:var(--ok);}
+  .tag.descartado,.tag.anulada{background:var(--surface-2);color:var(--ink-dim);}
+  .tag.devengada,.tag.por_iniciar{background:var(--amber-dim);color:var(--amber);} .tag.expirado,.tag.sin_config{background:var(--coral-dim);color:var(--coral);}
+  .tag.alta{background:var(--coral-dim);color:var(--coral);}
+  .due{font-size:12px;font-weight:600;color:var(--teal-deep);} .due.late{color:var(--coral);}
+  .acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
+  .acts a{font-size:12px;font-weight:600;text-decoration:none;border:1px solid var(--line);border-radius:7px;padding:5px 10px;color:var(--ink);background:var(--bg);}
+  .acts a:hover{border-color:var(--teal);color:var(--teal-deep);}
+  .empty{text-align:center;color:var(--ink-dim);font-size:13px;padding:34px 12px;background:var(--bg);border:1px dashed var(--line);border-radius:var(--radius);}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;} @media(max-width:600px){.form-grid{grid-template-columns:1fr;}}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:8px;}
+  .stat{background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;}
+  .stat b{display:block;font-family:'Space Grotesk',sans-serif;font-size:22px;color:var(--teal-deep);} .stat span{font-size:12px;color:var(--ink-dim);}
+  table{width:100%;border-collapse:collapse;background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;font-size:12.5px;}
+  th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--line);} th{background:var(--surface-2);color:var(--ink-dim);font-size:11.5px;} tr:last-child td{border-bottom:none;}
+  .tablewrap{overflow-x:auto;}
+
+  .modal-bg{position:fixed;inset:0;background:rgba(22,48,44,.5);z-index:99;display:none;align-items:flex-start;justify-content:center;padding:20px 12px;overflow-y:auto;}
+  .modal-bg.on{display:flex;}
+  .modal{background:var(--bg);border-radius:16px;max-width:660px;width:100%;padding:22px;}
+  .modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px;}
+  .x{background:none;border:none;font-size:20px;color:var(--ink-dim);line-height:1;}
+  .box{border-top:1px solid var(--line);padding-top:14px;margin-top:14px;}
+  .hist-item{font-size:12.5px;padding:8px 0;border-top:1px solid var(--line);line-height:1.4;}
+  .hist-item:first-child{border-top:none;} .hist-item small{color:var(--ink-dim);display:block;}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:99px;font-size:13px;z-index:200;display:none;}
+  .warn{background:var(--amber-dim);border:1px solid var(--amber);color:#6b5000;border-radius:8px;padding:10px 12px;font-size:12.5px;margin-bottom:12px;line-height:1.45;}
+
+  .adm-only{display:none;} body.is-admin .adm-only{display:revert;}
+  nav.tabs .sep{align-self:center;width:1px;height:22px;background:var(--line);margin:0 6px;flex-shrink:0;}
+  .err{color:var(--coral);background:var(--coral-dim);border-radius:8px;padding:8px 12px;font-size:12.5px;margin-bottom:12px;display:none;}
+  .btn.red{background:var(--bg);color:var(--coral);border:1px solid var(--coral);} .btn.red:hover{background:var(--coral-dim);}
+  .alerts{display:grid;gap:8px;margin-bottom:18px;}
+  .alert{background:var(--amber-dim);border:1px solid var(--amber);color:#6b5000;border-radius:8px;padding:9px 13px;font-size:12.5px;display:flex;justify-content:space-between;gap:10px;align-items:center;}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;}
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px;}
+  .cardbox{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:16px;}
+  td select,td input{margin:0;padding:5px 7px;font-size:12px;}
+  td{vertical-align:middle;}
+  .tag.activo{background:var(--ok-dim);color:var(--ok);} .tag.inactivo{background:var(--coral-dim);color:var(--coral);}
+  .modal-bg{z-index:99;}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="brand-mark"><svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><path d="M6 26.6 L7.5 26.6 A4.5 4.5 0 0 1 16.5 26.6 L23.5 26.6 A4.5 4.5 0 0 1 32.5 26.6 L34 26.6 C36.3 24.3 35.3 19.7 31.5 17.5 C29.3 15 26.3 13 23 13 L16 13 C12.7 13 9.7 15 7.5 17.5 C4.7 19.7 3.7 24.3 6 26.6 Z" fill="#009688"/><circle cx="12" cy="26.6" r="4" fill="#16302C"/><circle cx="12" cy="26.6" r="1.5" fill="#F6F9F8"/><circle cx="28" cy="26.6" r="4" fill="#16302C"/><circle cx="28" cy="26.6" r="1.5" fill="#F6F9F8"/></svg></div>
+    <div><div class="brand-name">MoviKar</div><div class="brand-tag">Portal comercial</div></div>
+  </div>
+  <div class="chip-user" id="chipUser"><span><b id="uNombre"></b> <span id="uRol"></span></span><a id="adminLink" href="/admin/" style="display:none;font-size:12px;">Panel admin</a><button class="link-btn" id="logoutBtn">cerrar sesión</button></div>
+</header>
+
+<div class="login-wrap" id="loginWrap">
+  <div class="card login-card">
+    <h2>Ingresa a tu portal comercial</h2>
+    <p>Para vendedores y administradores de MoviKar. Escribe tu correo y te mandamos un código de acceso.</p>
+    <input type="text" id="loginEmail" placeholder="tu@correo.cl" autocomplete="email" style="text-align:center;">
+    <button class="btn full" id="loginBtn">Enviarme un código de acceso</button>
+    <div class="msg" id="loginMsg"></div>
+    <div id="otpBlock" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--line);">
+      <p style="margin-bottom:8px;">Escribe el código de 8 dígitos que te llegó:</p>
+      <input type="text" id="loginCode" placeholder="12345678" maxlength="8" inputmode="numeric" style="text-align:center;letter-spacing:4px;font-family:'JetBrains Mono',monospace;">
+      <button class="btn full teal" id="verifyBtn">Confirmar código</button>
+    </div>
+  </div>
+</div>
+
+<div class="app" id="app">
+  <nav class="tabs" id="tabs">
+    <button data-v="resumen" class="adm-only">Resumen</button>
+    <button data-v="hoy" class="on">Hoy <span class="count" id="cHoy" style="display:none;">0</span></button>
+    <button data-v="prospectos">Prospectos</button>
+    <button data-v="nuevo">+ Nuevo prospecto</button>
+    <button data-v="comisiones">Mis comisiones</button>
+    <span class="sep adm-only"></span>
+    <button data-v="equipo" class="adm-only">Equipo</button>
+    <button data-v="reparto" class="adm-only">Reparto <span class="count" id="nSin" style="display:none;">0</span></button>
+    <button data-v="acuerdos" class="adm-only">Acuerdos <span class="count" id="nAc" style="display:none;">0</span></button>
+    <button data-v="libro" class="adm-only">Libro de comisiones</button>
+    <button data-v="pagos" class="adm-only">Liquidaciones</button>
+  </nav>
+  <main>
+    <section class="view on" id="v-hoy"></section>
+    <section class="view" id="v-prospectos">
+      <div class="filters">
+        <input type="text" id="buscar" placeholder="Buscar por taller, empresa o contacto...">
+        <select id="filtroVend" style="display:none;"></select>
+      </div>
+      <div class="filters" id="pills"></div>
+      <div class="grid" id="lista"></div>
+    </section>
+    <section class="view" id="v-nuevo">
+      <h2 class="sec-title">Nuevo prospecto</h2>
+      <p class="hint">Queda registrado a tu nombre como quien lo generó. Completa lo que sepas; lo demás se puede agregar después.</p>
+      <div class="card">
+        <div id="dupAviso"></div>
+        <div class="form-grid">
+          <div><label>Taller o empresa *</label><input id="n_nombre_taller"></div>
+          <div><label>Grupo o razón social (si es parte de una cadena)</label><input id="n_empresa_grupo"></div>
+          <div><label>Tipo de cliente</label><select id="n_tipo_cliente"></select></div>
+          <div><label>Comuna</label><input id="n_comuna"></div>
+          <div><label>Nombre del contacto *</label><input id="n_contacto_nombre"></div>
+          <div><label>Cargo</label><input id="n_contacto_cargo" placeholder="Ej: Jefe de taller"></div>
+          <div><label>Teléfono / WhatsApp</label><input id="n_contacto_telefono" placeholder="+56 9 1234 5678"></div>
+          <div><label>Correo</label><input id="n_contacto_correo" type="email"></div>
+          <div><label>¿Cómo llegó este contacto? *</label><select id="n_canal_origen"></select></div>
+          <div><label>Detalle (quién lo refirió, evento, etc.)</label><input id="n_origen_detalle"></div>
+          <div><label>Traslados que estima al mes</label><input id="n_traslados" type="number" min="0"></div>
+          <div><label>¿Cómo mueve hoy los autos?</label><input id="n_servicio_actual" placeholder="Ej: grúa, choferes propios, nada"></div>
+          <div><label>Cuánto paga hoy por traslado ($)</label><input id="n_tarifa_competencia" type="number" min="0"></div>
+          <div><label>Prioridad</label><select id="n_prioridad"><option value="media">Media</option><option value="alta">Alta</option><option value="baja">Baja</option></select></div>
+        </div>
+        <label>Qué hablaron (si ya hubo contacto)</label><textarea id="n_resumen" placeholder="Resumen del primer contacto"></textarea>
+        <div class="form-grid">
+          <div><label>Próxima acción</label><input id="n_proxima_accion" placeholder="Ej: enviar correo con información"></div>
+          <div><label>¿Cuándo?</label><input id="n_proxima_fecha" type="datetime-local"></div>
+        </div>
+        <label>Notas</label><textarea id="n_notas"></textarea>
+        <label style="display:flex;align-items:center;margin-bottom:14px;"><input type="checkbox" id="n_ya_hable"> Ya hablé con ellos (queda «En conversación»)</label>
+        <button class="btn teal full" id="guardarNuevo">Guardar prospecto</button>
+        <div class="msg" id="nuevoMsg"></div>
+      </div>
+    </section>
+    <section class="view" id="v-comisiones"></section>
+<section class="view" id="v-resumen"></section>
+
+    <section class="view" id="v-equipo">
+      <h2 class="sec-title">Equipo comercial</h2>
+      <p class="hint">Cada vendedor tiene su % de comisión y su plazo en meses. Los cambios aplican a las <b>ventas que se cierren desde ahora</b>: un acuerdo ya cerrado conserva las condiciones de ese día (se corrige en «Acuerdos de comisión»).</p>
+      <div class="cardbox">
+        <h3 style="font-size:.95rem;margin-bottom:10px;">Agregar vendedor</h3>
+        <div class="err" id="eErr"></div>
+        <div class="g2"><div><label>Nombre *</label><input id="e_nombre"></div><div><label>Correo * (con este ingresa)</label><input id="e_correo" type="email"></div>
+        <div><label>Teléfono</label><input id="e_tel"></div><div><label>Base de la comisión</label><select id="e_base"><option value="bruto">Bruto (monto facturado)</option><option value="neto">Neto (facturado menos pago a choferes)</option></select></div>
+        <div><label>% de comisión</label><input id="e_pct" type="number" min="0" max="100" step="0.01" placeholder="Lo define finanzas"></div><div><label>Plazo (meses)</label><input id="e_meses" type="number" min="1" placeholder="Ej: 12"></div></div>
+        <button class="btn" id="e_crear">Crear vendedor y dar acceso</button>
+        <p class="sub" style="margin-top:8px;">Se crea su acceso por correo de inmediato. Avísale que entre a <b>/comercial</b> con ese correo.</p>
+      </div>
+      <div class="cards" id="listaEquipo"></div>
+    </section>
+
+    <section class="view" id="v-reparto">
+      <h2 class="sec-title">Reparto de prospectos</h2>
+      <p class="hint">Aquí se asigna quién trabaja cada prospecto (por ejemplo, los que llegan de la landing) y se vincula cada venta cerrada con su cliente de facturación. <b>Sin ese vínculo no se calcula comisión.</b></p>
+      <div class="filters"><select id="pFiltro"><option value="sin">Sin responsable</option><option value="vincular">Cerrados sin cliente vinculado</option><option value="todos">Todos</option></select><input id="pBuscar" placeholder="Buscar taller..."></div>
+      <div class="tablewrap"><table><thead><tr><th>Prospecto</th><th>Estado</th><th>Generó</th><th>Responsable</th><th>Cerró</th><th>Cliente de facturación</th></tr></thead><tbody id="tProsp"></tbody></table></div>
+    </section>
+
+    <section class="view" id="v-acuerdos">
+      <h2 class="sec-title">Acuerdos de comisión</h2>
+      <p class="hint">Uno por cada venta cerrada. El plazo cuenta desde la primera factura emitida al cliente. Si cambias el %, aplica a las facturas que se emitan desde ahora (y a las que estén «sin configurar»).</p>
+      <div class="tablewrap"><table><thead><tr><th>Cliente</th><th>Vendedor</th><th>Condiciones</th><th>Plazo</th><th>Estado</th><th>Facturado en plazo</th><th>Comisión</th><th></th></tr></thead><tbody id="tAc"></tbody></table></div>
+    </section>
+
+    <section class="view" id="v-libro">
+      <h2 class="sec-title">Libro de comisiones</h2>
+      <p class="hint">Una línea por factura emitida: qué se facturó, qué comisión generó y en qué estado está.</p>
+      <div class="filters"><select id="lEstado"><option value="">Todos los estados</option><option value="sin_config">Sin configurar</option><option value="devengada">Esperando pago del cliente</option><option value="pagable">Por pagar</option><option value="pagada">Pagada</option><option value="expirado">Expirada</option><option value="anulada">Anulada</option></select><select id="lVend"></select><button class="btn ghost" id="lExport">Exportar Excel</button></div>
+      <div class="tablewrap"><table><thead><tr><th>Emisión</th><th>Factura</th><th>Cliente</th><th>Vendedor</th><th>Base</th><th>%</th><th>Comisión</th><th>Estado</th><th></th></tr></thead><tbody id="tLibro"></tbody></table></div>
+    </section>
+
+    <section class="view" id="v-pagos">
+      <h2 class="sec-title">Liquidaciones a vendedores</h2>
+      <p class="hint">Se liquidan las comisiones «por pagar» (cuyo cliente ya pagó la factura). Es un proceso separado de los pagos a choferes.</p>
+      <div class="stats" id="pagosResumen"></div>
+      <div class="tablewrap"><table><thead><tr><th>Vendedor</th><th>Período</th><th>Monto</th><th>Estado</th><th></th></tr></thead><tbody id="tPagos"></tbody></table></div>
+    </section>
+  </main>
+</div>
+
+<div class="modal-bg" id="modalBg"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL='https://gcivybtcccaslyzkzgri.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_IVjRfzdWhEO3yb5LkUz7pw_5IA-CxLW';
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const $=(id)=>document.getElementById(id);
+const esc=(s)=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const ESTADOS={nuevo:'Sin gestionar',contactado:'En conversación',reunion_agendada:'Reunión agendada',acuerdo_cerrado:'Acuerdo cerrado',alta_enviada:'Alta enviada',descartado:'Descartado'};
+const ACTIVOS=['nuevo','contactado','reunion_agendada'];
+const CANALES={visita_presencial:'Visita presencial',llamada:'Llamada',correo:'Correo',whatsapp:'WhatsApp',referido:'Referido',evento:'Evento',redes_sociales:'Redes sociales',landing:'Landing web',otro:'Otro'};
+const TIPOS_CLIENTE={'':'Sin definir',taller_independiente:'Taller independiente',concesionario:'Concesionario / automotora',flota_empresa:'Flota / empresa',otro:'Otro'};
+const INTERACCION={llamada:'Llamada',correo:'Correo',whatsapp:'WhatsApp',visita:'Visita',reunion:'Reunión',nota:'Nota',cambio_estado:'Cambio de estado',otro:'Otro'};
+const DESCARTE={'':'Elige un motivo',precio:'Precio',ya_tiene_proveedor:'Ya tiene proveedor',sin_volumen:'Sin volumen',no_responde:'No responde',no_interesa:'No le interesa',otro:'Otro'};
+const ROL_DECISION={'':'Sin definir',decisor:'Decide',influyente:'Influye',usuario:'Usuario',tecnico:'Técnico',otro:'Otro'};
+const ESTADO_COM={sin_config:'Sin configurar',devengada:'Esperando pago del cliente',pagable:'Por pagar',pagada:'Pagada',expirado:'Expirada',anulada:'Anulada'};
+const ESTADO_AC={sin_config:'Sin configurar',por_iniciar:'Por iniciar',vigente:'Vigente',expirado:'Expirado'};
+const CONTACTO_TIPOS=['llamada','correo','whatsapp','visita','reunion'];
+
+let yo=null, esAdmin=false, nombres={}, prospectos=[], estadoSel='activos', vendSel='';
+let vendedores=[], clientes=[], libro=[];
+const nomV=(id)=>nombres[id]||'—';
+function modal(html){$('modal').innerHTML=html;$('modalBg').classList.add('on');const x=$('modal').querySelector('.x');if(x)x.onclick=cerrar;}
+
+const opts=(obj,sel)=>Object.entries(obj).map(([k,v])=>`<option value="${esc(k)}" ${String(sel??'')===k?'selected':''}>${esc(v)}</option>`).join('');
+const fmtFecha=(iso)=>iso?new Date(iso).toLocaleString('es-CL',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';
+const fmtDia=(iso)=>iso?new Date(iso).toLocaleDateString('es-CL',{day:'2-digit',month:'2-digit',year:'numeric'}):'—';
+const fmtMonto=(n)=>'$'+Math.round(n||0).toLocaleString('es-CL');
+const aLocal=(iso)=>{if(!iso)return '';const d=new Date(iso);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16);};
+const aISO=(v)=>v?new Date(v).toISOString():null;
+const num=(v)=>{const n=parseFloat(v);return isNaN(n)?null:n;};
+function tel(v){const l=String(v||'').replace(/[^0-9+]/g,'').replace(/^\+/,'');if(/^9\d{8}$/.test(l))return '+56'+l;if(/^569\d{8}$/.test(l))return '+'+l;return String(v||'').trim()||null;}
+function toast(t){const e=$('toast');e.textContent=t;e.style.display='block';setTimeout(()=>e.style.display='none',2600);}
+function msg(id,t,tipo){const e=$(id);e.className='msg '+(tipo||'');e.textContent=t||'';}
+
+// ---------- Acceso ----------
+sb.auth.getSession().then(({data})=>{ if(data.session) entrar(data.session.user); });
+sb.auth.onAuthStateChange((ev,s)=>{ if(ev==='SIGNED_IN'&&s&&!yo&&!esAdmin) entrar(s.user); });
+$('loginBtn').addEventListener('click',async()=>{
+  const email=$('loginEmail').value.trim().toLowerCase();
+  if(!email.includes('@')) return msg('loginMsg','Ingresa un correo válido.','err');
+  const b=$('loginBtn'); b.disabled=true; b.textContent='Enviando...';
+  const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:false}});
+  b.disabled=false; b.textContent='Enviarme un código de acceso';
+  if(error) return msg('loginMsg','No se pudo enviar el código. Si tu correo es nuevo, pide que te den acceso al equipo comercial.','err');
+  msg('loginMsg','Código enviado. Revisa tu correo y escríbelo abajo.','ok'); $('otpBlock').style.display='block';
+});
+$('verifyBtn').addEventListener('click',async()=>{
+  const email=$('loginEmail').value.trim().toLowerCase(), token=$('loginCode').value.trim();
+  if(token.length!==8) return msg('loginMsg','Ingresa el código de 8 dígitos.','err');
+  const b=$('verifyBtn'); b.disabled=true; b.textContent='Verificando...';
+  const {error}=await sb.auth.verifyOtp({email,token,type:'email'});
+  b.disabled=false; b.textContent='Confirmar código';
+  if(error) msg('loginMsg','Ese código venció o no es válido. Pide uno nuevo y usa el más reciente.','err');
+});
+$('logoutBtn').addEventListener('click',async()=>{await sb.auth.signOut();location.reload();});
+
+async function entrar(user){
+  const email=(user.email||'').toLowerCase();
+  const [a,v]=await Promise.all([sb.rpc('es_admin'),sb.from('vendedores').select('*').eq('correo',email).eq('activo',true).maybeSingle()]);
+  esAdmin=a.data===true; yo=v.data||null;
+  if(!esAdmin&&!yo){
+    await sb.auth.signOut(); msg('loginMsg','Tu correo no tiene acceso al portal comercial. Escribe a movikarcl@gmail.com si crees que es un error.','err'); return;
+  }
+  $('loginWrap').style.display='none'; $('app').style.display='block'; $('chipUser').style.display='flex';
+  $('uNombre').textContent=yo?yo.nombre:email; $('uRol').textContent=esAdmin?'· administrador':'· vendedor';
+  $('adminLink').style.display=esAdmin?'inline':'none';
+  $('n_tipo_cliente').innerHTML=opts(TIPOS_CLIENTE,''); $('n_canal_origen').innerHTML=opts(CANALES,'visita_presencial');
+  const {data:ns}=await sb.rpc('vendedores_nombres'); (ns||[]).forEach(x=>nombres[x.id]=x.nombre);
+  if(esAdmin){ const f=$('filtroVend'); f.style.display='block'; f.innerHTML='<option value="">Todo el equipo</option><option value="sin">Sin responsable</option>'+(ns||[]).map(x=>`<option value="${x.id}">${esc(x.nombre)}</option>`).join(''); }
+  if(esAdmin){ document.body.classList.add('is-admin'); await cargarBase(); pintarTodo(); irA('resumen'); } else await cargar();
+  if(new URLSearchParams(location.search).get('nuevo')) irA('nuevo');
+}
+
+// ---------- Datos ----------
+async function cargarBase(){
+  const [v,c]=await Promise.all([sb.from('vendedores').select('*').order('nombre'),sb.from('clientes_facturacion').select('id, razon_social, rut').order('razon_social')]);
+  vendedores=v.data||[]; clientes=c.data||[]; await cargarProsp();
+}
+function pintarTodo(){pintarResumen();pintarEquipo();pintar();pintarAcuerdos();pintarLibroFiltros();pintarLibro();pintarPagos();}
+async function cargarProsp(){
+  const {data,error}=await sb.from('interesados_taller').select('*').eq('es_prueba',false).order('created_at',{ascending:false});
+  if(!error) prospectos=data||[]; return error;
+}
+async function cargar(){
+  const {data,error}=await sb.from('interesados_taller').select('*').eq('es_prueba',false).order('created_at',{ascending:false});
+  if(error){ $('v-hoy').innerHTML='<div class="empty">No se pudieron cargar los prospectos: '+esc(error.message)+'</div>'; return; }
+  prospectos=data||[]; pintar();
+}
+function base(){
+  let l=prospectos;
+  if(esAdmin&&vendSel==='sin') l=l.filter(p=>!p.responsable_vendedor_id);
+  else if(esAdmin&&vendSel) l=l.filter(p=>p.responsable_vendedor_id===vendSel);
+  return l;
+}
+function pintar(){ pintarHoy(); pintarLista(); if(esAdmin) pintarProsp(); }
+
+// ---------- Tarjetas ----------
+function acciones(p){
+  const t=(p.contacto_telefono||'').replace(/[^0-9]/g,''), a=[];
+  if(p.contacto_telefono) a.push(`<a href="tel:${esc(p.contacto_telefono)}" onclick="event.stopPropagation()">Llamar</a>`);
+  if(t) a.push(`<a href="https://wa.me/${esc(t)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">WhatsApp</a>`);
+  if(p.contacto_correo) a.push(`<a href="mailto:${esc(p.contacto_correo)}" onclick="event.stopPropagation()">Correo</a>`);
+  return a.join('');
+}
+function tarjeta(p){
+  const late=p.proxima_accion_at&&new Date(p.proxima_accion_at)<new Date();
+  const resp=p.responsable_vendedor_id?(nombres[p.responsable_vendedor_id]||''):'Sin responsable';
+  return `<div class="pcard" data-id="${p.id}">
+    <div class="row"><h3>${esc(p.nombre_taller)}</h3><span class="tag ${p.estado}">${esc(ESTADOS[p.estado]||p.estado)}</span></div>
+    <div class="sub">${esc(p.contacto_nombre)}${p.contacto_cargo?', '+esc(p.contacto_cargo):''}${p.comuna?' · '+esc(p.comuna):''}</div>
+    ${p.proxima_accion?`<div class="due ${late?'late':''}">${esc(p.proxima_accion)} · ${fmtFecha(p.proxima_accion_at)}</div>`:'<div class="sub">Sin próxima acción</div>'}
+    <div class="row"><span class="sub">${p.prioridad==='alta'?'<span class="tag alta">Prioridad alta</span> ':''}${esc(CANALES[p.canal_origen]||'')} · ${esc(resp)}</span></div>
+    <div class="acts">${acciones(p)}</div>
+  </div>`;
+}
+function enlazar(cont){ cont.querySelectorAll('.pcard').forEach(c=>c.addEventListener('click',()=>abrirFicha(c.dataset.id))); }
+
+function pintarHoy(){
+  const fin=new Date(); fin.setHours(23,59,59,999);
+  const act=base().filter(p=>ACTIVOS.includes(p.estado)&&!p.no_contactar);
+  const hoy=act.filter(p=>p.proxima_accion_at&&new Date(p.proxima_accion_at)<=fin).sort((a,b)=>new Date(a.proxima_accion_at)-new Date(b.proxima_accion_at));
+  const sin=act.filter(p=>!p.proxima_accion_at);
+  const c=$('cHoy'); c.textContent=hoy.length; c.style.display=hoy.length?'inline':'none';
+  const el=$('v-hoy');
+  el.innerHTML=`<h2 class="sec-title">Hoy toca contactar</h2><p class="hint">Prospectos cuya próxima acción es hoy o está atrasada.</p>
+    <div class="grid" id="gHoy">${hoy.map(tarjeta).join('')||'<div class="empty" style="grid-column:1/-1;">No tienes contactos pendientes para hoy.</div>'}</div>
+    <h2 class="sec-title">Sin próxima acción</h2><p class="hint">Definir qué sigue y cuándo evita que un prospecto se enfríe.</p>
+    <div class="grid" id="gSin">${sin.map(tarjeta).join('')||'<div class="empty" style="grid-column:1/-1;">Todos tus prospectos activos tienen próxima acción.</div>'}</div>`;
+  enlazar(el);
+}
+function pintarLista(){
+  const q=$('buscar').value.trim().toLowerCase(), l0=base();
+  const cnt=(f)=>l0.filter(f).length;
+  const pills=[['activos','Activos',p=>ACTIVOS.includes(p.estado)],...Object.entries(ESTADOS).map(([k,v])=>[k,v,p=>p.estado===k]),['cliente','Ya son taller',p=>!!p.cliente_facturacion_id],['todos','Todos',()=>true]];
+  $('pills').innerHTML=pills.map(([k,l,f])=>`<button class="pill ${estadoSel===k?'on':''}" data-k="${k}">${l} ${cnt(f)}</button>`).join('');
+  $('pills').querySelectorAll('.pill').forEach(b=>b.addEventListener('click',()=>{estadoSel=b.dataset.k;pintarLista();}));
+  const f=pills.find(x=>x[0]===estadoSel)[2];
+  const l=l0.filter(f).filter(p=>!q||[p.nombre_taller,p.empresa_grupo,p.contacto_nombre,p.comuna].some(x=>(x||'').toLowerCase().includes(q)));
+  $('lista').innerHTML=l.map(tarjeta).join('')||'<div class="empty" style="grid-column:1/-1;">No hay prospectos en esta lista.</div>';
+  enlazar($('lista'));
+}
+$('buscar').addEventListener('input',pintarLista);
+$('filtroVend').addEventListener('change',(e)=>{vendSel=e.target.value;pintar();});
+
+// ---------- Pestañas ----------
+function irA(v){
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  document.querySelectorAll('.view').forEach(s=>s.classList.toggle('on',s.id==='v-'+v));
+  if(v==='comisiones') pintarComisiones();
+}
+$('tabs').addEventListener('click',(e)=>{const b=e.target.closest('button');if(b)irA(b.dataset.v);});
+
+// ---------- Nuevo prospecto ----------
+$('guardarNuevo').addEventListener('click',async()=>{
+  const v=(id)=>$(id).value.trim();
+  msg('nuevoMsg','');
+  if(!v('n_nombre_taller')||!v('n_contacto_nombre')) return msg('nuevoMsg','Completa el nombre del taller y del contacto.','err');
+  if(!v('n_contacto_telefono')&&!v('n_contacto_correo')) return msg('nuevoMsg','Deja al menos un teléfono o un correo.','err');
+  const telefono=tel(v('n_contacto_telefono')), correo=v('n_contacto_correo')||null;
+  const btn=$('guardarNuevo'); btn.disabled=true;
+  const {data:dup}=await sb.rpc('crm_buscar_duplicado',{p_nombre:v('n_nombre_taller'),p_correo:correo||'',p_telefono:telefono||''});
+  if(dup&&dup.length&&!$('dupAviso').dataset.ok){
+    $('dupAviso').innerHTML='<div class="warn"><b>Ya existe un prospecto parecido:</b><br>'+dup.map(d=>`${esc(d.nombre_taller)} (${esc(ESTADOS[d.estado]||d.estado)}, lo generó ${esc(d.generado_por||'la landing')} el ${fmtDia(d.desde)})`).join('<br>')+'<br>Si es el mismo contacto, no lo dupliques: la comisión corresponde a quien lo generó primero. Si es distinto, vuelve a presionar «Guardar prospecto».</div>';
+    $('dupAviso').dataset.ok='1'; btn.disabled=false; return;
+  }
+  const n=num(v('n_traslados'));
+  const fila={nombre_taller:v('n_nombre_taller'),empresa_grupo:v('n_empresa_grupo')||null,tipo_cliente:v('n_tipo_cliente')||null,comuna:v('n_comuna')||null,
+    contacto_nombre:v('n_contacto_nombre'),contacto_cargo:v('n_contacto_cargo')||null,contacto_telefono:telefono,contacto_correo:correo,
+    canal_origen:v('n_canal_origen'),origen_detalle:v('n_origen_detalle')||null,traslados_estimados_num:n,traslados_estimados_mes:n!=null?String(n):null,
+    servicio_actual:v('n_servicio_actual')||null,tarifa_competencia:num(v('n_tarifa_competencia')),prioridad:v('n_prioridad'),
+    proxima_accion:v('n_proxima_accion')||null,proxima_accion_at:aISO(v('n_proxima_fecha')),notas:v('n_notas')||null,
+    estado:$('n_ya_hable').checked?'contactado':'nuevo',
+    generado_por_vendedor_id:yo?yo.id:null,responsable_vendedor_id:yo?yo.id:null};
+  const {data,error}=await sb.from('interesados_taller').insert(fila).select('id').single();
+  if(error){ btn.disabled=false; return msg('nuevoMsg','No se pudo guardar: '+error.message,'err'); }
+  await sb.from('prospecto_contactos').insert({prospecto_id:data.id,nombre:fila.contacto_nombre,cargo:fila.contacto_cargo,telefono:fila.contacto_telefono,correo:fila.contacto_correo,es_principal:true});
+  if(v('n_resumen')){
+    const mapa={visita_presencial:'visita',llamada:'llamada',whatsapp:'whatsapp',correo:'correo'};
+    await sb.from('prospecto_interacciones').insert({prospecto_id:data.id,tipo:mapa[fila.canal_origen]||'nota',detalle:v('n_resumen')});
+  }
+  document.querySelectorAll('#v-nuevo input:not([type=checkbox]),#v-nuevo textarea').forEach(e=>e.value='');
+  $('n_ya_hable').checked=false; $('dupAviso').innerHTML=''; delete $('dupAviso').dataset.ok; btn.disabled=false;
+  msg('nuevoMsg','Prospecto guardado a tu nombre.','ok'); toast('Prospecto guardado'); await cargar();
+});
+['n_nombre_taller','n_contacto_correo','n_contacto_telefono'].forEach(id=>$(id).addEventListener('input',()=>{$('dupAviso').innerHTML='';delete $('dupAviso').dataset.ok;}));
+
+// ---------- Ficha ----------
+$('modalBg').addEventListener('click',(e)=>{if(e.target===$('modalBg'))cerrar();});
+function cerrar(){$('modalBg').classList.remove('on');}
+async function abrirFicha(id){
+  const p=prospectos.find(x=>x.id===id); if(!p) return;
+  const editable=esAdmin||(yo&&p.responsable_vendedor_id===yo.id), dis=editable?'':'disabled';
+  const [{data:cts},{data:his}]=await Promise.all([
+    sb.from('prospecto_contactos').select('*').eq('prospecto_id',id).order('es_principal',{ascending:false}),
+    sb.from('prospecto_interacciones').select('*').eq('prospecto_id',id).order('fecha',{ascending:false})]);
+  const estadoOpts=Object.fromEntries(Object.entries(ESTADOS).filter(([k])=>esAdmin||k!=='alta_enviada'||p.estado==='alta_enviada'));
+  const cierre=p.cerrado_por_vendedor_id?`<div class="box"><h3 style="font-size:14px;margin-bottom:6px;">Venta cerrada</h3><div class="sub">Cerró: <b>${esc(nombres[p.cerrado_por_vendedor_id]||'—')}</b> el ${fmtDia(p.cerrado_at)}. Generó el contacto: <b>${esc(nombres[p.generado_por_vendedor_id]||'—')}</b>.<br>Comisión pactada: ${p.comision_pct_pactada!=null?esc(p.comision_pct_pactada)+'% '+esc(p.comision_base_pactada||'bruto')+' durante '+esc(p.comision_meses_pactados)+' meses (desde la primera factura emitida)':'aún sin definir por finanzas'}.</div></div>`:'';
+  $('modal').innerHTML=`
+    <div class="modal-head"><div><h2 style="font-size:19px;">${esc(p.nombre_taller)}</h2><div class="sub">${esc(p.empresa_grupo||'')}${p.empresa_grupo&&p.comuna?' · ':''}${esc(p.comuna||'')} · generó ${esc(nombres[p.generado_por_vendedor_id]||'landing')} · responsable ${esc(nombres[p.responsable_vendedor_id]||'sin asignar')}</div></div><button class="x" id="mx" aria-label="Cerrar">×</button></div>
+    ${editable?'':'<div class="warn">Solo lectura: este prospecto lo trabaja otra persona.</div>'}
+    ${(esAdmin&&yo&&p.responsable_vendedor_id!==yo.id)?'<button class="btn ghost sm" id="asignarme" style="margin-bottom:12px;">Asignarme este prospecto</button>':''}
+    <div class="form-grid">
+      <div><label>Estado</label><select id="f_estado" ${dis}>${opts(estadoOpts,p.estado)}</select></div>
+      <div><label>Prioridad</label><select id="f_prioridad" ${dis}>${opts({alta:'Alta',media:'Media',baja:'Baja'},p.prioridad)}</select></div>
+      <div><label>Próxima acción</label><input id="f_proxima_accion" value="${esc(p.proxima_accion||'')}" ${dis}></div>
+      <div><label>¿Cuándo?</label><input id="f_proxima_at" type="datetime-local" value="${aLocal(p.proxima_accion_at)}" ${dis}></div>
+      <div><label>Probabilidad de cierre (%)</label><input id="f_prob" type="number" min="0" max="100" value="${p.probabilidad_cierre??''}" ${dis}></div>
+      <div><label>Traslados estimados al mes</label><input id="f_traslados" type="number" min="0" value="${p.traslados_estimados_num??''}" ${dis}></div>
+      <div><label>Cómo mueve hoy los autos</label><input id="f_servicio" value="${esc(p.servicio_actual||'')}" ${dis}></div>
+      <div><label>Paga hoy por traslado ($)</label><input id="f_tarifa" type="number" min="0" value="${p.tarifa_competencia??''}" ${dis}></div>
+      <div><label>Tipo de cliente</label><select id="f_tipo" ${dis}>${opts(TIPOS_CLIENTE,p.tipo_cliente||'')}</select></div>
+      <div><label>N.º de locales</label><input id="f_locales" type="number" min="1" value="${p.n_locales??''}" ${dis}></div>
+      <div><label>RUT de la empresa</label><input id="f_rut" value="${esc(p.rut||'')}" ${dis}></div>
+      <div><label>Comuna</label><input id="f_comuna" value="${esc(p.comuna||'')}" ${dis}></div>
+    </div>
+    <label>Quién decide y cómo</label><textarea id="f_decision" ${dis}>${esc(p.decision_proceso||'')}</textarea>
+    <label>Objeciones</label><textarea id="f_obj" ${dis}>${esc(p.objeciones||'')}</textarea>
+    <label>Notas</label><textarea id="f_notas" ${dis}>${esc(p.notas||'')}</textarea>
+    <div id="descWrap" style="display:${p.estado==='descartado'?'block':'none'};"><label>Motivo del descarte</label><select id="f_desc" ${dis}>${opts(DESCARTE,p.motivo_descarte_categoria||'')}</select></div>
+    <label style="display:flex;align-items:center;"><input type="checkbox" id="f_nocontactar" ${p.no_contactar?'checked':''} ${dis}> No contactar más (pidió que no le escribamos)</label>
+    ${editable?'<button class="btn teal full" id="guardarFicha" style="margin-top:12px;">Guardar cambios</button>':''}
+    ${(esAdmin&&['acuerdo_cerrado','alta_enviada'].includes(p.estado)&&!p.cliente_facturacion_id)?`<button class="btn ghost full" id="enviarAlta" style="margin-top:8px;">${p.estado==='alta_enviada'?'Reenviar':'Enviar'} enlace de alta al taller</button>`:''}
+    <div class="msg" id="fichaMsg"></div>
+    ${cierre}
+    <div class="box"><h3 style="font-size:14px;margin-bottom:8px;">Contactos</h3>
+      ${(cts||[]).map(c=>`<div class="hist-item"><b>${esc(c.nombre)}</b>${c.es_principal?' <span class="tag">principal</span>':''} ${c.rol_decision?'<span class="tag">'+esc(ROL_DECISION[c.rol_decision])+'</span>':''}<small>${esc(c.cargo||'')}${c.telefono?' · '+esc(c.telefono):''}${c.correo?' · '+esc(c.correo):''}</small></div>`).join('')||'<div class="sub">Sin contactos registrados.</div>'}
+      ${editable?`<details style="margin-top:10px;"><summary style="font-size:12.5px;cursor:pointer;color:var(--teal-deep);font-weight:600;">Agregar otra persona</summary><div class="form-grid" style="margin-top:10px;"><div><label>Nombre *</label><input id="c_nombre"></div><div><label>Cargo</label><input id="c_cargo"></div><div><label>Teléfono</label><input id="c_tel"></div><div><label>Correo</label><input id="c_correo"></div><div><label>Rol en la decisión</label><select id="c_rol">${opts(ROL_DECISION,'')}</select></div></div><button class="btn ghost sm" id="addContacto">Agregar contacto</button></details>`:''}
+    </div>
+    <div class="box"><h3 style="font-size:14px;margin-bottom:8px;">Historial</h3>
+      ${editable?`<div class="form-grid"><div><label>Qué hiciste</label><select id="h_tipo">${opts(Object.fromEntries(Object.entries(INTERACCION).filter(([k])=>k!=='cambio_estado')),'llamada')}</select></div><div><label>Resultado</label><input id="h_res" placeholder="Ej: pidió cotización"></div></div><label>Detalle</label><textarea id="h_det"></textarea><div class="form-grid"><div><label>Próxima acción</label><input id="h_prox"></div><div><label>¿Cuándo?</label><input id="h_prox_at" type="datetime-local"></div></div><button class="btn sm" id="addInter">Registrar</button>`:''}
+      <div style="margin-top:12px;">${(his||[]).map(h=>`<div class="hist-item"><b>${esc(INTERACCION[h.tipo]||h.tipo)}</b>${h.resultado?' · '+esc(h.resultado):''}<small>${fmtFecha(h.fecha)} · ${esc(nombres[h.vendedor_id]||h.actor_correo||'')}</small>${h.detalle?esc(h.detalle):''}</div>`).join('')||'<div class="sub">Aún no hay movimientos.</div>'}</div>
+    </div>`;
+  $('modalBg').classList.add('on');
+  $('mx').onclick=cerrar;
+  const fe=$('f_estado'); if(fe) fe.addEventListener('change',()=>{$('descWrap').style.display=fe.value==='descartado'?'block':'none';});
+  const as=$('asignarme'); if(as) as.onclick=async()=>{const {error}=await sb.from('interesados_taller').update({responsable_vendedor_id:yo.id}).eq('id',id); if(error) return toast('No se pudo asignar'); toast('Asignado a ti'); await cargar(); abrirFicha(id);};
+  const gf=$('guardarFicha'); if(gf) gf.onclick=()=>guardarFicha(p);
+  const ac=$('addContacto'); if(ac) ac.onclick=async()=>{
+    const nombre=$('c_nombre').value.trim(); if(!nombre) return toast('Falta el nombre');
+    const {error}=await sb.from('prospecto_contactos').insert({prospecto_id:id,nombre,cargo:$('c_cargo').value.trim()||null,telefono:tel($('c_tel').value),correo:$('c_correo').value.trim()||null,rol_decision:$('c_rol').value||null});
+    if(error) return toast('No se pudo agregar'); toast('Contacto agregado'); abrirFicha(id);};
+  const ea=$('enviarAlta'); if(ea) ea.onclick=async()=>{ea.disabled=true;ea.textContent='Enviando...';
+    const {data,error}=await sb.functions.invoke('enviar-enlace-alta',{body:{prospecto_id:id}});
+    const ok=!error&&data&&data.ok; toast(ok?'Enlace enviado al correo del taller':'No se pudo enviar: '+((data&&data.correo&&data.correo.motivo)||(error&&error.message)||'error')); await cargarProsp(); pintar(); abrirFicha(id);};
+  const ai=$('addInter'); if(ai) ai.onclick=()=>registrarInteraccion(p);
+}
+async function guardarFicha(p){
+  const v=(id)=>$(id).value.trim(), estado=v('f_estado');
+  if(estado==='descartado'&&!v('f_desc')) return msg('fichaMsg','Elige el motivo del descarte.','err');
+  if(estado==='acuerdo_cerrado'&&p.estado!=='acuerdo_cerrado'&&!confirm('Vas a marcar el acuerdo como cerrado. La venta y su comisión quedan registradas a nombre de quien la cierra. ¿Confirmas?')) return;
+  const upd={estado,prioridad:v('f_prioridad'),proxima_accion:v('f_proxima_accion')||null,proxima_accion_at:aISO(v('f_proxima_at')),
+    probabilidad_cierre:num(v('f_prob')),traslados_estimados_num:num(v('f_traslados')),traslados_estimados_mes:num(v('f_traslados'))!=null?String(num(v('f_traslados'))):null,
+    servicio_actual:v('f_servicio')||null,tarifa_competencia:num(v('f_tarifa')),tipo_cliente:v('f_tipo')||null,n_locales:num(v('f_locales')),rut:v('f_rut')||null,comuna:v('f_comuna')||null,
+    decision_proceso:v('f_decision')||null,objeciones:v('f_obj')||null,notas:v('f_notas')||null,no_contactar:$('f_nocontactar').checked,
+    motivo_descarte_categoria:estado==='descartado'?v('f_desc'):null};
+  const b=$('guardarFicha'); b.disabled=true;
+  const {error}=await sb.from('interesados_taller').update(upd).eq('id',p.id);
+  b.disabled=false;
+  if(error) return msg('fichaMsg','No se pudo guardar: '+error.message,'err');
+  toast('Cambios guardados'); await cargar(); abrirFicha(p.id);
+}
+async function registrarInteraccion(p){
+  const tipo=$('h_tipo').value, det=$('h_det').value.trim(), res=$('h_res').value.trim();
+  if(!det&&!res) return toast('Escribe el resultado o el detalle');
+  const b=$('addInter'); b.disabled=true;
+  const {error}=await sb.from('prospecto_interacciones').insert({prospecto_id:p.id,tipo,resultado:res||null,detalle:det||null});
+  if(error){ b.disabled=false; return toast('No se pudo registrar'); }
+  const upd={}; if($('h_prox').value.trim()){upd.proxima_accion=$('h_prox').value.trim();upd.proxima_accion_at=aISO($('h_prox_at').value);}
+  if(p.estado==='nuevo'&&CONTACTO_TIPOS.includes(tipo)) upd.estado='contactado';
+  if(Object.keys(upd).length) await sb.from('interesados_taller').update(upd).eq('id',p.id);
+  toast('Registrado'); await cargar(); abrirFicha(p.id);
+}
+
+// ---------- Mis comisiones ----------
+async function pintarComisiones(){
+  const el=$('v-comisiones');
+  if(!yo){ el.innerHTML='<div class="empty">Tu cuenta es de administrador y no tiene un perfil de vendedor, así que no tienes comisiones propias. El detalle de todo el equipo está en el panel de comisiones del admin.</div>'; return; }
+  el.innerHTML='<div class="empty">Cargando...</div>';
+  const [r,ac,li,pg]=await Promise.all([
+    sb.from('crm_comisiones_resumen').select('*').eq('vendedor_id',yo.id).maybeSingle(),
+    sb.from('crm_acuerdos_comision').select('*').eq('vendedor_id',yo.id),
+    sb.from('comisiones').select('*, interesados_taller(nombre_taller)').eq('vendedor_id',yo.id).order('fecha_devengo',{ascending:false}).limit(100),
+    sb.from('pagos_comision').select('*').eq('vendedor_id',yo.id).order('created_at',{ascending:false})]);
+  const s=r.data||{};
+  el.innerHTML=`<h2 class="sec-title">Mis comisiones</h2>
+    <p class="hint">Se calculan sobre lo facturado a los clientes que cerraste, durante el plazo acordado. Pasan a «por pagar» cuando el cliente paga la factura.</p>
+    <div class="stats"><div class="stat"><b>${fmtMonto(s.esperando_pago_cliente)}</b><span>Esperando pago del cliente</span></div><div class="stat"><b>${fmtMonto(s.por_pagar)}</b><span>Por pagar</span></div><div class="stat"><b>${fmtMonto(s.pagado)}</b><span>Ya pagado</span></div><div class="stat"><b>${fmtMonto(s.total_generado)}</b><span>Total generado</span></div></div>
+    ${(s.facturas_sin_configurar>0)?`<div class="warn">Tienes ${s.facturas_sin_configurar} factura(s) con comisión sin configurar: finanzas aún no define tu porcentaje y plazo. Se calcularán apenas lo definan.</div>`:''}
+    <h2 class="sec-title">Mis acuerdos</h2>
+    <div class="grid">${(ac.data||[]).map(a=>`<div class="pcard" style="cursor:default;"><div class="row"><h3>${esc(a.nombre_taller)}</h3><span class="tag ${a.estado_acuerdo}">${esc(ESTADO_AC[a.estado_acuerdo])}</span></div>
+      <div class="sub">${a.pct!=null?esc(a.pct)+'% sobre '+esc(a.base)+' por '+esc(a.meses)+' meses':'Condiciones por definir'}</div>
+      <div class="sub">${a.inicio?'Desde '+fmtDia(a.inicio)+' hasta '+fmtDia(a.fin):'El plazo parte con la primera factura emitida'}</div>
+      <div class="sub">Facturado en plazo: <b>${fmtMonto(a.facturado_en_plazo)}</b> · Comisión: <b>${fmtMonto(a.comision_generada)}</b></div></div>`).join('')||'<div class="empty" style="grid-column:1/-1;">Cuando cierres una venta, su acuerdo aparecerá aquí.</div>'}</div>
+    <h2 class="sec-title">Detalle por factura</h2>
+    <div class="tablewrap"><table><thead><tr><th>Cliente</th><th>Emisión</th><th>Base</th><th>%</th><th>Comisión</th><th>Estado</th></tr></thead><tbody>${(li.data||[]).map(c=>`<tr><td>${esc(c.interesados_taller?c.interesados_taller.nombre_taller:'—')}</td><td>${fmtDia(c.fecha_devengo)}</td><td>${c.base_monto!=null?fmtMonto(c.base_monto):'—'}</td><td>${c.pct!=null?esc(c.pct)+'%':'—'}</td><td>${fmtMonto(c.monto_comision)}</td><td><span class="tag ${c.estado}">${esc(ESTADO_COM[c.estado])}</span></td></tr>`).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--ink-dim);">Aún no hay facturas con comisión.</td></tr>'}</tbody></table></div>
+    <h2 class="sec-title">Mis pagos</h2>
+    <div class="tablewrap"><table><thead><tr><th>Período</th><th>Monto</th><th>Estado</th><th>Pagado el</th><th>Comprobante</th></tr></thead><tbody>${(pg.data||[]).map(p=>`<tr><td>${fmtDia(p.periodo_desde)} – ${fmtDia(p.periodo_hasta)}</td><td>${fmtMonto(p.monto_total)}</td><td><span class="tag ${p.estado==='pagada'?'pagada':'devengada'}">${p.estado==='pagada'?'Pagado':'Pendiente de pago'}</span></td><td>${p.fecha_pago?fmtDia(p.fecha_pago):'—'}</td><td>${esc(p.referencia||'—')}</td></tr>`).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--ink-dim);">Todavía no tienes pagos.</td></tr>'}</tbody></table></div>`;
+}
+
+// ---------- Resumen ----------
+async function pintarResumen(){
+  const [r,e,a]=await Promise.all([sb.from('crm_comisiones_resumen').select('*'),sb.from('crm_resumen_vendedor').select('*'),sb.from('crm_acuerdos_comision').select('*')]);
+  const rs=r.data||[], em=e.data||[], ac=a.data||[], suma=(k)=>rs.reduce((t,x)=>t+(x[k]||0),0);
+  const sinResp=prospectos.filter(p=>!p.responsable_vendedor_id&&p.estado!=='descartado').length;
+  const sinVinc=ac.filter(x=>!x.cliente_facturacion_id).length, sinCfg=ac.filter(x=>x.estado_acuerdo==='sin_config').length;
+  const porVencer=ac.filter(x=>x.estado_acuerdo==='vigente'&&x.fin&&(new Date(x.fin)-new Date())<30*864e5).length;
+  const sinFact=suma('facturas_sin_configurar');
+  const al=[];
+  if(sinResp)al.push([`${sinResp} prospecto(s) sin responsable`,'reparto']);
+  if(sinVinc)al.push([`${sinVinc} venta(s) cerrada(s) sin cliente de facturación vinculado: no generarán comisión`,'reparto']);
+  if(sinCfg)al.push([`${sinCfg} acuerdo(s) sin % ni plazo definidos`,'acuerdos']);
+  if(sinFact)al.push([`${sinFact} factura(s) con comisión sin configurar`,'libro']);
+  if(porVencer)al.push([`${porVencer} acuerdo(s) vencen en los próximos 30 días`,'acuerdos']);
+  $('nSin').textContent=sinResp+sinVinc;$('nSin').style.display=(sinResp+sinVinc)?'inline':'none';$('nAc').textContent=sinCfg;$('nAc').style.display=sinCfg?'inline':'none';
+  $('v-resumen').innerHTML=`<h2 class="sec-title">Resumen comercial</h2>
+    <div class="stats"><div class="stat"><b>${fmtMonto(suma('esperando_pago_cliente'))}</b><span>Esperando pago del cliente</span></div><div class="stat"><b>${fmtMonto(suma('por_pagar'))}</b><span>Por pagar a vendedores</span></div><div class="stat"><b>${fmtMonto(suma('pagado'))}</b><span>Ya pagado</span></div><div class="stat"><b>${fmtMonto(suma('total_generado'))}</b><span>Total comisiones generadas</span></div></div>
+    <div class="alerts">${al.map(([t,v])=>`<div class="alert"><span>${esc(t)}</span><button class="btn sm ghost" onclick="irA('${v}')">Ver</button></div>`).join('')}</div>
+    <h2 class="sec-title">Por vendedor</h2>
+    <div class="tablewrap"><table><thead><tr><th>Vendedor</th><th>Prospectos generados</th><th>En gestión</th><th>Por contactar</th><th>Ventas cerradas</th><th>Esperando cobro</th><th>Por pagar</th><th>Pagado</th></tr></thead><tbody>${em.map(x=>{const m=rs.find(y=>y.vendedor_id===x.vendedor_id)||{};return `<tr><td><b>${esc(x.nombre)}</b> ${x.activo?'':'<span class="tag inactivo">inactivo</span>'}</td><td>${x.generados}</td><td>${x.en_gestion}</td><td>${x.por_contactar}</td><td>${x.cerrados}</td><td>${fmtMonto(m.esperando_pago_cliente)}</td><td>${fmtMonto(m.por_pagar)}</td><td>${fmtMonto(m.pagado)}</td></tr>`;}).join('')||'<tr><td colspan="8" class="vacio">Sin vendedores.</td></tr>'}</tbody></table></div>`;
+}
+
+// ---------- Equipo ----------
+function pintarEquipo(){
+  $('listaEquipo').innerHTML=vendedores.map(v=>`<div class="card" data-id="${v.id}">
+    <div class="row"><div><h3>${esc(v.nombre)}</h3><div class="sub">${esc(v.correo)}</div></div><span class="tag ${v.activo?'activo':'inactivo'}">${v.activo?'Activo':'Inactivo'}</span></div>
+    <div class="g2"><div><label>% comisión</label><input class="q-pct" type="number" min="0" max="100" step="0.01" value="${v.comision_pct??''}"></div><div><label>Plazo (meses)</label><input class="q-meses" type="number" min="1" value="${v.comision_meses??''}"></div></div>
+    <label>Base</label><select class="q-base"><option value="bruto" ${v.comision_base==='bruto'?'selected':''}>Bruto (monto facturado)</option><option value="neto" ${v.comision_base==='neto'?'selected':''}>Neto (menos pago a choferes)</option></select>
+    <label>Teléfono</label><input class="q-tel" value="${esc(v.telefono||'')}">
+    <div style="display:flex;gap:8px;"><button class="btn sm q-guardar">Guardar</button><button class="btn sm ${v.activo?'red':'ghost'} q-activo">${v.activo?'Desactivar':'Reactivar'}</button></div></div>`).join('')||'<div class="empty">Aún no hay vendedores.</div>';
+  $('listaEquipo').querySelectorAll('.card').forEach(c=>{
+    const id=c.dataset.id;
+    c.querySelector('.q-guardar').onclick=async()=>{const {error}=await sb.from('vendedores').update({comision_pct:num(c.querySelector('.q-pct').value),comision_meses:num(c.querySelector('.q-meses').value),comision_base:c.querySelector('.q-base').value,telefono:c.querySelector('.q-tel').value.trim()||null}).eq('id',id);
+      if(error)return alert('No se pudo guardar: '+error.message);toast('Condiciones guardadas (aplican a ventas nuevas)');await cargarBase();pintarEquipo();};
+    c.querySelector('.q-activo').onclick=async()=>{const v=vendedores.find(x=>x.id===id);if(v.activo&&!confirm('¿Desactivar a este vendedor? Pierde el acceso y se conserva su historial.'))return;
+      const {error}=await sb.from('vendedores').update({activo:!v.activo}).eq('id',id);if(error)return alert('No se pudo actualizar: '+error.message);await cargarBase();pintarTodo();};
+  });
+}
+$('e_crear').onclick=async()=>{
+  const er=$('eErr');er.style.display='none';
+  const body={nombre:$('e_nombre').value.trim(),correo:$('e_correo').value.trim(),telefono:$('e_tel').value.trim(),comision_base:$('e_base').value,comision_pct:$('e_pct').value,comision_meses:$('e_meses').value};
+  if(!body.nombre||!body.correo){er.textContent='Completa nombre y correo.';er.style.display='block';return;}
+  const b=$('e_crear');b.disabled=true;b.textContent='Creando...';
+  const {data,error}=await sb.functions.invoke('admin-gestionar-vendedor',{body});
+  b.disabled=false;b.textContent='Crear vendedor y dar acceso';
+  let det=null;if(error){try{det=(await error.context.json()).error;}catch(_){}} if(error||data?.error){er.textContent=det||data?.error||error.message;er.style.display='block';return;}
+  ['e_nombre','e_correo','e_tel','e_pct','e_meses'].forEach(i=>$(i).value='');toast(data.reactivado?'Vendedor reactivado':'Vendedor creado, ya puede ingresar');await cargarBase();pintarTodo();
+};
+
+// ---------- Reparto de prospectos ----------
+function pintarProsp(){
+  const f=$('pFiltro').value,q=$('pBuscar').value.trim().toLowerCase();
+  let l=prospectos.filter(p=>p.estado!=='descartado'||f==='todos');
+  if(f==='sin')l=l.filter(p=>!p.responsable_vendedor_id);
+  else if(f==='vincular')l=l.filter(p=>p.cerrado_por_vendedor_id&&!p.cliente_facturacion_id);
+  if(q)l=l.filter(p=>(p.nombre_taller||'').toLowerCase().includes(q));
+  const vopt=(sel)=>'<option value="">— sin asignar —</option>'+vendedores.filter(v=>v.activo||v.id===sel).map(v=>`<option value="${v.id}" ${sel===v.id?'selected':''}>${esc(v.nombre)}</option>`).join('');
+  const copt=(sel)=>'<option value="">— sin vincular —</option>'+clientes.map(c=>`<option value="${c.id}" ${sel===c.id?'selected':''}>${esc(c.razon_social)} (${esc(c.rut)})</option>`).join('');
+  $('tProsp').innerHTML=l.map(p=>`<tr data-id="${p.id}"><td><b>${esc(p.nombre_taller)}</b></td><td>${esc(ESTADOS[p.estado]||p.estado)}</td><td>${esc(nomV(p.generado_por_vendedor_id))}</td>
+    <td><select class="s-resp">${vopt(p.responsable_vendedor_id)}</select></td>
+    <td>${p.cerrado_por_vendedor_id?`<select class="s-cerro">${vopt(p.cerrado_por_vendedor_id)}</select>`:'—'}</td>
+    <td>${p.cerrado_por_vendedor_id?`<select class="s-cli">${copt(p.cliente_facturacion_id)}</select>`:'<span class="sub">Se vincula al cerrar la venta</span>'}</td></tr>`).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--dim);">Nada pendiente en esta lista.</td></tr>';
+  $('tProsp').querySelectorAll('tr[data-id]').forEach(tr=>{const id=tr.dataset.id;
+    const r=tr.querySelector('.s-resp');if(r)r.onchange=async()=>{const {error}=await sb.from('interesados_taller').update({responsable_vendedor_id:r.value||null}).eq('id',id);if(error)return alert(error.message);toast('Responsable actualizado');await cargarBase();pintarTodo();};
+    const c=tr.querySelector('.s-cerro');if(c)c.onchange=async()=>{if(!c.value)return;if(!confirm('Cambiar quién cerró la venta modifica a quién se le paga la comisión. ¿Confirmas?')){pintarProsp();return;}
+      const {error}=await sb.from('interesados_taller').update({cerrado_por_vendedor_id:c.value}).eq('id',id);if(error)return alert(error.message);toast('Actualizado');await cargarBase();pintarTodo();};
+    const k=tr.querySelector('.s-cli');if(k)k.onchange=async()=>{if(!k.value)return;const {error}=await sb.rpc('crm_vincular_cliente',{p_prospecto_id:id,p_cliente_id:k.value});if(error)return alert(error.message);toast('Cliente vinculado');await cargarBase();pintarTodo();};
+  });
+}
+$('pFiltro').onchange=pintarProsp;$('pBuscar').oninput=pintarProsp;
+
+// ---------- Acuerdos ----------
+async function pintarAcuerdos(){
+  const {data}=await sb.from('crm_acuerdos_comision').select('*').order('nombre_taller');
+  const l=data||[];
+  $('tAc').innerHTML=l.map(a=>`<tr><td><b>${esc(a.nombre_taller)}</b><div class="sub">${a.cliente_facturacion_id?esc(a.cliente||''):'<span style="color:var(--coral);font-weight:600;">Sin cliente vinculado</span>'}</div></td><td>${esc(a.vendedor||'—')}</td>
+    <td>${a.pct!=null?esc(a.pct)+'% '+esc(a.base):'<span class="tag sin_config">sin definir</span>'}${a.meses?' · '+esc(a.meses)+' m':''}</td><td>${a.inicio?fmtDia(a.inicio)+' → '+fmtDia(a.fin):'<span class="sub">parte con la 1.ª factura</span>'}</td>
+    <td><span class="tag ${a.estado_acuerdo}">${esc(ESTADO_AC[a.estado_acuerdo])}</span></td><td>${fmtMonto(a.facturado_en_plazo)}</td><td>${fmtMonto(a.comision_generada)}</td><td><button class="btn sm ghost" data-ed="${a.prospecto_id}">Editar</button></td></tr>`).join('')||'<tr><td colspan="8" style="text-align:center;color:var(--dim);">Cuando se cierre una venta, su acuerdo aparece aquí.</td></tr>';
+  $('tAc').querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>editarAcuerdo(l.find(x=>x.prospecto_id===b.dataset.ed)));
+}
+function editarAcuerdo(a){
+  modal(`<button class="x">×</button><h3>Acuerdo: ${esc(a.nombre_taller)}</h3><p class="hint">Vendedor: <b>${esc(a.vendedor||'—')}</b>. Cambiar el % aplica a las facturas que se emitan desde ahora; las ya calculadas no se modifican (si hay un error, usa «Anular» en el libro).</p>
+    <div class="g2"><div><label>% de comisión</label><input id="a_pct" type="number" min="0" max="100" step="0.01" value="${a.pct??''}"></div><div><label>Plazo (meses)</label><input id="a_meses" type="number" min="1" value="${a.meses??''}"></div>
+    <div><label>Base</label><select id="a_base"><option value="bruto" ${a.base==='bruto'?'selected':''}>Bruto</option><option value="neto" ${a.base==='neto'?'selected':''}>Neto</option></select></div>
+    <div><label>Inicio del plazo (1.ª factura)</label><input id="a_inicio" type="date" value="${a.inicio?new Date(a.inicio).toISOString().slice(0,10):''}"></div></div>
+    <button class="btn full" id="a_guardar">Guardar acuerdo</button>`);
+  $('a_guardar').onclick=async()=>{const ini=$('a_inicio').value;
+    const {error}=await sb.from('interesados_taller').update({comision_pct_pactada:num($('a_pct').value),comision_meses_pactados:num($('a_meses').value),comision_base_pactada:$('a_base').value,comision_inicio_at:ini?new Date(ini+'T12:00:00').toISOString():null}).eq('id',a.prospecto_id);
+    if(error)return alert('No se pudo guardar: '+error.message);cerrar();toast('Acuerdo actualizado');pintarTodo();};
+}
+
+// ---------- Libro ----------
+function pintarLibroFiltros(){$('lVend').innerHTML='<option value="">Todos los vendedores</option>'+vendedores.map(v=>`<option value="${v.id}">${esc(v.nombre)}</option>`).join('');}
+async function pintarLibro(){
+  let q=sb.from('comisiones').select('*, interesados_taller(nombre_taller), facturas(numero_folio)').order('fecha_devengo',{ascending:false}).limit(500);
+  if($('lEstado').value)q=q.eq('estado',$('lEstado').value);if($('lVend').value)q=q.eq('vendedor_id',$('lVend').value);
+  const {data,error}=await q;if(error){$('tLibro').innerHTML=`<tr><td colspan="9">${esc(error.message)}</td></tr>`;return;}
+  libro=data||[];
+  $('tLibro').innerHTML=libro.map(c=>`<tr><td>${fmtDia(c.fecha_devengo)}</td><td>${c.facturas&&c.facturas.numero_folio?'Folio '+esc(c.facturas.numero_folio):'—'}</td><td>${esc(c.interesados_taller?c.interesados_taller.nombre_taller:'—')}</td><td>${esc(nomV(c.vendedor_id))}</td><td>${c.base_monto!=null?fmtMonto(c.base_monto):'—'}</td><td>${c.pct!=null?esc(c.pct)+'%':'—'}</td><td>${fmtMonto(c.monto_comision)}</td><td><span class="tag ${c.estado}">${esc(ESTADO_COM[c.estado])}</span>${c.nota?`<div class="sub">${esc(c.nota)}</div>`:''}</td><td>${c.estado!=='pagada'&&c.estado!=='anulada'?`<button class="btn sm red" data-an="${c.id}">Anular</button>`:''}</td></tr>`).join('')||'<tr><td colspan="9" style="text-align:center;color:var(--dim);">Todavía no hay comisiones.</td></tr>';
+  $('tLibro').querySelectorAll('[data-an]').forEach(b=>b.onclick=async()=>{const n=prompt('Motivo de la anulación (queda registrado):');if(!n)return;
+    const {error}=await sb.rpc('anular_comision',{p_id:b.dataset.an,p_nota:n});if(error)return alert(error.message);toast('Comisión anulada');pintarLibro();pintarResumen();});
+}
+$('lEstado').onchange=pintarLibro;$('lVend').onchange=pintarLibro;
+$('lExport').onclick=()=>{if(!libro.length)return alert('No hay comisiones para exportar.');
+  const f=libro.map(c=>({Emisión:fmtDia(c.fecha_devengo),Factura:c.facturas?c.facturas.numero_folio||'':'',Cliente:c.interesados_taller?c.interesados_taller.nombre_taller:'',Vendedor:nomV(c.vendedor_id),Base:c.base_monto||0,'Tipo de base':c.base_tipo||'','%':c.pct||0,Comisión:c.monto_comision||0,Estado:ESTADO_COM[c.estado]||c.estado,Nota:c.nota||''}));
+  const w=XLSX.utils.book_new();XLSX.utils.book_append_sheet(w,XLSX.utils.json_to_sheet(f),'Comisiones');XLSX.writeFile(w,'comisiones_movikar_'+new Date().toISOString().slice(0,10)+'.xlsx');};
+
+// ---------- Liquidaciones ----------
+async function pintarPagos(){
+  const [r,p]=await Promise.all([sb.from('crm_comisiones_resumen').select('*'),sb.from('pagos_comision').select('*').order('created_at',{ascending:false})]);
+  const rs=(r.data||[]).filter(x=>x.por_pagar>0), pagos=p.data||[];
+  const pend=pagos.filter(x=>x.estado==='pendiente').reduce((t,x)=>t+x.monto_total,0);
+  $('pagosResumen').innerHTML=(rs.map(x=>`<div class="stat"><b>${fmtMonto(x.por_pagar)}</b><span>${esc(x.nombre)} — por liquidar</span><div style="margin-top:8px;"><button class="btn sm" data-gen="${x.vendedor_id}">Generar liquidación</button></div></div>`).join('')||'<div class="empty" style="grid-column:1/-1;">No hay comisiones por pagar. Aparecen cuando un cliente paga su factura.</div>')+(pend?`<div class="stat"><b>${fmtMonto(pend)}</b><span>Liquidaciones pendientes de pago</span></div>`:'');
+  $('pagosResumen').querySelectorAll('[data-gen]').forEach(b=>b.onclick=async()=>{if(!confirm('¿Generar la liquidación con todas las comisiones por pagar de este vendedor?'))return;
+    const {error}=await sb.rpc('generar_pago_comision',{p_vendedor_id:b.dataset.gen});if(error)return alert(error.message);toast('Liquidación generada');pintarPagos();pintarResumen();});
+  $('tPagos').innerHTML=pagos.map(x=>`<tr><td><b>${esc(nomV(x.vendedor_id))}</b></td><td>${fmtDia(x.periodo_desde)} – ${fmtDia(x.periodo_hasta)}${x.referencia?`<div class="sub">${esc(x.metodo||'')} · ${esc(x.referencia)}</div>`:''}</td><td>${fmtMonto(x.monto_total)}</td><td><span class="tag ${x.estado==='pagada'?'pagada':'devengada'}">${x.estado==='pagada'?'Pagada':'Pendiente de pago'}</span></td>
+    <td style="white-space:nowrap;"><button class="btn sm ghost" data-det="${x.id}">Detalle</button> ${x.estado==='pendiente'?`<button class="btn sm" data-pay="${x.id}">Marcar pagada</button> <button class="btn sm red" data-anu="${x.id}">Anular</button>`:''}</td></tr>`).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--dim);">Aún no hay liquidaciones.</td></tr>';
+  $('tPagos').querySelectorAll('[data-det]').forEach(b=>b.onclick=()=>detallePago(pagos.find(x=>x.id===b.dataset.det)));
+  $('tPagos').querySelectorAll('[data-pay]').forEach(b=>b.onclick=()=>marcarPagada(b.dataset.pay));
+  $('tPagos').querySelectorAll('[data-anu]').forEach(b=>b.onclick=async()=>{if(!confirm('¿Anular esta liquidación pendiente? Sus comisiones vuelven a quedar por pagar.'))return;
+    const {error}=await sb.rpc('anular_pago_comision_pendiente',{p_pago_id:b.dataset.anu});if(error)return alert(error.message);toast('Liquidación anulada');pintarPagos();});
+}
+async function detallePago(p){
+  const {data}=await sb.from('comisiones').select('*, interesados_taller(nombre_taller), facturas(numero_folio)').eq('pago_comision_id',p.id).order('fecha_devengo');
+  const l=data||[];
+  modal(`<button class="x">×</button><h3>Liquidación de ${esc(nomV(p.vendedor_id))} · ${fmtMonto(p.monto_total)}</h3><div class="tablewrap"><table><thead><tr><th>Emisión</th><th>Factura</th><th>Cliente</th><th>Base</th><th>%</th><th>Comisión</th></tr></thead><tbody>${l.map(c=>`<tr><td>${fmtDia(c.fecha_devengo)}</td><td>${c.facturas&&c.facturas.numero_folio?esc(c.facturas.numero_folio):'—'}</td><td>${esc(c.interesados_taller?c.interesados_taller.nombre_taller:'')}</td><td>${fmtMonto(c.base_monto)}</td><td>${esc(c.pct)}%</td><td>${fmtMonto(c.monto_comision)}</td></tr>`).join('')}</tbody></table></div><button class="btn ghost full" id="dExp" style="margin-top:12px;">Exportar liquidación a Excel</button>`);
+  $('dExp').onclick=()=>{const f=l.map(c=>({Emisión:fmtDia(c.fecha_devengo),Factura:c.facturas?c.facturas.numero_folio||'':'',Cliente:c.interesados_taller?c.interesados_taller.nombre_taller:'',Base:c.base_monto||0,'%':c.pct||0,Comisión:c.monto_comision||0}));
+    const res=[['Liquidación de comisiones',''],['Vendedor',nomV(p.vendedor_id)],['Período',fmtDia(p.periodo_desde)+' – '+fmtDia(p.periodo_hasta)],['Total',p.monto_total],['Estado',p.estado==='pagada'?'Pagada':'Pendiente de pago'],['Comprobante',p.referencia||'']];
+    const w=XLSX.utils.book_new();XLSX.utils.book_append_sheet(w,XLSX.utils.aoa_to_sheet(res),'Resumen');XLSX.utils.book_append_sheet(w,XLSX.utils.json_to_sheet(f),'Detalle');XLSX.writeFile(w,'liquidacion_comision_'+nomV(p.vendedor_id).replace(/\W+/g,'_').toLowerCase()+'.xlsx');};
+}
+function marcarPagada(id){
+  modal(`<button class="x">×</button><h3>Marcar liquidación como pagada</h3><p class="hint">Registra cómo y con qué comprobante se pagó. Las comisiones incluidas pasan a «pagada».</p>
+    <label>Método</label><select id="m_met"><option>Transferencia bancaria</option><option>Efectivo</option><option>Otro</option></select><label>N.º de comprobante o referencia</label><input id="m_ref"><button class="btn full" id="m_ok">Marcar como pagada</button>`);
+  $('m_ok').onclick=async()=>{const ref=$('m_ref').value.trim();if(!ref)return alert('Ingresa el comprobante.');
+    const {error}=await sb.rpc('marcar_pago_comision_pagado',{p_pago_id:id,p_metodo:$('m_met').value,p_referencia:ref});if(error)return alert(error.message);cerrar();toast('Liquidación pagada');pintarPagos();pintarResumen();};
+}
+</script>
+</body>
+</html>
