@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>MoviKar — Firmas de correo</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+  body{margin:0;background:#F6F9F8;font-family:Arial,Helvetica,sans-serif;color:#16302C;}
+  .wrap{max-width:760px;margin:0 auto;padding:28px 18px 60px;}
+  h1{font-size:22px;margin:0 0 6px;} p.sub{color:#5E7570;font-size:14px;margin:0 0 22px;line-height:1.5;}
+  .pasos{background:#fff;border:1px solid #DCE6E3;border-radius:12px;padding:14px 18px;font-size:13.5px;line-height:1.7;margin-bottom:26px;}
+  .caja{background:#fff;border:1px solid #DCE6E3;border-radius:14px;padding:20px;margin-bottom:22px;overflow-x:auto;}
+  .caja h2{font-size:14px;margin:0 0 14px;color:#00695E;}
+  button{background:#009688;color:#fff;border:0;border-radius:8px;padding:11px 20px;font-weight:700;font-size:14px;cursor:pointer;margin-top:16px;}
+  button:hover{background:#00695E;} button.ok{background:#1F8F5C;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Firmas de correo MoviKar</h1>
+  <p class="sub">Una por persona. Toca <b>Copiar firma</b> y pégala en Gmail.</p>
+  <div class="pasos"><b>Cómo pegarla en Gmail:</b><br>
+    1. Toca <b>Copiar firma</b> de tu tarjeta.<br>
+    2. En Gmail: ⚙️ <b>Ver todos los ajustes</b> → <b>General</b> → <b>Firma</b> → <b>Crear</b> (ponle tu nombre).<br>
+    3. Pega dentro del recuadro (Ctrl+V) y abajo da <b>Guardar cambios</b>.</div>
+  <div id="lista"></div>
+</div>
+<script>
+const BASE = 'https://movikar.vercel.app';
+const WA = '+56 9 6652 6473', WA_LINK = 'https://wa.me/56966526473';
+const PERSONAS = [
+  { id:'sergio',  nombre:'Sergio Schnohr R.',  cargo:'Gerente General',     tel:'+56 9 9099 1586' },
+  { id:'claudio', nombre:'Claudio Schnohr R.', cargo:'Gerente de Finanzas', tel:'+56 9 7478 8626' },
+  { id:'andres',  nombre:'Andrés Márquez S.',  cargo:'Gerente de Operaciones', tel:'+56 9 7511 3362' },
+];
+const F = 'font-family:Arial,Helvetica,sans-serif;';
+function firma(p){
+  const telLink = 'tel:' + p.tel.replace(/[^+\d]/g,'');
+  const fila = (etq, html) => `<tr><td style="${F}font-size:11px;font-weight:bold;color:#009688;padding:3px 10px 3px 0;letter-spacing:1px;" valign="top">${etq}</td><td style="${F}font-size:13px;color:#16302C;padding:3px 0;" valign="top">${html}</td></tr>`;
+  const a = (href, txt) => `<a href="${href}" style="color:#16302C;text-decoration:none;">${txt}</a>`;
+  return `<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;${F}">
+<tr><td colspan="3" style="padding:0 0 14px 0;"><table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;"><tr>
+<td width="55%" height="4" bgcolor="#009688" style="font-size:0;line-height:0;height:4px;">&nbsp;</td>
+<td width="25%" height="4" bgcolor="#FFD23F" style="font-size:0;line-height:0;height:4px;">&nbsp;</td>
+<td width="20%" height="4" bgcolor="#E8542F" style="font-size:0;line-height:0;height:4px;">&nbsp;</td></tr></table></td></tr>
+<tr>
+<td valign="middle" style="padding:0 16px 0 0;"><a href="${BASE}/" target="_blank"><img src="${BASE}/firma-logo.png" width="84" height="84" alt="MoviKar" style="display:block;border:0;border-radius:18px;"></a></td>
+<td width="2" bgcolor="#009688" style="width:2px;font-size:0;line-height:0;">&nbsp;</td>
+<td valign="top" style="padding:0 0 0 16px;">
+<div style="${F}font-size:20px;font-weight:bold;color:#16302C;line-height:1.2;">${p.nombre}</div>
+<div style="${F}font-size:13px;font-weight:bold;color:#009688;margin:2px 0 8px;">${p.cargo} <span style="color:#16302C;">·</span> <span style="color:#16302C;">Movi</span><span style="color:#E8542F;">Kar</span></div>
+<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+${fila('CEL', a(telLink, p.tel))}
+${fila('WSP', a(WA_LINK, WA + ' (MoviKar)'))}
+${fila('MAIL', a('mailto:movikarcl@gmail.com','movikarcl@gmail.com'))}
+${fila('WEB', a(BASE,'movikar.vercel.app'))}
+</table></td></tr>
+<tr><td colspan="3" style="padding:14px 0 0 0;"><table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;"><tr>
+
+<td style="${F}font-size:12px;font-style:italic;color:#5E7570;padding:0;">Tú reparas. Nosotros movemos.</td></tr></table></td></tr>
+<tr><td colspan="3" style="${F}font-size:10px;color:#8AA09B;padding:10px 0 0 0;">Retiro y entrega de autos para talleres mecánicos · Chile</td></tr>
+</table>`;
+}
+const lista = document.getElementById('lista');
+PERSONAS.forEach(p=>{
+  const d = document.createElement('div'); d.className='caja';
+  d.innerHTML = `<h2>${p.nombre}</h2><div id="f-${p.id}">${firma(p)}</div><button data-id="${p.id}">Copiar firma</button>`;
+  lista.appendChild(d);
+});
+lista.addEventListener('click', async e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  const el = document.getElementById('f-'+b.dataset.id);
+  try{
+    await navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([el.innerHTML],{type:'text/html'}),'text/plain':new Blob([el.innerText],{type:'text/plain'})})]);
+  }catch(_){
+    const r = document.createRange(); r.selectNode(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); document.execCommand('copy'); s.removeAllRanges();
+  }
+  document.querySelectorAll('button').forEach(x=>{x.textContent='Copiar firma';x.classList.remove('ok');});
+  b.textContent='✓ Copiada — pégala en Gmail'; b.classList.add('ok');
+});
+</script>
+</body>
+</html>
